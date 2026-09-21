@@ -7,6 +7,7 @@ const rows: Run[] = Array.from({ length: 180 }, (_, i) => ({ runId: `run-${i}`, 
 function source(data = rows) {
   const calls: URLSearchParams[] = [];
   return { calls, fetch: async (params: URLSearchParams) => {
+    assert.equal(params.get('orderBy'), 'created_at_desc', '任务接口排序必须使用枚举值，不能使用带空格的表达式');
     calls.push(params);
     const status = params.get('status'); const filtered = status ? data.filter(row => row.status === status) : data;
     const offset = Number(params.get('pageToken') || 0), size = Number(params.get('pageSize'));
@@ -98,7 +99,7 @@ test('首尾随机跳页每次只请求目标页，尾页不足 12 条不漏项�
   assert.equal(upstream.calls.length, 2);
   assert.equal(upstream.calls[1].get('pageToken'), '444');
   assert.equal(upstream.calls[1].get('pageSize'), '12');
-  assert.equal(upstream.calls[1].get('orderBy'), 'created_at desc');
+  assert.equal(upstream.calls[1].get('orderBy'), 'created_at_desc');
   assert.deepEqual(last.items.map(r => r.runId), ['r-444', 'r-445']);
   await pager.load(36, signal);
   assert.equal(upstream.calls.length, 3);

@@ -1,5 +1,6 @@
 import { parseRunFilters, readRunsPage } from '@/lib/runs';
 import { MARKET_PAGE_SIZE } from '@/lib/market';
+import { marketOffsetToken, countMarketItems } from '@/lib/market-count';
 import { NextRequest, NextResponse } from 'next/server';
 import { randomUUID } from 'node:crypto';
 import { ApiError, createSession, db, destroySession, getQuote, jsonBody, limit, quoteMatches, sameOrigin, saveQuote, sessionFromToken, unseal, upstream, type StoredQuote } from '@/lib/server';
@@ -74,8 +75,20 @@ async function handle(request: NextRequest, context: { params: Promise<{ path: s
       }
       if (route === 'balance') return json(await upstream('users/me/balance', key));
       if (route === 'market') {
-        const data = await upstream(`marketListings${query(request, ['keyword', 'pageToken'], { pageSize: String(MARKET_PAGE_SIZE) })}`, key);
-        return json({ items: data.items.map(publicListing), nextPageToken: data.nextPageToken });
+        const params = new URLSearchParams(query(request, ['keyword', 'pageToken'], { pageSize: String(MARKET_PAGE_SIZE) }).slice(1));
+        const page = request.nextUrl.searchParams.get('page');
+        if (page != null) {
+          if (!/^\d{1,7}$/.test(page) || Number(page) > 1000000) throw new ApiError('无效的页码。');
+          params.set('pageToken', marketOffsetToken(Number(page) * MARKET_PAGE_SIZE));
+        }
+        const data = await upstream(`marketListings?${params}`, key, undefined, false, request.signal);
+        return json({ items: data.items.map(publicListing), nextPageToken: data.nextPageToken, totalCount: data.totalCount });
+      }
+      if (route === 'market-count') {
+        const keyword = request.nextUrl.searchParams.get('keyword') || '';
+        if (keyword.length >= 2000) throw new ApiError('搜索词过长。');
+        const totalCount = await countMarketItems(params => upstream(`marketListings?${params}`, key, undefined, false, request.signal), keyword, request.signal);
+        return json({ items: [], totalCount });
       }
       if (path[0] === 'market' && path.length === 2) return json(publicListing(await upstream(`marketListings/${id(path[1])}`, key, undefined, false, request.signal)));
       if (path[0] === 'market' && path.length === 3 && path[2] === 'workbook') {

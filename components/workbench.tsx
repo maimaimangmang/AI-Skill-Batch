@@ -35,7 +35,7 @@ export default function Workbench() {
   const [loading, setLoading] = useState(false); const [error, setError] = useState(''); const [search, setSearch] = useState(''); const [query, setQuery] = useState('');
   const [marketPage, setMarketPage] = useState(0);
   const [marketRetry, setMarketRetry] = useState(0);
-  const marketPageCount = Math.max(1, marketPages.length);
+  const [marketCountError, setMarketCountError] = useState(false);
   const listings = marketPages[marketPage]?.items || [];
   const scrollMarketAfterLoad = useRef(false);
   const [refresh, setRefresh] = useState(0);
@@ -51,6 +51,9 @@ export default function Workbench() {
   }, [demo]);
   const marketPager = useMemo(() => createMarketPager(api, query), [api, query, refresh, connected]);
   const activeMarketPager = useRef(marketPager);
+  const marketHasPages = marketPages.length > 0;
+  const marketTotal = marketPager.totalCount;
+  const marketPageCount = marketTotal == null ? Math.max(1, marketPages.length) : Math.max(1, Math.ceil(marketTotal / MARKET_PAGE_SIZE));
   const loadAuthors = useMemo(() => createMarketAuthorLoader(api), [api, connected, refresh]);
   const [authors, setAuthors] = useState<Record<string, string | null>>({});
   useEffect(() => { setAuthors({}); }, [loadAuthors]);
@@ -79,7 +82,7 @@ export default function Workbench() {
     if (!connected || view !== 'market') return;
     if (activeMarketPager.current !== marketPager) {
       activeMarketPager.current = marketPager;
-      setMarketPages([]);
+      setMarketPages([]); setMarketCountError(false);
       if (marketPage !== 0) { setMarketPage(0); return; }
     }
     let active = true; const controller = new AbortController(); setLoading(true); setError('');
@@ -88,6 +91,14 @@ export default function Workbench() {
     }).catch(e => { if (active) setError(e.message); }).finally(() => { if (active) setLoading(false); });
     return () => { active = false; controller.abort(); };
   }, [connected, view, marketPager, marketPage, marketRetry]);
+  useEffect(() => {
+    if (!connected || view !== 'market' || !marketHasPages || marketPager.totalCount != null) return;
+    const controller = new AbortController(); setMarketCountError(false);
+    marketPager.discoverTotal(controller.signal).then(() => {
+      if (!controller.signal.aborted) setMarketPages([...marketPager.pages]);
+    }).catch(() => { if (!controller.signal.aborted) setMarketCountError(true); });
+    return () => controller.abort();
+  }, [connected, view, marketPager, marketHasPages]);
   useEffect(() => {
     if (view === 'market' && !loading && listings.length && scrollMarketAfterLoad.current) {
       scrollMarketAfterLoad.current = false;
@@ -131,12 +142,12 @@ export default function Workbench() {
     finally { setBusy(false); }
   }
   function searchMarket(value: string) {
-    setSearch(value); setQuery(value); setMarketPage(0); setMarketPages([]);
+    setSearch(value); setQuery(value); setMarketPage(0); setMarketPages([]); setMarketCountError(false);
     // Submitting the same search also provides a retry after a request error.
     setRefresh(r => r + 1);
   }
   function goToMarketPage(page: number) {
-    if (loading || page === marketPage || page < 0 || (!marketPages[page] && !(page === marketPages.length && marketPages.at(-1)?.nextPageToken))) return;
+    if (loading || page === marketPage || page < 0 || (marketTotal != null ? page >= marketPageCount : (!marketPages[page] && !(page === marketPages.length && marketPages.at(-1)?.nextPageToken)))) return;
     scrollMarketAfterLoad.current = true;
     setMarketPage(page);
   }
@@ -159,9 +170,9 @@ export default function Workbench() {
         {!loading && !error && !listings.length && <div className="empty"><Search size={32} /><h2>{query ? '没有找到匹配的工作流' : '市场暂时没有可用工作流'}</h2><p>{query ? '试试换个关键词，或者查看全部工作流。' : '稍后刷新即可重新获取。'}</p><button className="button" onClick={() => searchMarket('')}>重新查看</button></div>}
         {!loading && error && !marketPages[marketPage] && <button className="button load-more" onClick={() => setMarketRetry(retry => retry + 1)}>重试当前页</button>}
         <nav className="market-pagination" aria-label="工作流市场分页">
-          <span className="pagination-summary" aria-live="polite">{loading ? '正在读取市场…' : `第 ${marketPage + 1} 页 · 本页 ${listings.length} 项`} · 每页 {MARKET_PAGE_SIZE} 项</span>
+          <span className="pagination-summary" aria-live="polite">{loading ? '正在读取市场…' : `第 ${marketPage + 1} 页${marketTotal == null ? '' : ` / 共 ${marketPageCount} 页`} · 本页 ${listings.length} 项`} · 每页 {MARKET_PAGE_SIZE} 项{marketTotal == null && !loading && (marketCountError ? ' · 页数暂未获取，刷新重试' : ' · 正在读取页数…')}</span>
           <div className="pagination-buttons"><button className="button small" disabled={loading || marketPage === 0} onClick={() => goToMarketPage(marketPage - 1)}>上一页</button>
-            {!loading && marketPageNumbers(marketPageCount, marketPage).map((page, index) => page === null ? <span className="pagination-ellipsis" key={`gap-${index}`} aria-hidden="true">…</span> : <button key={page} className={`button small page-number ${page === marketPage ? 'primary' : ''}`} aria-label={`第 ${page + 1} 页`} aria-current={page === marketPage ? 'page' : undefined} disabled={loading || page === marketPage} onClick={() => goToMarketPage(page)}>{page + 1}</button>)}
+            {marketPageNumbers(marketPageCount, marketPage).map((page, index) => page === null ? <span className="pagination-ellipsis" key={`gap-${index}`} aria-hidden="true">…</span> : <button key={page} className={`button small page-number ${page === marketPage ? 'primary' : ''}`} aria-label={`第 ${page + 1} 页`} aria-current={page === marketPage ? 'page' : undefined} disabled={loading || page === marketPage} onClick={() => goToMarketPage(page)}>{page + 1}</button>)}
             <button className="button small" disabled={loading || !marketPages[marketPage]?.nextPageToken} onClick={() => goToMarketPage(marketPage + 1)}>下一页</button></div>
         </nav>
         <div className="market-foot"><ShieldCheck size={14} />提交前展示预估费用，确认后才执行。调用费之外的模型费用以实际用量为准。</div>

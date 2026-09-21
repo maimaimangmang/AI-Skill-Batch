@@ -47,7 +47,7 @@ export async function readRunsPage(
   const directPage = !filters.keyword && filters.from == null && filters.until == null && filters.status !== 'active';
   if (directPage) {
     signal?.throwIfAborted();
-    const params = new URLSearchParams({ pageSize: String(RUNS_PAGE_SIZE), orderBy: 'created_at desc' });
+    const params = new URLSearchParams({ pageSize: String(RUNS_PAGE_SIZE), orderBy: 'created_at_desc' });
     if (token) params.set('pageToken', token);
     if (filters.status) params.set('status', filters.status);
     const result = await fetchPage(params);
@@ -60,7 +60,7 @@ export async function readRunsPage(
     signal?.throwIfAborted();
     if (seen.has(token)) throw new Error('任务分页信息异常，请刷新重试。');
     seen.add(token);
-    const params = new URLSearchParams({ pageSize: String(RUNS_PAGE_SIZE - items.length), orderBy: 'created_at desc' });
+    const params = new URLSearchParams({ pageSize: String(RUNS_PAGE_SIZE - items.length), orderBy: 'created_at_desc' });
     if (token) params.set('pageToken', token);
     const statuses = statusGroups[filters.status];
     if (statuses?.length === 1) params.set('status', statuses[0]);

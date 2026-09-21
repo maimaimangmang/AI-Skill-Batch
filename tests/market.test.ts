@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { createMarketPager } from '../lib/market';
+import { createMarketPager, marketPageNumbers } from '../lib/market';
 import type { Listing } from '../lib/types';
 
 const item = (id: string) => ({ id, displayName: id } as Listing);
@@ -22,7 +22,7 @@ test('市场按需请求一页，返回已浏览页不发请求，搜索独立�
   assert.equal(new URL(urls[1], 'http://localhost').searchParams.get('keyword'), '电商 & 图片');
   await pager.load(0, signal());
   assert.equal(urls.length, 2);
-  await assert.rejects(pager.load(2, signal()), /按顺序/);
+  await assert.rejects(pager.load(2, signal()), /页码超出范围/);
   const search = createMarketPager(api, '视频');
   await search.load(0, signal());
   assert.equal(urls.length, 3);
@@ -54,4 +54,32 @@ test('重复游标不导致无限翻页', async () => {
   await pager.load(0, signal());
   await assert.rejects(pager.load(1, signal()), /分页信息异常/);
   assert.equal(pager.pages.length, 1);
+});
+
+test('市场数字分页独立获取页数，跳页只读取目标页，返回首页使用缓存', async () => {
+  const urls: string[] = [];
+  const pager = createMarketPager(async url => {
+    urls.push(url);
+    if (url.startsWith('/market-count?')) return { items: [], totalCount: 97 };
+    return { items: [item('page')], nextPageToken: 'next' };
+  }, '图片 & SKU');
+  await pager.load(0, signal());
+  assert.equal(urls.length, 1);
+  assert.equal(pager.totalCount, undefined);
+  assert.equal(await pager.discoverTotal(signal()), 97);
+  assert.equal(urls.length, 2);
+  assert.equal(pager.pages.length, 1, '获取页数不能预加载页面');
+  await pager.load(8, signal());
+  await pager.load(4, signal());
+  assert.equal(new URL(urls[2], 'http://localhost').searchParams.get('page'), '8');
+  assert.equal(new URL(urls[3], 'http://localhost').searchParams.get('page'), '4');
+  assert.equal(new URL(urls[1], 'http://localhost').searchParams.get('keyword'), '图片 & SKU');
+  await pager.load(0, signal()); await pager.discoverTotal(signal());
+  assert.equal(urls.length, 4);
+});
+
+test('数字分页保留开头三页、末尾三页以及当前页', () => {
+  assert.deepEqual(marketPageNumbers(12, 0), [0, 1, 2, null, 9, 10, 11]);
+  assert.deepEqual(marketPageNumbers(12, 6), [0, 1, 2, null, 6, null, 9, 10, 11]);
+  assert.deepEqual(marketPageNumbers(4, 2), [0, 1, 2, 3]);
 });

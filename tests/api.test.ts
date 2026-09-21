@@ -41,6 +41,14 @@ globalThis.fetch = async (input, options) => {
   }
   if (url.endsWith('/marketListings/test-listing')) return Response.json(listing);
   if (url.includes('/marketListings?')) {
+    if (key === 'Bearer market-boundaries-key') {
+      const params = new URL(url).searchParams;
+      const size = Number(params.get('pageSize'));
+      assert.ok(size === 1 || size === 12);
+      const offset = params.has('pageToken') ? JSON.parse(Buffer.from(params.get('pageToken')!, 'base64url').toString()).offset : 0;
+      const count = params.get('keyword') === 'SKU' ? 13 : 37;
+      return Response.json({ items: Array.from({ length: Math.max(0, Math.min(size, count - offset)) }, (_, n) => ({ ...listing, id: String(offset + n) })), nextPageToken: offset + size < count ? Buffer.from(JSON.stringify({ offset: offset + size })).toString('base64url') : undefined });
+    }
     assert.equal(new URL(url).searchParams.get('pageSize'), '12', '上游也必须只读取一页 12 项');
     return Response.json({ items: [listing], nextPageToken: 'next-market-page' });
   }
@@ -57,6 +65,7 @@ globalThis.fetch = async (input, options) => {
   }
   if (url.includes('/users/me/runs?')) {
     assert.ok(Number(new URL(url).searchParams.get('pageSize')) <= 12);
+    assert.equal(new URL(url).searchParams.get('orderBy'), 'created_at_desc');
   }
   if (url.includes('/users/me/runs')) return Response.json({ items: [...completed.entries()].filter(([k]) => k.startsWith(key)).map(([, v]) => v) });
   throw new Error(`Unexpected test endpoint: ${url}`);
@@ -92,6 +101,16 @@ test('API：任务筛选拒绝非法条件，支持名称状态日期组合且�
   assert.equal((await call('runs?from=200&until=100', undefined, cookie)).response.status, 400);
   const result = await call('runs?keyword=test&status=failed&from=100&until=200', undefined, cookie);
   assert.equal(result.response.status, 200); assert.deepEqual(result.body.items, []);
+});
+test('API：市场页数需要认证，保留搜索条件，支持直接请求任意页', async () => {
+  assert.equal((await call('market-count')).response.status, 401);
+  const cookie = await login('market-boundaries-key');
+  const result = await call('market-count?keyword=SKU', undefined, cookie);
+  assert.equal(result.response.status, 200);
+  assert.equal(result.body.totalCount, 13);
+  assert.deepEqual(result.body.items, []);
+  assert.equal((await call('market?page=2', undefined, cookie)).body.items[0].id, '24');
+  assert.equal((await call('market?page=-1', undefined, cookie)).response.status, 400);
 });
 test('API：无效 Key 不创建会话；跨源请求在登录前被拒绝', async () => {
   assert.equal((await call('session', { apiKey: 'invalid-key' })).response.status, 401);

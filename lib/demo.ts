@@ -28,11 +28,13 @@ export async function demoRequest(path: string, options?: RequestInit): Promise<
   const body = typeof options?.body === 'string' ? JSON.parse(options.body) : {};
   if (path === '/session') return { connected: true };
   if (path === '/balance') return balance;
-  if (path.startsWith('/market?') || path === '/market') {
+  if (path.startsWith('/market?') || path === '/market' || path.startsWith('/market-count?')) {
     const params = new URLSearchParams(path.split('?')[1]); const q = params.get('keyword') || '';
-    const offset = Math.max(0, Number.parseInt(params.get('pageToken') || '0', 10) || 0);
     const matches = demoListings.filter(l => (l.displayName + l.description).includes(q));
-    return { items: matches.slice(offset, offset + MARKET_PAGE_SIZE), nextPageToken: offset + MARKET_PAGE_SIZE < matches.length ? String(offset + MARKET_PAGE_SIZE) : '' };
+    if (path.startsWith('/market-count?')) return { items: [], totalCount: matches.length };
+    const pageIndex = params.has('page') ? Number(params.get('page')) : Math.floor((Number(params.get('pageToken')) || 0) / MARKET_PAGE_SIZE);
+    const offset = pageIndex * MARKET_PAGE_SIZE;
+    return { items: matches.slice(offset, offset + MARKET_PAGE_SIZE), nextPageToken: offset + MARKET_PAGE_SIZE < matches.length ? String(offset + MARKET_PAGE_SIZE) : '', totalCount: matches.length, pageIndex };
   }
   if (/^\/official\/[^/]+$/.test(path)) return demoOfficial.find(l => l.id === path.split('/')[2]);
   if (/^\/market\/[^/]+$/.test(path)) return demoListings.find(l => l.id === path.split('/')[2]);
