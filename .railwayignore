@@ -1,0 +1,12 @@
+node_modules/
+.next/
+.git/
+.data/
+.env*
+!.env.example
+.railway/
+test-results/
+playwright-report/
+*.tsbuildinfo
+.DS_Store
+*.zip

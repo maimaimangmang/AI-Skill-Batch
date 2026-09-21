@@ -1,0 +1,13 @@
+node_modules/
+.next/
+.data/
+.env*
+!.env.example
+test-results/
+playwright-report/
+*.tsbuildinfo
+.DS_Store
+
+.railway/
+*.zip
+*.log
