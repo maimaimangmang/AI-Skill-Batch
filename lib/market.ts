@@ -1,3 +1,4 @@
+import { createCursorPager } from './pagination';
 export const MARKET_PAGE_SIZE = 12;
 
 // Page numbers use zero-based indexes internally. Keep the current page visible
@@ -14,26 +15,15 @@ export function marketPageNumbers(total: number, current: number): (number | nul
   return result;
 }
 
-// The upstream API provides cursors, not a total. Publish a complete snapshot
-// so the UI can show real final page numbers and jump without further requests.
-export async function collectMarket(
-  api: (path: string, options?: RequestInit) => Promise<{ items: import('./types').Listing[]; nextPageToken?: string }>,
+export type MarketPage = { items: import('./types').Listing[]; nextPageToken?: string };
+
+// A cursor is only followed when the user requests the next page. Keep visited
+// pages in memory so going back does not repeat network requests.
+export function createMarketPager(
+  api: (path: string, options?: RequestInit) => Promise<MarketPage>,
   keyword: string,
-  signal: AbortSignal,
 ) {
-  const items = new Map<string, import('./types').Listing>();
-  const seen = new Set<string>();
-  let token = '';
-  do {
-    signal.throwIfAborted();
-    if (seen.has(token)) throw new Error('市场分页信息异常，请刷新重试。');
-    seen.add(token);
-    const page = await api(`/market?keyword=${encodeURIComponent(keyword)}&pageToken=${encodeURIComponent(token)}`, { signal });
-    signal.throwIfAborted();
-    for (const item of page.items) items.set(item.id, item);
-    token = page.nextPageToken || '';
-  } while (token);
-  return { items: [...items.values()], nextPageToken: '' };
+  return createCursorPager<MarketPage>((token, signal) => api(`/market?keyword=${encodeURIComponent(keyword)}&pageToken=${encodeURIComponent(token)}`, { signal }));
 }
 
 // Only use an explicit model declaration in the public description. A mention

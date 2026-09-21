@@ -161,7 +161,7 @@
 .login-page { background:#f7f9ff; }
 .login-story { background:#242b50; }
 .login-story:after { border-color:#ffffff0a; box-shadow:0 0 0 70px #ffffff02,0 0 0 140px #ffffff02; }
-.login-story .brand img { background:#fff; border-radius:10px; padding:3px; }
+.login-story .brand img { background:transparent; border-radius:0; padding:0; }
 .login-brand-tagline { color:#b4bddc; }
 .login-story .eyebrow { color:#c7c7ef; }
 .login-story h1 { font-weight:700; }
@@ -232,3 +232,50 @@
 .studio-app .balance-card .billing-provider-link { color:#603bff; font-weight:600; text-decoration:underline; text-underline-offset:2px; }
 .studio-app .balance-card .billing-provider-link:hover { color:#4325cf; }
 .studio-app .balance-card .billing-provider-link:focus-visible { outline:2px solid #603bff; outline-offset:3px; border-radius:2px; }
+
+/* Compact attachments: upload first, URL editing on demand. */
+.asset-input { padding:6px; }
+.asset-upload { width:100%; min-height:76px; display:flex; flex-wrap:wrap; align-items:center; justify-content:center; gap:7px; padding:12px 8px; border:1px dashed #d4dafa; border-radius:10px; background:#f8f9ff; color:var(--blue); font-size:12px; }
+.asset-upload:hover:not(:disabled) { background:#f0efff; border-color:var(--blue); }
+.asset-upload small { flex-basis:100%; color:#8797b4; font-size:10px; }
+.asset-upload.has-value { min-height:32px; padding:6px; background:transparent; }
+.asset-link-toggle { display:flex; align-items:center; justify-content:center; gap:4px; margin:8px auto 0; padding:2px; font-size:11px; color:#7383a4; }
+.asset-link-toggle:hover:not(:disabled) { color:var(--blue); }
+.asset-previews { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:6px; margin-bottom:8px; max-height:208px; overflow:auto; }
+.asset-preview { position:relative; min-width:0; border:1px solid #e5e9f8; border-radius:8px; padding:5px; background:#fff; }
+.asset-preview img,.asset-file-icon { display:flex; align-items:center; justify-content:center; width:100%; height:64px; object-fit:contain; border-radius:5px; background:#f5f7fd; color:#8293b2; }
+.asset-filename { display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:10px; color:#7283a1; margin-top:3px; }
+.asset-remove { position:absolute; right:3px; top:3px; width:20px; height:20px; display:grid; place-items:center; padding:0; border:1px solid #e4e8f6; border-radius:50%; background:#fff; color:#657591; }
+.asset-remove:hover:not(:disabled) { background:#fff0f0; color:#bd415c; }
+.task-table .asset-link-editor textarea { border:1px solid #dce3f5; min-height:58px; font-size:11px; margin-top:7px; }
+.asset-link-editor small { display:block; font-size:10px; color:#8392ad; line-height:1.6; margin-top:5px; }
+.asset-link-apply { display:block; margin:6px 0 0 auto; color:var(--blue); background:#f0edff; border-radius:6px; padding:4px 8px; font-size:11px; }
+.asset-link-editor .asset-link-error { color:#b43748; }
+
+/* Task history shares the market's compact, on-demand pagination. */
+.runs-panel { scroll-margin-top:20px; }
+.runs-filters { display:flex; flex-wrap:wrap; align-items:center; gap:10px; padding:16px 20px; border-bottom:1px solid #e9edfa; }
+.runs-search { display:flex; align-items:center; gap:8px; flex:1 1 230px; color:#91a0bd; background:#f7f9ff; border:1px solid #e4e9f7; border-radius:10px; padding:0 11px; }
+.runs-search input { width:100%; min-width:0; padding:9px 0; border:0; background:transparent; color:#31496f; font-size:12px; }
+.runs-search:focus-within { outline:2px solid #bcb2ff; outline-offset:1px; }
+.runs-filters select,.runs-date-range input { min-height:38px; border:1px solid #e4e9f7; border-radius:9px; background:#fff; color:#53668c; padding:7px 10px; font-size:12px; }
+.runs-reset { font-size:12px; }
+.runs-date-range { flex-basis:100%; display:flex; flex-wrap:wrap; align-items:center; gap:10px; color:#8191ae; font-size:11px; }
+.runs-date-range label { display:flex; align-items:center; gap:8px; }
+.runs-date-range small { font-size:10px; }
+.runs-panel .runs-pagination { margin:0; padding:16px 20px; border-top:1px solid #e9edfa; }
+.runs-panel .runs-error { margin:12px 20px; }
+.runs-error .text-button { margin-left:12px; }
+.runs-search-note { padding:12px 20px; font-size:11px; color:#7789a9; }
+.runs-panel .runs-table td { padding:16px 18px; }
+.runs-panel .runs-table td:first-child { min-width:200px; max-width:360px; overflow-wrap:anywhere; }
+.runs-panel .runs-table td:not(:first-child) { white-space:nowrap; }
+@media(max-width:700px) { .runs-filters { padding:14px; gap:8px; } .runs-search { flex-basis:100%; } .runs-panel .runs-pagination { padding:14px; } }
+
+/* Three flowing L strokes echo parallel tasks; keep the mark open, without a tile. */
+.studio-app .sidebar .brand img { width:38px; height:38px; flex-shrink:0; }
+.login-story .brand img { width:38px; height:38px; flex-shrink:0; }
+
+/* Resources precede the account; author contact is the sidebar footer. */
+.studio-app .sidebar-bottom > .sidebar-resource-links { margin-bottom:16px; }
+.studio-app .sidebar-bottom > .sidebar-community { margin:8px 0 0; }

@@ -108,13 +108,13 @@ export function baseUrl() {
   if ((url.protocol !== 'https:' && !localTest) || url.username || url.password || url.search || url.hash) throw new ApiError('LoomLoom 服务地址必须为 HTTPS。', 503);
   return url.href.replace(/\/$/, '');
 }
-export async function upstream(endpoint: string, apiKey?: string, body?: unknown, binary = false) {
+export async function upstream(endpoint: string, apiKey?: string, body?: unknown, binary = false, signal?: AbortSignal) {
   let response: Response;
   try {
     response = await fetch(`${baseUrl()}/loom/v1/${endpoint}`, {
       method: body === undefined ? 'GET' : 'POST',
       headers: { ...(apiKey ? { Authorization: `Bearer ${apiKey}` } : {}), ...(body !== undefined ? { 'Content-Type': 'application/json' } : {}) },
-      body: body === undefined ? undefined : JSON.stringify(body), cache: 'no-store', redirect: 'error', signal: AbortSignal.timeout(45000)
+      body: body === undefined ? undefined : JSON.stringify(body), cache: 'no-store', redirect: 'error', signal: signal ? AbortSignal.any([signal, AbortSignal.timeout(45000)]) : AbortSignal.timeout(45000)
     });
   } catch { throw new ApiError('暂时无法连接 LoomLoom。若正在提交，请保留本页并使用原请求重试。', 502); }
   if (!response.ok) {

@@ -40,7 +40,10 @@ globalThis.fetch = async (input, options) => {
     }
   }
   if (url.endsWith('/marketListings/test-listing')) return Response.json(listing);
-  if (url.includes('/marketListings?')) return Response.json({ items: [listing] });
+  if (url.includes('/marketListings?')) {
+    assert.equal(new URL(url).searchParams.get('pageSize'), '12', '上游也必须只读取一页 12 项');
+    return Response.json({ items: [listing], nextPageToken: 'next-market-page' });
+  }
   if (url.endsWith(':quote')) {
     quoteCount++; const body = JSON.parse(String(options?.body));
     return Response.json({ taskCount: body.inputRows.length, taskFixedFeeT: 1000000, estimatedBuyerPayableT: price * body.inputRows.length, currency: noCurrency ? undefined : 'CNY', listingVersionId: 'v1', pricingRuleVersion: 'p1' });
@@ -52,13 +55,16 @@ globalThis.fetch = async (input, options) => {
     if (dropNext) { dropNext = false; throw new Error('Simulated connection drop AFTER order accepted'); }
     return Response.json(completed.get(stable), { status: 201 });
   }
+  if (url.includes('/users/me/runs?')) {
+    assert.ok(Number(new URL(url).searchParams.get('pageSize')) <= 12);
+  }
   if (url.includes('/users/me/runs')) return Response.json({ items: [...completed.entries()].filter(([k]) => k.startsWith(key)).map(([, v]) => v) });
   throw new Error(`Unexpected test endpoint: ${url}`);
 };
 async function call(route: string, body?: unknown, cookie?: string, origin = 'http://localhost:3000', method = body === undefined ? 'GET' : 'POST') {
   const request = new NextRequest(`http://localhost:3000/api/${route}`, { method, headers: { Origin: origin, ...(body === undefined ? {} : { 'Content-Type': 'application/json' }), ...(cookie ? { Cookie: cookie } : {}) }, body: body === undefined ? undefined : JSON.stringify(body) });
   const handler = method === 'GET' ? GET : method === 'DELETE' ? DELETE : POST;
-  const response = await handler(request, { params: Promise.resolve({ path: route.split('/') }) });
+  const response = await handler(request, { params: Promise.resolve({ path: route.split('?')[0].split('/') }) });
   return { response, body: await response.json() };
 }
 async function login(key: string) {
@@ -71,6 +77,21 @@ test('API：匿名不能读取市场、任务或提交', async () => {
   for (const route of ['market', 'runs', 'pending']) assert.equal((await call(route)).response.status, 401);
   assert.equal((await call('execute', { ticket: 'guessed', confirm: true })).response.status, 401);
   assert.equal((await call('session')).body.connected, false);
+});
+test('API：市场每次只读取 12 项并保留下一页游标', async () => {
+  const cookie = await login('market-pagination-key');
+  const result = await call('market', undefined, cookie);
+  assert.equal(result.response.status, 200);
+  assert.equal(result.body.items.length, 1);
+  assert.equal(result.body.nextPageToken, 'next-market-page');
+});
+test('API：任务筛选拒绝非法条件，支持名称状态日期组合且需要会话', async () => {
+  const cookie = await login('run-filters-key');
+  assert.equal((await call('runs?keyword=test')).response.status, 401);
+  assert.equal((await call('runs?status=invalid', undefined, cookie)).response.status, 400);
+  assert.equal((await call('runs?from=200&until=100', undefined, cookie)).response.status, 400);
+  const result = await call('runs?keyword=test&status=failed&from=100&until=200', undefined, cookie);
+  assert.equal(result.response.status, 200); assert.deepEqual(result.body.items, []);
 });
 test('API：无效 Key 不创建会话；跨源请求在登录前被拒绝', async () => {
   assert.equal((await call('session', { apiKey: 'invalid-key' })).response.status, 401);

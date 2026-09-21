@@ -1,6 +1,8 @@
 'use client';
 import WorkflowAuthor from './workflow-author';
-import { useRef, useState } from 'react';
+import AssetInput, { type AssetPreview } from './asset-input';
+import { assetValues } from '@/lib/asset-input';
+import { useEffect, useRef, useState } from 'react';
 import { ArrowLeft, ArrowRight, Check, ChevronDown, Copy, Download, FileSpreadsheet, Info, LoaderCircle, Plus, Trash2, Upload } from 'lucide-react';
 import Papa from 'papaparse';
 import type { InputRow, Listing, Schema } from '@/lib/types';
@@ -14,9 +16,26 @@ type Props = { listing: Listing; schema: Schema; rows: InputRow[]; setRows: (row
 export default function Editor({ listing, schema, rows, setRows, demo, busy, errors, api, onBack, onQuote }: Props) {
   const [localError, setLocalError] = useState(''); const [uploading, setUploading] = useState(false);
   const [sheets, setSheets] = useState<ImportSheet[] | null>(null); const input = useRef<HTMLInputElement>(null);
+  const [previews, setPreviews] = useState<Record<string, AssetPreview>>({});
+  const previewUrls = useRef<string[]>([]);
+  const mounted = useRef(true);
+  useEffect(() => {
+    mounted.current = true;
+    return () => { mounted.current = false; previewUrls.current.forEach(url => URL.revokeObjectURL(url)); };
+  }, []);
+  // Keep each attachment editor attached to its row when rows are inserted or removed.
+  const rowIds = useRef(new WeakMap<InputRow, number>());
+  const nextRowId = useRef(0);
+  function rowId(row: InputRow) {
+    if (!rowIds.current.has(row)) rowIds.current.set(row, nextRowId.current++);
+    return rowIds.current.get(row)!;
+  }
+  function changedRow(row: InputRow, values: InputRow) {
+    const next = { ...row, ...values }; rowIds.current.set(next, rowId(row)); return next;
+  }
   const fields = schema.fields; const locked = busy || uploading;
   const taskCount = rows.filter(row => !isBlankRow(row, fields)).length;
-  const change = (index: number, key: string, value: unknown) => setRows(rows.map((row, i) => i === index ? { ...row, [key]: value } : row));
+  const change = (index: number, key: string, value: unknown) => setRows(rows.map((row, i) => i === index ? changedRow(row, { [key]: value }) : row));
   async function importFile(file?: File) {
     if (!file) return;
     setLocalError(''); setUploading(true);
@@ -43,8 +62,16 @@ export default function Editor({ listing, schema, rows, setRows, demo, busy, err
     if (!file) return; setUploading(true); setLocalError('');
     try {
       if (file.size > 10 * 1024 * 1024) throw new Error('每个附件最大 10 MB。');
+      const field = fields.find(f => f.key === key)!;
+      const existing = multiple ? assetValues(rows[index][key]).filter(Boolean) : [];
+      if (field.max_values && existing.length >= field.max_values) throw new Error(`最多上传 ${field.max_values} 个附件。`);
       const value = await api('/assets', post({ filename: file.name, contentType: file.type || 'application/octet-stream', content: await base64(file) }));
-      change(index, key, multiple ? [value.inputAssetId] : value.inputAssetId);
+      if (!mounted.current) return;
+      if (typeof value.inputAssetId !== 'string' || !value.inputAssetId.startsWith('ia_')) throw new Error('上传未返回有效附件，请重试。');
+      const url = file.type.startsWith('image/') ? URL.createObjectURL(file) : undefined;
+      if (url) previewUrls.current.push(url);
+      setPreviews(current => ({ ...current, [value.inputAssetId]: { name: file.name, url } }));
+      change(index, key, multiple ? [...existing, value.inputAssetId] : value.inputAssetId);
     } catch (e) { setLocalError((e as Error).message); } finally { setUploading(false); }
   }
   function paste(e: React.ClipboardEvent, startRow: number, startColumn: number) {
@@ -52,13 +79,13 @@ export default function Editor({ listing, schema, rows, setRows, demo, busy, err
     e.preventDefault();
     const parsed = Papa.parse<string[]>(text, { delimiter: '\t', skipEmptyLines: 'greedy' });
     if (parsed.errors.length || parsed.data.some(r => startColumn + r.length > fields.length)) { setLocalError('粘贴格式有误或超出现有字段列数，请调整后重试。'); return; }
-    const next = rows.map(r => ({ ...r }));
+    const next = rows.map(r => changedRow(r, {}));
     while (next.length < startRow + parsed.data.length) next.push(emptyRow(fields));
     parsed.data.forEach((r, i) => r.forEach((v, j) => { next[startRow + i][fields[startColumn + j].key] = v; }));
     setRows(next); setLocalError('');
   }
   return <>
-    <button className="back-button" onClick={onBack}><ArrowLeft size={16} />返回工作流市场</button>
+    <button className="back-button" disabled={locked} onClick={onBack}><ArrowLeft size={16} />返回工作流市场</button>
     <div className="page-heading"><div><div className="eyebrow">BATCH WORKSPACE</div><h1>{listing.displayName}</h1><WorkflowAuthor name={listing.creator?.nickname} /><p>{listing.description}</p></div><AgentInstall key={listing.id} listing={listing} demo={demo} /></div>
     <div className="steps"><span className="done"><Check size={15} />选择工作流</span><i /><span className="active"><b>2</b>填写任务表</span><i /><span><b>3</b>确认并执行</span><i /><span><b>4</b>收集结果</span></div>
     <WorkflowExamples key={listing.id} listing={listing} schema={schema} demo={demo} disabled={locked} onUse={row => {
@@ -69,9 +96,8 @@ export default function Editor({ listing, schema, rows, setRows, demo, busy, err
     <details className="instructions"><summary><Info size={17} />填写说明与工作流信息<ChevronDown size={16} /></summary><div><p>{schema.input_summary || '每一行会作为一个独立任务提交。必填字段已用 * 标出。'}</p>{schema.instructions?.map((s, i) => <p key={i}>{s}</p>)}<p>{listing.officialTemplateId ? '无技能调用费，模型费用按实际用量结算，提交前会显示预估金额。' : `创作者调用费：${money(listing.taskFixedFeeT, listing.currency)} / 任务，模型费用以提交前的预估为准。`}</p>{fields.map(f => f.description && <p key={f.key}><strong>{f.label}：</strong>{f.description}</p>)}</div></details>
     <section className="editor-card">
       <div className="table-toolbar"><div><FileSpreadsheet size={20} /><strong>任务表</strong><span className="count">已填 {taskCount} 行</span></div><div className="toolbar-actions"><button className="button small" disabled={locked} onClick={() => input.current?.click()}><Upload size={15} />导入表格</button><button className="button small" disabled={locked} onClick={async () => { try { if (demo) await exportSheet(fields.map(f => f.label), [fields.map(f => cellText(f.default_value))], 'loomdesk-template.xlsx'); else await download(`${workflowPath(listing)}/workbook`, 'loomdesk-template.xlsx'); } catch (e) { setLocalError((e as Error).message); } }}><Download size={15} />下载模板</button><input type="file" ref={input} className="sr-only" accept=".xlsx,.csv,.tsv" aria-label="导入 Excel 或 CSV" onChange={e => importFile(e.target.files?.[0])} /></div></div>
-      <div className="table-scroll editor-scroll"><table className="task-table"><thead><tr><th className="row-number">#</th>{fields.map(f => <th key={f.key}><span>{f.label}{f.required && <em> *</em>}</span><small>{f.value_type.includes('asset_ref') ? '附件 / 链接' : f.enum_values ? '下拉选择' : f.value_type === 'boolean' ? '是 / 否' : '输入内容'}</small></th>)}<th className="row-actions">操作</th></tr></thead><tbody>{rows.map((row, i) => <tr key={i}><td className="row-number">{String(i + 1).padStart(2, '0')}</td>{fields.map((f, j) => <td key={f.key}>
-        {f.enum_values?.length || f.value_type === 'boolean' ? <select aria-label={`第 ${i + 1} 行 ${f.label}`} disabled={locked} value={cellText(row[f.key])} onChange={e => change(i, f.key, e.target.value)}><option value="">{f.default_value != null ? `默认：${cellText(f.default_value)}` : f.required ? '请选择' : '可选'}</option>{(f.enum_values || [true, false]).map((v, n) => <option key={n} value={cellText(v)}>{f.value_type === 'boolean' ? (v ? '是' : '否') : cellText(v)}</option>)}</select> : <textarea rows={2} aria-label={`第 ${i + 1} 行 ${f.label}`} disabled={locked} value={cellText(row[f.key])} placeholder={f.presentation?.hint || (f.default_value != null ? `默认：${cellText(f.default_value)}` : f.required ? `填写${f.label}` : '可选')} onPaste={e => paste(e, i, j)} onChange={e => change(i, f.key, e.target.value)} />}
-        {f.value_type.includes('asset_ref') && <label className={`attach-button ${locked ? 'disabled' : ''}`}><Upload size={12} />上传附件<input type="file" className="sr-only" disabled={locked} accept={f.accepted_mime_types?.join(',')} aria-label={`第 ${i + 1} 行上传${f.label}`} onChange={e => { attach(e.target.files?.[0], i, f.key, f.value_type.endsWith('[]')); e.target.value = ''; }} /></label>}
+      <div className="table-scroll editor-scroll"><table className="task-table"><thead><tr><th className="row-number">#</th>{fields.map(f => <th key={f.key}><span>{f.label}{f.required && <em> *</em>}</span><small>{f.value_type.includes('asset_ref') ? '附件 / 链接' : f.enum_values ? '下拉选择' : f.value_type === 'boolean' ? '是 / 否' : '输入内容'}</small></th>)}<th className="row-actions">操作</th></tr></thead><tbody>{rows.map((row, i) => <tr key={rowId(row)}><td className="row-number">{String(i + 1).padStart(2, '0')}</td>{fields.map((f, j) => <td key={f.key}>
+        {f.value_type.includes('asset_ref') ? <AssetInput field={f} value={row[f.key]} rowNumber={i + 1} disabled={locked} previews={previews} onChange={value => change(i, f.key, value)} onUpload={file => attach(file, i, f.key, f.value_type.endsWith('[]'))} onPaste={e => paste(e, i, j)} /> : f.enum_values?.length || f.value_type === 'boolean' ? <select aria-label={`第 ${i + 1} 行 ${f.label}`} disabled={locked} value={cellText(row[f.key])} onChange={e => change(i, f.key, e.target.value)}><option value="">{f.default_value != null ? `默认：${cellText(f.default_value)}` : f.required ? '请选择' : '可选'}</option>{(f.enum_values || [true, false]).map((v, n) => <option key={n} value={cellText(v)}>{f.value_type === 'boolean' ? (v ? '是' : '否') : cellText(v)}</option>)}</select> : <textarea rows={2} aria-label={`第 ${i + 1} 行 ${f.label}`} disabled={locked} value={cellText(row[f.key])} placeholder={f.presentation?.hint || (f.default_value != null ? `默认：${cellText(f.default_value)}` : f.required ? `填写${f.label}` : '可选')} onPaste={e => paste(e, i, j)} onChange={e => change(i, f.key, e.target.value)} />}
       </td>)}<td className="row-actions"><button className="icon-button" aria-label={`复制第 ${i + 1} 行`} disabled={locked} onClick={() => setRows([...rows.slice(0, i + 1), { ...row }, ...rows.slice(i + 1)])}><Copy size={15} /></button><button className="icon-button" aria-label={`删除第 ${i + 1} 行`} disabled={locked || rows.length <= 1} onClick={() => setRows(rows.filter((_, n) => n !== i))}><Trash2 size={15} /></button></td></tr>)}</tbody></table></div>
       <div className="table-bottom"><button className="text-button" disabled={locked} onClick={() => setRows([...rows, emptyRow(fields)])}><Plus size={16} />添加任务</button>{schema.sample_rows?.length ? <button className="text-button muted" disabled={locked} onClick={() => { if (rows.some(r => !isBlankRow(r, fields)) && !window.confirm('用工作流示例替换当前表格？')) return; setRows(schema.sample_rows!.map(r => ({ ...emptyRow(fields), ...r }))); }}>填入示例</button> : null}<span>支持从 Excel 复制多格粘贴 · 空白行自动忽略</span></div>
     </section>

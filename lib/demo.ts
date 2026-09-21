@@ -1,3 +1,4 @@
+import { parseRunFilters, readRunsPage } from './runs';
 import { officialListing } from './official';
 import { MARKET_PAGE_SIZE } from './market';
 import type { InputRow, Listing, Quote, ResultRow, Run } from './types';
@@ -50,7 +51,14 @@ export async function demoRequest(path: string, options?: RequestInit): Promise<
     results.set(runId, job.rows.map((row, i) => ({ rowIndex: i + 2, inputJson: JSON.stringify(row), status: 'completed', artifacts: [{ mimeType: 'text/plain', inlineText: listing.officialTemplateId ? `【演示结果 · 非 AI 实际生成】\n${row['图片提示词'] || row['文本提示词']}\n\n${listing.id === 'text-image-v1' ? '真实执行后会在这里显示生成图片，可预览与下载。' : '为日常生活添一份温度。轻巧随行的咖啡杯，陪你开启每一天。'}` : `【演示结果 · 非 AI 实际生成】\n${row.product}\n\n面向${row.audience}，以${row.tone}的风格介绍产品的使用场景与核心价值。\n\n连接自己的 API Key 后，这里会显示工作流的真实输出。` }] })));
     job.result = { runId }; return job.result;
   }
-  if (path.startsWith('/runs?') || path === '/runs') return { items: runs };
+  if (path.startsWith('/runs?') || path === '/runs') {
+    const params = new URLSearchParams(path.split('?')[1]);
+    return readRunsPage(async page => {
+      const matches = runs.filter(run => !page.get('status') || run.status === page.get('status'));
+      const offset = Number(page.get('pageToken') || 0), size = Number(page.get('pageSize'));
+      return { totalCount: matches.length, items: matches.slice(offset, offset + size), nextPageToken: offset + size < matches.length ? String(offset + size) : '' };
+    }, parseRunFilters(params), params.get('pageToken') || '', options?.signal || undefined);
+  }
   if (/^\/runs\/[^/]+\/results/.test(path)) return { items: results.get(path.split('/')[2]) || [] };
   if (/^\/runs\/[^/]+$/.test(path)) return { run: runs.find(r => r.runId === path.split('/')[2]) };
   if (path === '/pending') return { items: [] };

@@ -1,3 +1,5 @@
+import { parseRunFilters, readRunsPage } from '@/lib/runs';
+import { MARKET_PAGE_SIZE } from '@/lib/market';
 import { NextRequest, NextResponse } from 'next/server';
 import { randomUUID } from 'node:crypto';
 import { ApiError, createSession, db, destroySession, getQuote, jsonBody, limit, quoteMatches, sameOrigin, saveQuote, sessionFromToken, unseal, upstream, type StoredQuote } from '@/lib/server';
@@ -72,15 +74,21 @@ async function handle(request: NextRequest, context: { params: Promise<{ path: s
       }
       if (route === 'balance') return json(await upstream('users/me/balance', key));
       if (route === 'market') {
-        const data = await upstream(`marketListings${query(request, ['keyword', 'pageToken'], { pageSize: '60' })}`, key);
+        const data = await upstream(`marketListings${query(request, ['keyword', 'pageToken'], { pageSize: String(MARKET_PAGE_SIZE) })}`, key);
         return json({ items: data.items.map(publicListing), nextPageToken: data.nextPageToken });
       }
-      if (path[0] === 'market' && path.length === 2) return json(publicListing(await upstream(`marketListings/${id(path[1])}`, key)));
+      if (path[0] === 'market' && path.length === 2) return json(publicListing(await upstream(`marketListings/${id(path[1])}`, key, undefined, false, request.signal)));
       if (path[0] === 'market' && path.length === 3 && path[2] === 'workbook') {
         const data = await upstream(`marketListings/${id(path[1])}/workbook`, key, undefined, true);
         return new Response(data, { headers: { 'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'Content-Disposition': 'attachment; filename="loomdesk-input.xlsx"', 'Cache-Control': 'no-store' } });
       }
-      if (route === 'runs') return json(await upstream(`users/me/runs${query(request, ['status', 'pageToken'], { pageSize: '50' })}`, key));
+      if (route === 'runs') {
+        let filters;
+        try { filters = parseRunFilters(request.nextUrl.searchParams); } catch (error) { throw new ApiError((error as Error).message); }
+        const token = request.nextUrl.searchParams.get('pageToken') || '';
+        if (token.length > 2000) throw new ApiError('无效的分页游标。');
+        return json(await readRunsPage(params => upstream(`users/me/runs?${params}`, key, undefined, false, request.signal), filters, token, request.signal));
+      }
       if (path[0] === 'runs' && path.length === 2) return json(await upstream(`users/me/runs/${id(path[1])}`, key));
       if (path[0] === 'runs' && path.length === 3 && path[2] === 'results') return json(await upstream(`users/me/runs/${id(path[1])}/resultRows${query(request, ['pageToken'], { pageSize: '200' })}`, key));
       if (path[0] === 'runs' && path.length === 3 && path[2] === 'workbook') {
