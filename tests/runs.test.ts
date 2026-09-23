@@ -111,3 +111,42 @@ test('首尾随机跳页每次只请求目标页，尾页不足 12 条不漏项�
   await assert.rejects(cancelled.load(0, controller.signal), { name: 'AbortError' });
   assert.equal(cancelled.pages.length, 0);
 });
+
+test('日期范围支持准确总数、数字跳页及尾页，仅读取边界单条和目标页', async () => {
+  const upstream = source(); const filters = { keyword: '', status: '', from: 1700, until: 1740 };
+  const pager = createOffsetPager((token, signal) => readRunsPage(upstream.fetch, filters, token, signal), 12);
+  const signal = new AbortController().signal;
+  const first = await pager.load(0, signal);
+  assert.equal(first.totalCount, 40); assert.equal(first.items.length, 12);
+  const last = await pager.load(3, signal);
+  assert.equal(last.items.length, 4); assert.equal(last.nextPageToken, '');
+  assert.deepEqual(last.items, rows.filter(r => matchesRun(r, filters)).slice(36));
+  assert.ok(upstream.calls.filter(p => Number(p.get('pageSize')) > 1).length === 2);
+  assert.ok(upstream.calls.length < 36);
+});
+
+test('日期没有结果时为零条且无下一页，状态日期组合与边界重复时间正确', async () => {
+  const emptySource = source();
+  const none = await readRunsPage(emptySource.fetch, { keyword: '', status: '', from: 2000, until: 2100 });
+  assert.equal(emptySource.calls.length, 1, '最新任务早于开始日期时不再扫描历史');
+  assert.equal(none.totalCount, 0); assert.deepEqual(none.items, []); assert.ok(!none.nextPageToken);
+  const data = rows.map((r, i) => ({ ...r, createdAtUnix: i < 15 ? 1800 : 1700 }));
+  const filters = { keyword: '', status: 'failed', from: 1800, until: 1801 };
+  const page = await readRunsPage(source(data).fetch, filters);
+  assert.equal(page.totalCount, 5); assert.deepEqual(page.items, data.filter(r => matchesRun(r, filters)));
+  assert.ok(!page.nextPageToken);
+});
+
+test('相对日期跨天更新查询，不保留两天前的今天；自定义日期保持不变', async () => {
+  const { relativeRunQuery } = await import('../lib/runs');
+  const old = 'from=1&until=2&keyword=test';
+  for (const day of ['2026-09-21', '2026-09-23']) {
+    const q = new URLSearchParams(relativeRunQuery(old, '1', day));
+    const expected = localDateBounds(day, day);
+    assert.equal(Number(q.get('from')), expected.from); assert.equal(Number(q.get('until')), expected.until);
+    assert.equal(q.get('keyword'), 'test');
+  }
+  const week = new URLSearchParams(relativeRunQuery(old, '7', '2026-09-23'));
+  assert.equal(Number(week.get('from')), localDateBounds('2026-09-17', '2026-09-23').from);
+  assert.equal(relativeRunQuery(old, 'custom', '2026-09-23'), old);
+});

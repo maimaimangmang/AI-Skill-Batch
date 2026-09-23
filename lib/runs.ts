@@ -38,12 +38,58 @@ export function matchesRun(run: Run, filters: RunFilters) {
   if (filters.until != null && run.createdAtUnix! >= filters.until) return false;
   return !filters.keyword || `${runName(run)}\n${run.runId}`.toLocaleLowerCase().includes(filters.keyword.toLocaleLowerCase());
 }
+// Dates form a contiguous range in created_at_desc order. Probe its boundaries
+// one row at a time, then fetch only the requested page inside that range.
+async function readDatePage(fetchPage: (params: URLSearchParams) => Promise<CursorPage<Run>>, filters: RunFilters, token: string, signal?: AbortSignal): Promise<RunsPage> {
+  if (token && !/^\d+$/.test(token)) throw new Error('无效的分页游标。');
+  const offset = Number(token || 0);
+  if (!Number.isSafeInteger(offset)) throw new Error('无效的分页游标。');
+  const cache = new Map<number, Run | undefined>();
+  async function read(start: number, size: number) {
+    signal?.throwIfAborted();
+    const params = new URLSearchParams({ pageSize: String(size), orderBy: 'created_at_desc' });
+    if (start) params.set('pageToken', String(start));
+    if (filters.status) params.set('status', filters.status);
+    const result = await fetchPage(params);
+    signal?.throwIfAborted();
+    return result;
+  }
+  const first = await read(0, 1);
+  if (!Number.isSafeInteger(first.totalCount) || first.totalCount! < 0) throw new Error('任务接口暂未返回总数，请刷新重试。');
+  const total = first.totalCount!;
+  cache.set(0, first.items[0]);
+  const newest = first.items[0]?.createdAtUnix;
+  if (!total || (filters.from != null && newest != null && newest < filters.from)) return { items: [], totalCount: 0 };
+  async function firstOlderThan(timestamp: number) {
+    let lo = 0, hi = total;
+    while (lo < hi) {
+      const mid = Math.floor((lo + hi) / 2);
+      if (!cache.has(mid)) cache.set(mid, (await read(mid, 1)).items[0]);
+      const row = cache.get(mid);
+      if (!row || row.createdAtUnix == null || !Number.isFinite(row.createdAtUnix)) throw new Error('任务日期信息已变化，请刷新重试。');
+      if (row.createdAtUnix < timestamp) hi = mid; else lo = mid + 1;
+    }
+    return lo;
+  }
+  const start = filters.until == null || (newest != null && newest < filters.until) ? 0 : await firstOlderThan(filters.until);
+  const end = filters.from == null ? total : await firstOlderThan(filters.from);
+  const count = Math.max(0, end - start);
+  if (offset >= count) return { items: [], totalCount: count };
+  const result = await read(start + offset, Math.min(RUNS_PAGE_SIZE, count - offset));
+  // A concurrent insertion must not leak rows outside the selected dates.
+  if (!result.items.every(row => matchesRun(row, filters))) throw new Error('任务列表已更新，请刷新重试。');
+  return { items: result.items, totalCount: count, nextPageToken: offset + RUNS_PAGE_SIZE < count ? String(offset + RUNS_PAGE_SIZE) : '' };
+}
+
 // A bounded scan fills at most one visible page. The upstream API supports
 // status/order/cursor only. Never pretend an unsearched history has no matches.
 export async function readRunsPage(
   fetchPage: (params: URLSearchParams) => Promise<CursorPage<Run>>,
   filters: RunFilters, token = '', signal?: AbortSignal,
 ): Promise<RunsPage> {
+  if (!filters.keyword && filters.status !== 'active' && (filters.from != null || filters.until != null)) {
+    return readDatePage(fetchPage, filters, token, signal);
+  }
   const directPage = !filters.keyword && filters.from == null && filters.until == null && filters.status !== 'active';
   if (directPage) {
     signal?.throwIfAborted();
@@ -90,4 +136,19 @@ export function localDateBounds(start: string, end: string) {
   if (until) until.setDate(until.getDate() + 1);
   if (from && until && from >= until) throw new Error('开始日期不能晚于结束日期。');
   return { from: from ? Math.floor(from.getTime() / 1000) : undefined, until: until ? Math.floor(until.getTime() / 1000) : undefined };
+}
+
+export function localDateString(date: Date) {
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+}
+
+// Resolve relative dates from the current local day, not from an old submission.
+export function relativeRunQuery(query: string, range: string, day: string) {
+  if (!['1', '7', '30'].includes(range)) return query;
+  const start = new Date(`${day}T12:00:00`);
+  start.setDate(start.getDate() - Number(range) + 1);
+  const bounds = localDateBounds(localDateString(start), day);
+  const params = new URLSearchParams(query);
+  params.set('from', String(bounds.from)); params.set('until', String(bounds.until));
+  return params.toString();
 }

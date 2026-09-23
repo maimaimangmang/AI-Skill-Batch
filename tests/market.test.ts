@@ -1,10 +1,25 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { createMarketPager, marketPageNumbers } from '../lib/market';
+import { createMarketPager, marketPageNumbers, declaredModels, listingModelLabel } from '../lib/market';
 import type { Listing } from '../lib/types';
 
 const item = (id: string) => ({ id, displayName: id } as Listing);
 const signal = () => new AbortController().signal;
+
+test('模型标签识别明确的模型 ID 声明，不从普通描述推断模型', () => {
+  assert.equal(declaredModels('**模型 ID：** `openai/gpt-image-2`\n**模式：**图生图 image-to-image'), 'openai/gpt-image-2');
+  assert.equal(declaredModels('- Model ID: openai/gpt-image-2'), 'openai/gpt-image-2');
+  assert.equal(declaredModels('使用 OpenAI 生成商品图'), '');
+  assert.equal(declaredModels('模型：未公开'), '');
+});
+
+test('作者提供的模型信息仅应用于确认过的 Skill 版本，公开声明优先', () => {
+  const listing = { ...item('01a0ccea-2449-7796-ba40-bfcded89b97d'), listingVersionId: '01a0ccf2-f42f-7486-8198-69922ca9c15c' };
+  assert.equal(listingModelLabel(listing), 'openai/gpt-image-2 · 图生图');
+  assert.equal(listingModelLabel({ ...listing, listingVersionId: 'new-version' }), '');
+  assert.equal(listingModelLabel({ ...listing, id: 'different-skill' }), '');
+  assert.equal(listingModelLabel({ ...listing, description: '模型 ID：another/model' }), 'another/model');
+});
 
 test('市场按需请求一页，返回已浏览页不发请求，搜索独立缓存', async () => {
   const urls: string[] = [];

@@ -24,7 +24,7 @@ export type ResultRow = { rowIndex: number; inputJson: string; status: string; e
 export type Run = {
   runId: string; templateKey?: string; sourceType?: string; displayName?: string; templateName?: string; status: string;
   totalTasks?: number; completedTasks?: number; failedTasks?: number; cancelledTasks?: number;
-  createdAtUnix?: number; actualCostT?: number; actualCost?: Money; firstErrorMessage?: string;
-  market?: { listingId?: string; skillName?: string; currency?: string; finalBuyerPayableT?: number; transactionStatus?: string };
+  createdAtUnix?: number; actualCostT?: number; actualCost?: Money; estimatedCostT?: number; estimatedCost?: Money; firstErrorMessage?: string;
+  market?: { listingId?: string; skillName?: string; currency?: string; finalBuyerPayableT?: number; finalBuyerPayable?: Money; estimatedBuyerPayableT?: number; estimatedBuyerPayable?: Money; transactionStatus?: string };
 };
 export type RunDetail = { run: Run; market?: Run['market'] };

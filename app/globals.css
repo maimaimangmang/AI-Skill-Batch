@@ -90,3 +90,11 @@
 /* An input-only example spans the panel; missing examples render no panel. */
 .examples-grid.examples-single{grid-template-columns:minmax(0,1fr)}
 .examples-single .example-input{border-right:0}
+.example-input-images{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-bottom:12px}
+.example-picture{display:block;min-width:0;color:inherit;text-decoration:none}
+.example-picture-frame{position:relative;display:block;height:180px;border-radius:8px;overflow:hidden;background:#f0f2f8}
+.example-picture-caption{display:flex;justify-content:space-between;gap:8px;align-items:center;padding:7px 0;font-size:10px;line-height:1.6;color:#60728b}
+.example-picture-caption>span{flex-shrink:0;color:var(--blue);font-size:9px}
+.example-input-note{font-size:10px;line-height:1.7;color:#8795aa;margin:7px 0 0}
+.examples-expanded .example-picture-frame{height:320px}
+@media(max-width:760px){.examples-grid:has(.example-picture){grid-template-columns:minmax(0,1fr)}.examples-grid:has(.example-picture) .example-input{border-right:0;border-bottom:1px solid var(--line)}.example-picture-frame{height:160px}.example-picture-caption{flex-wrap:wrap;gap:2px}}

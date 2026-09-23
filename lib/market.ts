@@ -59,12 +59,31 @@ export function createMarketPager(
 // of a provider, modality, or product name is not evidence of the model used.
 export function declaredModels(description: string) {
   const names = description.split(/\r?\n/).flatMap(line => {
-    const plain = line.replace(/\*\*/g, '').replace(/^\s*[-*•]\s*/, '').trim();
-    const match = plain.match(/^(?:使用模型|所用模型|采用模型|模型名称|模型|models?\s*(?:used)?|powered by)\s*[:：]\s*(.+)$/i);
+    const plain = line.replace(/\*\*|`/g, '').replace(/^\s*[-*•]\s*/, '').trim();
+    const match = plain.match(/^(?:使用模型|所用模型|采用模型|模型名称|模型\s*ID|模型|models?\s*(?:used|id)?|powered by)\s*[:：]\s*(.+)$/i);
     if (!match) return [];
     const value = match[1].trim();
     if (/^(?:未公开|模型未公开|未提供|未知|待定|unknown|n\/a)[。.]?$/i.test(value)) return [];
     return [value];
   });
   return [...new Set(names)].join('；');
+}
+
+// Author-supplied disclosure for this exact published version. The public API
+// does not expose execution model configuration. Never carry this declaration
+// across a version change or treat it as enforcement of the execution model.
+const authorModelDeclarations = [{
+  listingId: '01a0ccea-2449-7796-ba40-bfcded89b97d',
+  listingVersionId: '01a0ccf2-f42f-7486-8198-69922ca9c15c',
+  model: 'openai/gpt-image-2',
+  mode: '图生图',
+}];
+
+export function listingModelLabel(listing: import('./types').Listing) {
+  const declaration = authorModelDeclarations.find(entry =>
+    entry.listingId === listing.id && entry.listingVersionId === listing.listingVersionId);
+  const model = declaredModels(listing.description || '');
+  // A public declaration takes precedence if the author updates the description.
+  if (model && model !== declaration?.model) return model;
+  return declaration ? `${declaration.model} · ${declaration.mode}` : model;
 }

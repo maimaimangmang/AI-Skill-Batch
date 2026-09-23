@@ -279,3 +279,6 @@
 /* Resources precede the account; author contact is the sidebar footer. */
 .studio-app .sidebar-bottom > .sidebar-resource-links { margin-bottom:16px; }
 .studio-app .sidebar-bottom > .sidebar-community { margin:8px 0 0; }
+
+.runs-panel .run-cost { min-width:112px; text-align:right; font-variant-numeric:tabular-nums; }
+.runs-panel .run-cost strong { color:#243957; font-size:13px; font-weight:600; }
