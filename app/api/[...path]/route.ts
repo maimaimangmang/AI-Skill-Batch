@@ -119,7 +119,7 @@ async function handle(request: NextRequest, context: { params: Promise<{ path: s
       const body = await jsonBody(request, 14 * 1024 * 1024);
       const buffer = fileBuffer(body.content, 10 * 1024 * 1024);
       if (typeof body.filename !== 'string' || body.filename.length > 255 || typeof body.contentType !== 'string') throw new ApiError('附件信息无效。');
-      return json(await upstream('inputAssets:upload', key, { filename: body.filename, contentType: body.contentType, content: buffer.toString('base64') }));
+      return json(await upstream('inputAssets:upload', key, { filename: body.filename, contentType: body.contentType, content: buffer.toString('base64') }, false, request.signal));
     }
     if (method === 'POST' && route === 'quote') {
       limit(`${session.id}:quote`, 20);
