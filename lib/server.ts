@@ -95,12 +95,18 @@ export function sameOrigin(request: Request) {
 }
 export async function jsonBody(request: Request, maximum = 1024 * 1024) {
   if (!request.headers.get('content-type')?.includes('application/json')) throw new ApiError('请求格式应为 JSON。', 415);
+  const buffer = await readBody(request, maximum);
+  try { return JSON.parse(buffer.toString('utf8')); } catch { throw new ApiError('请求 JSON 无效。'); }
+}
+export async function readBody(request: Request, maximum: number): Promise<Buffer> {
   if (Number(request.headers.get('content-length') || 0) > maximum) throw new ApiError('提交内容过大。', 413);
   const reader = request.body?.getReader();
   if (!reader) throw new ApiError('缺少请求内容。');
   const chunks: Uint8Array[] = []; let size = 0;
-  while (true) { const { done, value } = await reader.read(); if (done) break; size += value.length; if (size > maximum) { await reader.cancel(); throw new ApiError('提交内容过大。', 413); } chunks.push(value); }
-  try { return JSON.parse(Buffer.concat(chunks).toString('utf8')); } catch { throw new ApiError('请求 JSON 无效。'); }
+  try {
+    while (true) { request.signal.throwIfAborted(); const { done, value } = await reader.read(); if (done) break; size += value.length; if (size > maximum) { await reader.cancel(); throw new ApiError('提交内容过大。', 413); } chunks.push(value); }
+    return Buffer.concat(chunks);
+  } finally { reader.releaseLock(); }
 }
 export function baseUrl() {
   const url = new URL(process.env.LOOMLOOM_BASE_URL || 'https://loomloom.shengsuanyun.com');

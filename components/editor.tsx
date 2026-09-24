@@ -69,12 +69,12 @@ export default function Editor({ listing, schema, rows, setRows, demo, busy, err
       const field = fields.find(f => f.key === key)!;
       const existing = multiple ? assetValues(rows[index][key]).filter(Boolean) : [];
       if (field.max_values && existing.length >= field.max_values) throw new Error(`最多上传 ${field.max_values} 个附件。`);
-      const content = await base64(file);
       controller.signal.throwIfAborted();
       if (!mounted.current) return;
       setAssetUpload(current => current && { ...current, phase: 'uploading', percent: 0 });
       const value = await api('/assets', {
-        ...post({ filename: file.name, contentType: file.type || 'application/octet-stream', content }),
+        method: 'POST', body: file,
+        headers: { 'Content-Type': 'application/octet-stream', 'X-Upload-Filename': encodeURIComponent(file.name), 'X-Upload-Type': file.type || 'application/octet-stream' },
         signal: controller.signal,
         onUploadProgress: percent => { if (mounted.current) setAssetUpload(current => current && { ...current, phase: percent === 100 ? 'processing' : 'uploading', percent }); }
       });

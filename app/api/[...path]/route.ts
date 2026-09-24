@@ -6,6 +6,7 @@ import { randomUUID } from 'node:crypto';
 import { ApiError, createSession, db, destroySession, getQuote, jsonBody, limit, quoteMatches, sameOrigin, saveQuote, sessionFromToken, unseal, upstream, type StoredQuote } from '@/lib/server';
 import { normalizeRows, schemaOf } from '@/lib/domain';
 import { fileBuffer, parseWorkbook } from '@/lib/workbook';
+import { readAssetUpload } from '@/lib/asset-upload';
 import { isOfficialTemplate, officialListing, officialRows, officialQuote } from '@/lib/official';
 import type { Listing, Quote } from '@/lib/types';
 export const runtime = 'nodejs';
@@ -116,10 +117,12 @@ async function handle(request: NextRequest, context: { params: Promise<{ path: s
     }
     if (method === 'POST' && route === 'assets') {
       limit(`${session.id}:upload`, 30);
-      const body = await jsonBody(request, 14 * 1024 * 1024);
-      const buffer = fileBuffer(body.content, 10 * 1024 * 1024);
-      if (typeof body.filename !== 'string' || body.filename.length > 255 || typeof body.contentType !== 'string') throw new ApiError('附件信息无效。');
-      return json(await upstream('inputAssets:upload', key, { filename: body.filename, contentType: body.contentType, content: buffer.toString('base64') }, false, request.signal));
+      const started = performance.now();
+      const body = await readAssetUpload(request);
+      const received = performance.now();
+      const response = json(await upstream('inputAssets:upload', key, body, false, request.signal));
+      response.headers.set('Server-Timing', `receive;dur=${(received - started).toFixed(1)}, storage;dur=${(performance.now() - received).toFixed(1)}`);
+      return response;
     }
     if (method === 'POST' && route === 'quote') {
       limit(`${session.id}:quote`, 20);

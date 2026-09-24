@@ -14,6 +14,7 @@ process.env.APP_ORIGIN = 'http://localhost:3000';
 process.env.LOOMLOOM_BASE_URL = 'https://loomloom.test';
 const nativeFetch = globalThis.fetch;
 const attempts: { key: string; body: any }[] = [];
+const uploads: any[] = [];
 const completed = new Map<string, { runId: string }>();
 let price = 2500000; let dropNext = false; let noCurrency = false; let quoteCount = 0;
 let officialValid = true; let officialRevision = 'official-price-1'; let officialVersion = 'v3';
@@ -24,6 +25,7 @@ globalThis.fetch = async (input, options) => {
   assert.equal(options?.redirect, 'error'); assert.equal(options?.cache, 'no-store');
   const headers = new Headers(options?.headers); const key = headers.get('Authorization') || '';
   if (key === 'Bearer invalid-key') return Response.json({ message: 'Unauthorized' }, { status: 401 });
+  if (url.endsWith('/inputAssets:upload')) { uploads.push(JSON.parse(String(options?.body))); return Response.json({ inputAssetId: 'ia_binary_test' }); }
   if (url.endsWith('/balance')) return Response.json({ currency: 'CNY', availableBalanceT: 1000000000 });
   if (url.includes('/officialTemplates/')) {
     const body = options?.body ? JSON.parse(String(options.body)) : undefined;
@@ -257,4 +259,24 @@ test('官方模板：没有价格版本时仍重查金额，金额变化须重�
   assert.equal((await call('execute', { ticket: q.ticket, confirm: true }, cookie)).response.status, 200);
   assert.equal(officialAttempts.at(-1).expectedEstimatedCostT, price);
   assert.equal(officialAttempts.at(-1).expectedPricingRevision, undefined); officialRevision = 'official-price-1';
+});
+
+
+test('binary assets retain authentication and origin checks, forward intact bytes and expose timings', async () => {
+  const cookie = await login('binary-upload-test');
+  const bytes = new Uint8Array([0, 255, 128, 10, 13]);
+  const send = (auth?: string, origin = 'http://localhost:3000') => POST(new NextRequest('http://localhost:3000/api/assets', {
+    method: 'POST', headers: { Origin: origin, 'Content-Type': 'application/octet-stream', 'X-Upload-Filename': encodeURIComponent('商品.png'), 'X-Upload-Type': 'image/png', ...(auth ? { Cookie: auth } : {}) }, body: bytes
+  }), { params: Promise.resolve({ path: ['assets'] }) });
+  const before = uploads.length;
+  assert.equal((await send()).status, 401);
+  assert.equal((await send(cookie, 'https://evil.example')).status, 403);
+  assert.equal(uploads.length, before);
+  const response = await send(cookie);
+  assert.equal(response.status, 200);
+  assert.deepEqual(await response.json(), { inputAssetId: 'ia_binary_test' });
+  assert.deepEqual(uploads.at(-1), { filename: '商品.png', contentType: 'image/png', content: Buffer.from(bytes).toString('base64') });
+  assert.match(response.headers.get('Server-Timing') || '', /receive;dur=[\d.]+, storage;dur=[\d.]+/);
+  const legacy = await call('assets', { filename: 'old.png', contentType: 'image/png', content: Buffer.from(bytes).toString('base64') }, cookie);
+  assert.equal(legacy.response.status, 200);
 });
