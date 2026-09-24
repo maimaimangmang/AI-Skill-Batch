@@ -10,7 +10,7 @@ export const demoListings: Listing[] = [
   ['demo-translate', '品牌内容翻译', '面向不同市场调整语气与表达，保持品牌信息一致。', 1000000],
   ['demo-research', '用户洞察整理', '把零散的访谈与反馈整理成主题、痛点和产品机会。', 2000000],
   ['demo-script', '短视频脚本助手', '从一句创意出发，组织开场、分镜和口播文案。', 3000000]
-].map(([id, displayName, description, fee]) => ({ id: String(id), displayName: String(displayName), description: String(description), currency: 'CNY', creator: { nickname: 'LoomDesk（演示）' }, taskFixedFeeT: Number(fee), executionAvailabilityStatus: 'available', inputSchemaSnapshot: { fields, instructions: ['每行是一项独立任务。请尽量写清产品特点和目标人群。'], sample_rows: [{ product: '轻便随行咖啡杯，保温 6 小时', audience: '都市通勤人群', tone: '自然亲切' }] } }));
+].map(([id, displayName, description, fee]) => ({ id: String(id), displayName: String(displayName), description: String(description), currency: 'CNY', creator: { nickname: 'LoomSkill（演示）' }, taskFixedFeeT: Number(fee), executionAvailabilityStatus: 'available', inputSchemaSnapshot: { fields, instructions: ['每行是一项独立任务。请尽量写清产品特点和目标人群。'], sample_rows: [{ product: '轻便随行咖啡杯，保温 6 小时', audience: '都市通勤人群', tone: '自然亲切' }] } }));
 const demoOfficial = ['text-image-v1', 'text-v1'].map(id => {
   const image = id === 'text-image-v1'; const key = image ? '图片提示词' : '文本提示词';
   return officialListing({ templateId: id, version: 'demo', name: image ? '通用文生图' : '通用文本生成', description: '演示模板 · 输入和结果仅用于体验，不调用真实 AI。',

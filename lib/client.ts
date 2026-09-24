@@ -19,7 +19,7 @@ export async function download(path: string, filename: string) {
 }
 export async function exportSheet(columns: string[], rows: unknown[][], filename: string) {
   const ExcelJS = (await import('exceljs')).default;
-  const workbook = new ExcelJS.Workbook(); const sheet = workbook.addWorksheet('LoomDesk');
+  const workbook = new ExcelJS.Workbook(); const sheet = workbook.addWorksheet('LoomSkill');
   sheet.addRow(columns); rows.forEach(row => sheet.addRow(row.map(v => v == null ? '' : typeof v === 'object' ? JSON.stringify(v) : v)));
   sheet.getRow(1).font = { bold: true, color: { argb: 'FFFFFFFF' } }; sheet.getRow(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF3463F3' } };
   sheet.columns.forEach(column => { column.width = 35; column.alignment = { vertical: 'top', wrapText: true }; });
