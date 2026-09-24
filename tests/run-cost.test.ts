@@ -1,11 +1,49 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { runCost } from '../lib/run-cost';
+import { marketSettlementPending, runCost, shouldPollRun } from '../lib/run-cost';
 import type { Run } from '../lib/types';
 const run: Run = { runId: 'test', status: 'completed' };
 test('市场显示买家总额，不漏作者调用费，支持当前金额对象及旧 T 单位', () => {
-  assert.deepEqual(runCost({ ...run, actualCost: { amount: '0.0085498', currency: 'CNY' }, market: { finalBuyerPayable: { amount: '1.0085498', currency: 'CNY' } } }), { amount: '¥1.0085498', label: '实际费用' });
-  assert.equal(runCost({ ...run, market: { currency: 'CNY', finalBuyerPayableT: 12500000 } }).amount, '¥1.25');
+  assert.deepEqual(runCost({ ...run, actualCost: { amount: '0.0085498', currency: 'CNY' }, market: { transactionStatus: 'succeeded', finalBuyerPayable: { amount: '1.0085498', currency: 'CNY' } } }), { amount: '¥1.0085498', label: '实际费用' });
+  assert.equal(runCost({ ...run, market: { transactionStatus: 'succeeded', currency: 'CNY', finalBuyerPayableT: 12500000 } }).amount, '¥1.25');
+});
+test('Run 已完成但交易仍运行时，不将零值或非零占位金额当成实际费用', () => {
+  for (const transactionStatus of ['running', 'pending', undefined]) {
+    for (const finalAmount of ['0', '0.50']) {
+      const market = { transactionStatus, finalBuyerPayable: { amount: finalAmount, currency: 'CNY' }, estimatedBuyerPayable: { amount: '0.983', currency: 'CNY' } };
+      assert.deepEqual(runCost(run, market), { amount: '¥0.983', label: '预估 · 待结算' });
+      assert.equal(shouldPollRun(run, market), true);
+    }
+  }
+});
+test('交易延迟结算后更新实际金额，真正结算为零也能显示', () => {
+  const pending: Run = { ...run, market: { transactionStatus: 'running', currency: 'CNY', finalBuyerPayableT: 0, estimatedBuyerPayableT: 9830000 } };
+  assert.equal(shouldPollRun(pending), true);
+  assert.equal(runCost(pending).label, '预估 · 待结算');
+  for (const finalBuyerPayableT of [0, 12000000]) {
+    const settled: Run = { ...pending, market: { ...pending.market, transactionStatus: 'succeeded', finalBuyerPayableT } };
+    assert.deepEqual(runCost(settled), { amount: finalBuyerPayableT ? '¥1.20' : '¥0.00', label: '实际费用' });
+    assert.equal(shouldPollRun(settled), false);
+  }
+});
+test('Run 和交易都结束才停止轮询，兼容详情外层的 Market 数据', () => {
+  assert.equal(shouldPollRun({ ...run, status: 'running' }, { transactionStatus: 'succeeded' }), true);
+  assert.equal(shouldPollRun({ ...run, sourceType: 'market_skillbot' }), true);
+  for (const status of ['completed', 'failed', 'cancelled', 'partially_failed', 'partially_cancelled']) {
+    assert.equal(shouldPollRun({ ...run, status }, { transactionStatus: 'running' }), true);
+    for (const transactionStatus of ['succeeded', 'failed', 'cancelled']) {
+      assert.equal(shouldPollRun({ ...run, status }, { transactionStatus }), false);
+    }
+  }
+  assert.equal(shouldPollRun(run), false);
+  assert.equal(marketSettlementPending(run), false);
+});
+test('交易失败或取消显示服务端返回的金额，缺失金额不能臆造零费用', () => {
+  for (const transactionStatus of ['failed', 'cancelled']) {
+    assert.equal(runCost(run, { transactionStatus, finalBuyerPayable: { amount: '0', currency: 'CNY' } }).amount, '¥0.00');
+    assert.equal(runCost(run, { transactionStatus }).amount, '暂未返回');
+    assert.equal(marketSettlementPending(run, { transactionStatus }), false);
+  }
 });
 test('未结算市场费用明确标为预估，不能用模型费用替代总额', () => {
   assert.deepEqual(runCost({ ...run, actualCostT: 500000, market: { currency: 'CNY', estimatedBuyerPayableT: 15000000 } }), { amount: '¥1.50', label: '预估 · 待结算' });
