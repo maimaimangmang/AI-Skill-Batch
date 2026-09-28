@@ -1,8 +1,9 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { ArrowUpRight, Flame, LoaderCircle, Images, Image as ImageIcon, Type, Clapperboard } from 'lucide-react';
+import { ArrowUpRight, Flame, LoaderCircle, Images, Image as ImageIcon, Type, Clapperboard, Sparkles } from 'lucide-react';
 import { featuredWorkflows } from '@/lib/featured';
+import { featuredModelDisclosure, listingModelLabel } from '@/lib/market';
 import type { Listing } from '@/lib/types';
 import WorkflowAuthor from './workflow-author';
 import { money } from '@/lib/domain';
@@ -38,6 +39,7 @@ export default function FeaturedWorkflows({ demo, busy, api, onChoose }: Props) 
     <div className="featured-grid">{featuredWorkflows.map((entry) => {
       const external = demo && !entry.officialTemplateId;
       const listing = resolved[entry.officialTemplateId || entry.listingId!];
+      const modelLabel = listing ? listingModelLabel(listing) : demo && entry.listingId ? featuredModelDisclosure(entry.listingId) : '';
       const fee = demo ? entry.referenceFee?.amountT : listing?.taskFixedFeeT;
       const currency = demo ? entry.referenceFee?.currency : listing?.currency;
       const price = !entry.listingId ? '按用量计费' : fee != null ? money(fee, currency) : !demo && listing === undefined ? '读取价格中…' : '价格暂未提供';
@@ -47,8 +49,9 @@ export default function FeaturedWorkflows({ demo, busy, api, onChoose }: Props) 
         <div className="featured-category-row"><span className="featured-category"><span className="featured-category-icon"><CategoryIcon size={17} strokeWidth={1.8} aria-hidden="true" /></span>{entry.category}</span>{entry.hot && <span className="featured-hot-badge" role="img" aria-label="热门推荐" title="热门推荐"><Flame size={16} fill="currentColor" aria-hidden="true" /></span>}</div>
         <h3>{entry.title}</h3>
         <WorkflowAuthor name={listing?.creator?.nickname?.trim() || entry.authorName} />
+        {modelLabel && <span className="featured-model-label" title={`模型（作者说明）：${modelLabel}`}><Sparkles size={10} aria-hidden="true" />{modelLabel}</span>}
         <p>{entry.reason}</p>
-        <div className="featured-card-footer"><div className="featured-price"><strong>{price}</strong><span>{entry.listingId ? '/ 任务调用费' : '无技能调用费'}</span></div>
+        <div className="featured-card-footer"><div className="featured-price"><strong>{price}</strong><span>{entry.listingId ? '/ 次' : '无技能调用费'}</span></div>
         {external ? <a className="featured-action" href={entry.url} target="_blank" rel="noopener noreferrer" title="在胜算云打开（新窗口）" aria-label={`${demo ? '查看' : '使用'}${entry.title}（在胜算云新窗口打开）`}>{demo ? '查看 Skill' : '使用 Skill'}<ArrowUpRight size={15} /></a>
           : listing === null ? <button className="featured-action" disabled={busy} onClick={() => setRefresh(value => value + 1)}>加载失败，重试</button>
           : <button className="featured-action" disabled={busy || !listing || !!unavailable} aria-label={`使用推荐：${entry.title}`} onClick={() => listing && onChoose(listing)}>

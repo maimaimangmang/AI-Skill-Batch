@@ -87,3 +87,11 @@ export function listingModelLabel(listing: import('./types').Listing) {
   if (model && model !== declaration?.model) return model;
   return declaration ? `${declaration.model} · ${declaration.mode}` : model;
 }
+
+// Demo cards intentionally avoid loading private Market details; use a unique
+// author disclosure snapshot so the public recommendation still names its model.
+export function featuredModelDisclosure(listingId: string) {
+  const matches = authorModelDeclarations.filter(entry => entry.listingId === listingId);
+  if (matches.length !== 1) return '';
+  return `${matches[0].model} · ${matches[0].mode}`;
+}
