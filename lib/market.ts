@@ -60,9 +60,9 @@ export function createMarketPager(
 export function declaredModels(description: string) {
   const names = description.split(/\r?\n/).flatMap(line => {
     const plain = line.replace(/\*\*|`/g, '').replace(/^\s*[-*•]\s*/, '').trim();
-    const match = plain.match(/^(?:使用模型|所用模型|采用模型|模型名称|模型\s*ID|模型|models?\s*(?:used|id)?|powered by)\s*[:：]\s*(.+)$/i);
+    const match = plain.match(/(?:^|[。.!！?？]\s*)(?:使用模型|所用模型|采用模型|模型名称|模型\s*ID|模型|models?\s*(?:used|id)?|powered by)\s*[:：]\s*(.+)$/i);
     if (!match) return [];
-    const value = match[1].trim();
+    const value = match[1].trim().replace(/[。！？；;]+$/, '').trim();
     if (/^(?:未公开|模型未公开|未提供|未知|待定|unknown|n\/a)[。.]?$/i.test(value)) return [];
     return [value];
   });
@@ -81,6 +81,10 @@ const authorModelDeclarations = [{
   listingId: '01a0d302-73cd-7702-a072-0358de4e9b86',
   listingVersionId: '01a0d302-73e8-7936-a8e3-80a108d19bb2',
   model: 'bytedance/doubao-seedream-4.5',
+}, {
+  listingId: '01a0d302-73cd-7702-a072-0358de4e9b86',
+  listingVersionId: '01a0e65c-b596-7d8d-a9dd-a17844947f94',
+  model: 'bytedance/doubao-seedream-4.5',
 }];
 
 export function listingModelLabel(listing: import('./types').Listing) {
@@ -96,6 +100,6 @@ export function listingModelLabel(listing: import('./types').Listing) {
 // author disclosure snapshot so the public recommendation still names its model.
 export function featuredModelDisclosure(listingId: string) {
   const matches = authorModelDeclarations.filter(entry => entry.listingId === listingId);
-  if (matches.length !== 1) return '';
-  return `${matches[0].model} · ${matches[0].mode}`;
+  const labels = [...new Set(matches.map(entry => `${entry.model}${entry.mode ? ` · ${entry.mode}` : ''}`))];
+  return labels.length === 1 ? labels[0] : '';
 }
