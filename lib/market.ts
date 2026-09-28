@@ -77,6 +77,10 @@ const authorModelDeclarations = [{
   listingVersionId: '01a0ccf2-f42f-7486-8198-69922ca9c15c',
   model: 'openai/gpt-image-2',
   mode: '图生图',
+}, {
+  listingId: '01a0d302-73cd-7702-a072-0358de4e9b86',
+  listingVersionId: '01a0d302-73e8-7936-a8e3-80a108d19bb2',
+  model: 'bytedance/doubao-seedream-4.5',
 }];
 
 export function listingModelLabel(listing: import('./types').Listing) {
