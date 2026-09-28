@@ -49,7 +49,8 @@ export function workflowExamples(listing: Listing, schema: Schema): WorkflowExam
     return [remixTrial, ...samples].slice(0, 10);
   }
   if (listing.id === '01a0d302-73cd-7702-a072-0358de4e9b86'
-    && listing.listingVersionId === '01a0d302-73e8-7936-a8e3-80a108d19bb2') {
+    && (listing.listingVersionId === '01a0d302-73e8-7936-a8e3-80a108d19bb2'
+      || listing.listingVersionId === '01a0e65c-b596-7d8d-a9dd-a17844947f94')) {
     return [doubaoTrial, ...samples].slice(0, 10);
   }
   return samples;
