@@ -74,6 +74,14 @@ export default function Workbench() {
     request('/session').then(data => { if (active) setConnected(data.connected); }).catch(e => { if (active) setLoginError(e.message); }).finally(() => { if (active) setReady(true); });
     return () => { active = false; };
   }, []);
+  useEffect(() => {
+    if (!ready) return;
+    const target = !connected ? '/login' : demo ? '/?demo=1' : '/';
+    if (window.location.pathname + window.location.search !== target) {
+      window.history.replaceState(null, '', target);
+    }
+    document.title = connected ? 'LoomSkill · AI 批处理工作台' : '登录 · LoomSkill';
+  }, [ready, connected, demo]);
   useEffect(() => { const timeout = setTimeout(() => { if (search !== query) searchMarket(search); }, 300); return () => clearTimeout(timeout); }, [search, query]);
   useEffect(() => {
     if (!connected) return; let active = true;
@@ -110,14 +118,14 @@ export default function Workbench() {
   }, [view, loading, listings]);
   async function login(e: React.FormEvent) {
     e.preventDefault(); setLoginBusy(true); setLoginError('');
-    try { const data = await request('/session', post({ apiKey: key })); setKey(''); setDemo(false); setConnected(true); setBalance(data.balance); setView('market'); setRefresh(r => r + 1); window.history.replaceState({}, '', '/'); }
+    try { const data = await request('/session', post({ apiKey: key })); setKey(''); setDemo(false); setConnected(true); setBalance(data.balance); setView('market'); setRefresh(r => r + 1); }
     catch (e) { setLoginError((e as Error).message); } finally { setLoginBusy(false); }
   }
-  function enterDemo() { setDemo(true); setConnected(true); setView('market'); setKey(''); setError(''); window.history.replaceState({}, '', '/?demo=1'); }
+  function enterDemo() { setDemo(true); setConnected(true); setView('market'); setKey(''); setError(''); }
   async function logout() {
     setError('');
     if (!demo) { try { await request('/session', { method: 'DELETE' }); } catch (e) { setError((e as Error).message); return; } }
-    setConnected(false); setDemo(false); setKey(''); setMarketPages([]); setMarketPage(0); setRows([]); setListing(null); setBalance(null); setConfirmation(null); setPending([]); setView('market'); setError(''); setLoginError(''); window.history.replaceState({}, '', '/');
+    setConnected(false); setDemo(false); setKey(''); setMarketPages([]); setMarketPage(0); setRows([]); setListing(null); setBalance(null); setConfirmation(null); setPending([]); setView('market'); setError(''); setLoginError('');
   }
   function navigate(next: View) { setView(next); setMobileNav(false); setError(''); }
   async function choose(item: Listing, retryRows?: ResultRow[]) {
