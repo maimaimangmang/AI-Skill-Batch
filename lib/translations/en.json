@@ -557,5 +557,7 @@
   "登录后将继续使用所选 Skill。": "Continue with your selected Skill after signing in.",
   "结构化数据": "Structured data",
   "作者试跑案例（GPT Image 2）": "Creator trial (GPT Image 2)",
-  "作者试跑案例（豆包4.5）": "Creator trial (Seedream 4.5)"
+  "作者试跑案例（豆包4.5）": "Creator trial (Seedream 4.5)",
+  "上传 Skill": "Upload Skill",
+  "刷新失败，请重试。": "Refresh failed. Please try again."
 }

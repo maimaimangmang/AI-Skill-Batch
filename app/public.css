@@ -39,3 +39,17 @@
   .public-catalog.studio-market .featured-card h3 { font-size:15px; }
   .public-catalog.studio-market .featured-card>p { font-size:12px; }
 }
+
+.public-header nav>a { display:inline-flex; align-items:center; gap:5px; }
+.public-catalog.studio-market .catalog-search-actions { display:flex; align-items:center; gap:12px; }
+.public-catalog.studio-market .refresh-button { display:inline-flex; margin:0; color:#8290b2; }
+.public-catalog.studio-market .refresh-button:hover:not(:disabled) { color:#5433ff; background:#eeeaff; }
+.public-catalog.studio-market .card-model-tags { margin-bottom:16px; }
+.public-catalog.studio-market .pagination-buttons { flex-wrap:wrap; }
+.public-catalog.studio-market .pagination-buttons .button { border-radius:12px; border-color:#e9edf8; color:var(--ink); box-shadow:none; }
+.public-catalog.studio-market .pagination-buttons .primary { color:#fff; background:var(--blue); border-color:var(--blue); }
+@media(max-width:600px) {
+  .public-catalog.studio-market .catalog-search-actions { width:100%; }
+  .public-catalog.studio-market .catalog-search-actions .search { min-width:0; flex:1; }
+  .public-catalog.studio-market .pagination-buttons { justify-content:center; gap:5px; }
+}

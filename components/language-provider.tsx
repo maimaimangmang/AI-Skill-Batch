@@ -1,7 +1,6 @@
 'use client';
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
-import { Languages } from 'lucide-react';
 import { translate, type Locale, languagePreference } from '@/lib/i18n';
 
 const preferenceKey = 'loomskill-language';
@@ -37,12 +36,9 @@ export function useI18n() {
 
 export function LanguageSwitcher() {
   const { locale, setLocale } = useI18n();
-  return <label className="language-switcher">
-    <Languages size={16} aria-hidden="true" />
-    <span className="sr-only">{locale === 'en' ? 'Website language' : '网页语言'}</span>
-    <select value={locale} onChange={event => setLocale(languagePreference(event.target.value))}>
-      <option value="zh-CN" lang="zh-CN">中文</option>
-      <option value="en" lang="en">English</option>
-    </select>
-  </label>;
+  return <div className="language-switcher" role="group" aria-label={locale === 'en' ? 'Website language' : '网页语言'}>
+    <button type="button" lang="zh-CN" aria-label="切换为中文" aria-pressed={locale === 'zh-CN'} onClick={() => setLocale('zh-CN')}>中</button>
+    <span aria-hidden="true">/</span>
+    <button type="button" lang="en" aria-label="Switch to English" aria-pressed={locale === 'en'} onClick={() => setLocale('en')}>EN</button>
+  </div>;
 }

@@ -1,7 +1,6 @@
 import { notFound, redirect } from 'next/navigation';
 import { PublicCatalog } from '@/components/public-catalog';
 import { featuredWorkflows } from '@/lib/featured';
-import { schemaOf } from '@/lib/domain';
 import { listingModelLabel } from '@/lib/market';
 import type { PublicSkill } from '@/lib/public-skills';
 import { getPublicSkill, getPublicSkills } from '@/lib/public-skills';
@@ -26,9 +25,7 @@ export default async function SkillsPage({ searchParams }: Params) {
   if (page > pages) notFound();
   function card(skill: PublicSkill) {
     const { id, displayName, description, creator, officialTemplateId, taskFixedFeeT, currency } = skill;
-    let requiredFields: number | null = null;
-    try { requiredFields = schemaOf(skill).fields.filter(field => field.required).length; } catch { /* Keep unknown field counts distinct from zero. */ }
-    return { id, displayName, description, creator, officialTemplateId, taskFixedFeeT, currency, requiredFields, model: listingModelLabel(skill) };
+    return { id, displayName, description, creator, officialTemplateId, taskFixedFeeT, currency, model: listingModelLabel(skill) };
   }
   const visible = filtered.slice((page - 1) * 24, page * 24);
   // The list response omits creator names. Read only public details for the author row.
