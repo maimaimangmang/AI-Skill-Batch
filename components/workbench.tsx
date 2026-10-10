@@ -36,7 +36,10 @@ export default function Workbench() {
   const [marketPage, setMarketPage] = useState(0);
   const [marketRetry, setMarketRetry] = useState(0);
   const [marketCountError, setMarketCountError] = useState(false);
-  const listings = marketPages[marketPage]?.items || [];
+  // Hide this listing from this site's market and search without altering upstream listings.
+  const listings = useMemo(() => (marketPages[marketPage]?.items || []).filter(
+    item => item.id !== '01a12464-6c6a-70ed-ab08-56fd0478261b', // 归藏网页 PPT
+  ), [marketPages, marketPage]);
   const scrollMarketAfterLoad = useRef(false);
   const [refresh, setRefresh] = useState(0);
   const [listing, setListing] = useState<Listing | null>(null); const [schema, setSchema] = useState<Schema | null>(null); const [rows, setRows] = useState<InputRow[]>([]);
