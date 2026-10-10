@@ -11,7 +11,7 @@ type Params = { params: Promise<{ slug: string }> };
 export async function generateMetadata({ params }: Params) {
   const skill = await getPublicSkill(skillId((await params).slug));
   if (!skill) return { title: 'Skill 未找到 · LoomSkill', robots: { index: false, follow: true } };
-  return pageMetadata(`${skill.displayName} · AI 批量工作流 | LoomSkill`, skill.description.replace(/\s+/g, ' ').slice(0, 160), skillPath(skill.id));
+  return pageMetadata(`${skill.displayName} · AI 批量工作流 | LoomSkill`, (skill.description?.trim() || `查看${skill.displayName}的输入要求、公开示例、批量使用步骤和费用说明。使用 LoomSkill 填写任务表，确认预估费用后执行。`).replace(/\s+/g, ' ').slice(0, 160), skillPath(skill.id));
 }
 export default async function SkillPage({ params }: Params) {
   const { slug } = await params;
