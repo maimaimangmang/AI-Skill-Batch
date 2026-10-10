@@ -22,11 +22,9 @@
 .public-home .home-featured-footer a{display:flex;align-items:center;gap:3px;font-size:11px;color:#7960ce;white-space:nowrap}
 .public-home .home-featured-number{position:absolute;right:16px;top:20px;color:#c9c3dc;font-size:10px;letter-spacing:1px}
 .public-home .home-discovery{min-width:0;display:flex;flex-direction:column}
-.public-home .home-motion-toggle{border:0;background:transparent;padding:7px 0 7px 7px;display:flex;align-items:center;gap:5px;color:#8d86a2;font-size:10px;cursor:pointer;white-space:nowrap}
 .public-home .home-skill-stream{position:relative;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;height:560px;overflow:hidden;mask-image:linear-gradient(transparent,#000 6%,#000 94%,transparent);border-radius:18px;background:#f3f1fb;padding:0 12px}
 .public-home .home-stream-column{min-width:0}
-.public-home .home-stream-track{animation:home-skill-flow 75s linear infinite;will-change:transform}
-.public-home .home-stream-column:nth-child(2) .home-stream-track{animation-duration:86s;animation-direction:reverse}
+.public-home .home-stream-track{will-change:transform}
 .public-home .home-stream-group{display:flex;flex-direction:column;gap:14px;padding-bottom:14px}
 .public-home .home-stream-card{display:flex;flex-direction:column;height:184px;flex-shrink:0;background:#fff;border:1px solid #e7e4f2;border-radius:14px;padding:18px;transition:border-color .2s,box-shadow .2s}
 .public-home .home-stream-card>div{display:flex;align-items:center;justify-content:space-between;color:#b7accd}
@@ -34,15 +32,12 @@
 .public-home .home-stream-card h3{font-size:13px;line-height:1.6;margin:10px 0 7px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .public-home .home-stream-card p{font-size:11px;line-height:1.8;color:#8b90a4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;margin:0 0 8px}
 .public-home .home-stream-kind{color:#a7a2b6;font-size:9px;margin-top:auto}
-.public-home .home-discovery[data-paused=true] .home-stream-track,.public-home .home-skill-stream:focus-within .home-stream-track{animation-play-state:paused}
 .public-home .home-discovery-caption{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:11px;color:#837893;margin:14px 3px 0}
 .public-home .home-discovery-caption>span{display:flex;align-items:center;gap:7px}
 .public-home .home-discovery-caption i{width:5px;height:5px;border-radius:50%;background:#aa94de}
 .public-home .home-discovery-caption small{font-size:10px;color:#a09aae}
 .public-home .public-steps article{border-radius:14px;padding:18px}
-@keyframes home-skill-flow{to{transform:translateY(-50%)}}
 @media(hover:hover) and (pointer:fine){
- .public-home .home-skill-stream:hover .home-stream-track{animation-play-state:paused}
  .public-home .home-featured-card:hover{border-color:#c4b3e5;box-shadow:0 12px 30px #7862a412}
  .public-home .home-stream-card:hover{border-color:#bda6e2;box-shadow:0 4px 14px #77628f12}
  .public-home .public-button:hover{transform:translateY(-3px);box-shadow:0 8px 20px #7660c321}
@@ -61,8 +56,20 @@
 @media(prefers-reduced-motion:reduce){
  .public-home [data-home-motion],.public-home .public-button{transition:none;transform:none!important}
  .public-home [data-home-motion]::before{display:none}
- .public-home .home-stream-track{animation:none;will-change:auto}
+ .public-home .home-stream-track{transform:none!important;will-change:auto}
  .public-home .home-stream-group[aria-hidden=true]{display:none}
  .public-home .home-skill-stream{overflow-y:auto;mask-image:none}
- .public-home .home-motion-toggle,.public-home .home-discovery-caption small{display:none}
+ .public-home .home-discovery-caption small{display:none}
 }
+
+/* Touch and keyboard users browse a regular list without counter-motion. */
+@media(hover:none),(pointer:coarse){
+ .public-home .home-stream-track{transform:none!important;will-change:auto}
+ .public-home .home-stream-group[aria-hidden=true]{display:none}
+ .public-home .home-skill-stream{overflow-y:auto;mask-image:none}
+ .public-home .home-discovery-caption small{display:none}
+}
+.public-home .home-skill-stream:has(:focus-visible) .home-stream-track{transform:none!important;will-change:auto}
+.public-home .home-skill-stream:has(:focus-visible) .home-stream-group[aria-hidden=true]{display:none}
+.public-home .home-skill-stream:has(:focus-visible){overflow-y:auto;mask-image:none}
+@media(max-width:760px){.public-header nav{gap:12px}}

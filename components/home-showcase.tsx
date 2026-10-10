@@ -1,11 +1,12 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useRef, useState } from 'react';
-import { ArrowRight, ArrowUpRight, FileText, ImageIcon, Layers, Pause, Play, Sparkles } from 'lucide-react';
+import { useEffect, useRef } from 'react';
+import { ArrowRight, ArrowUpRight, FileText, ImageIcon, Layers, Sparkles } from 'lucide-react';
 import { useI18n } from './language-provider';
 import { skillPath } from '@/lib/skill-links';
 import { money } from '@/lib/domain';
+import { skillStreamOffset } from '@/lib/home-scroll';
 import type { PublicSkill } from '@/lib/public-skills';
 
 export type HomeSkill = Pick<PublicSkill, 'id' | 'displayName' | 'description' | 'officialTemplateId' | 'taskFixedFeeT' | 'currency' | 'outputType'>;
@@ -60,6 +61,51 @@ export function useHomeMotion() {
   return ref;
 }
 
+// Follow normal page scrolling; never capture the wheel or animate while idle.
+function useSkillScroll() {
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const stream = ref.current;
+    if (!stream) return;
+    const preference = window.matchMedia('(hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference)');
+    const tracks = [...stream.querySelectorAll<HTMLElement>('.home-stream-track')];
+    let frame = 0;
+    const paint = () => {
+      frame = 0;
+      if (!preference.matches) {
+        tracks.forEach(track => track.style.removeProperty('transform'));
+        return;
+      }
+      const bounds = stream.getBoundingClientRect();
+      // Position is derived from the page, so reversing the wheel reverses exactly.
+      const travel = (window.innerHeight - bounds.top) * 1.15;
+      tracks.forEach((track, index) => {
+        const cycle = track.firstElementChild?.getBoundingClientRect().height || 0;
+        const offset = skillStreamOffset(travel + (index ? 240 : 0), cycle, index ? -1 : 1);
+        track.style.transform = `translate3d(0, ${offset}px, 0)`;
+      });
+    };
+    const schedule = () => {
+      if (!frame) frame = requestAnimationFrame(paint);
+    };
+    const observer = new ResizeObserver(schedule);
+    observer.observe(stream);
+    tracks.forEach(track => { if (track.firstElementChild) observer.observe(track.firstElementChild); });
+    window.addEventListener('scroll', schedule, { passive: true });
+    window.addEventListener('resize', schedule);
+    preference.addEventListener('change', schedule);
+    paint();
+    return () => {
+      cancelAnimationFrame(frame);
+      observer.disconnect();
+      window.removeEventListener('scroll', schedule);
+      window.removeEventListener('resize', schedule);
+      preference.removeEventListener('change', schedule);
+    };
+  }, []);
+  return ref;
+}
+
 function SkillIcon({ skill }: { skill: HomeSkill }) {
   const Icon = skill.outputType === 'image' || skill.officialTemplateId === 'text-image-v1' ? ImageIcon : skill.outputType === 'text' ? FileText : Layers;
   return <Icon size={19} aria-hidden="true" />;
@@ -67,7 +113,7 @@ function SkillIcon({ skill }: { skill: HomeSkill }) {
 
 export function HomeShowcase({ skills, discovery, total }: { skills: HomeSkill[]; discovery: HomeSkill[]; total: number }) {
   const { t } = useI18n();
-  const [paused, setPaused] = useState(false);
+  const streamRef = useSkillScroll();
   const columns = [discovery.filter((_, i) => i % 2 === 0), discovery.filter((_, i) => i % 2 === 1)].filter(column => column.length);
   return <section className="public-section home-showcase">
     <div className="public-section-heading">
@@ -84,9 +130,9 @@ export function HomeShowcase({ skills, discovery, total }: { skills: HomeSkill[]
           </div><span className="home-featured-number" aria-hidden="true">0{index + 1}</span>
         </article>)}</div>
       </div>
-      <div className="home-discovery" data-paused={paused}>
-        <div className="home-column-heading"><h3>{t('更多灵感，更多 Skill')}</h3><button className="home-motion-toggle" type="button" aria-pressed={paused} aria-label={paused ? t('继续滚动') : t('暂停滚动')} onClick={() => setPaused(value => !value)}>{paused ? <Play size={13} /> : <Pause size={13} />}<span>{paused ? t('继续滚动') : t('暂停滚动')}</span></button></div>
-        <div className="home-skill-stream" role="region" aria-label={t('探索更多 Skill')} tabIndex={0}>
+      <div className="home-discovery">
+        <div className="home-column-heading"><h3>{t('更多灵感，更多 Skill')}</h3></div>
+        <div className="home-skill-stream" ref={streamRef} role="region" aria-label={t('探索更多 Skill')} tabIndex={0}>
           {columns.map((column, index) => <div className="home-stream-column" key={index}><div className="home-stream-track">
             {[0, 1].map(copy => <div className="home-stream-group" key={copy} aria-hidden={copy === 1 ? true : undefined}>
               {column.map(skill => <Link className="home-stream-card" key={skill.id} href={skillPath(skill.id)} prefetch={false} tabIndex={copy ? -1 : undefined}>
@@ -95,7 +141,7 @@ export function HomeShowcase({ skills, discovery, total }: { skills: HomeSkill[]
             </div>)}
           </div></div>)}
         </div>
-        <div className="home-discovery-caption"><span><i />{total > 0 ? t('{0} 个 Skill，等你探索', total) : t('探索更多 Skill')}</span><small>{t('悬停即可暂停')}</small></div>
+        <div className="home-discovery-caption"><span><i />{total > 0 ? t('{0} 个 Skill，等你探索', total) : t('探索更多 Skill')}</span><small>{t('随页面滚动 · 左右反向')}</small></div>
       </div>
     </div>
   </section>;
