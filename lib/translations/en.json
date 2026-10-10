@@ -561,5 +561,15 @@
   "上传 Skill": "Upload Skill",
   "刷新失败，请重试。": "Refresh failed. Please try again.",
   "调用费说明": "Task fee information",
-  "调用费由创作者设置，非平台收费": "The task fee is set by the creator, not charged by the platform."
+  "调用费由创作者设置，非平台收费": "The task fee is set by the creator, not charged by the platform.",
+  "选择 Skill → 填写任务 → 云端执行 → 得到结果": "Choose a Skill → Add tasks → Run in the cloud → Get results",
+  "精选 Skill": "Featured Skills",
+  "更多灵感，更多 Skill": "More inspiration. More Skills.",
+  "探索": "Explore",
+  "暂停滚动": "Pause scrolling",
+  "继续滚动": "Resume scrolling",
+  "探索更多 Skill": "Explore more Skills",
+  "查看输入要求，开始你的下一批创作。": "Check the inputs and start your next batch.",
+  "{0} 个 Skill，等你探索": "{0} Skills to explore",
+  "悬停即可暂停": "Hover to pause"
 }
