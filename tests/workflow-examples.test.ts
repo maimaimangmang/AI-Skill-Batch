@@ -32,3 +32,9 @@ test('案例不串到其他Skill或新版本，没有案例时不虚构输出', 
   assert.equal(workflowExamples({ ...listing, listingVersionId: 'next' }, schema)[0].output, undefined);
   assert.deepEqual(workflowExamples({ ...listing, id: 'other' }, { ...schema, sample_rows: [] }), []);
 });
+
+test('免创作者费版本保留 GPT 的真实输入输出案例', () => {
+  const current = { ...listing, listingVersionId: '01a0ebbc-f8f9-7e13-9ac4-c0501d93346b' };
+  assert.deepEqual(workflowExamples(current, schema), workflowExamples(listing, schema));
+  assert.equal(workflowExamples(current, schema)[0].output?.src, '/examples/ecommerce-image-remix/result.png');
+});

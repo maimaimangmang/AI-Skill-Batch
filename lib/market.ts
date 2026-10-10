@@ -78,6 +78,11 @@ const authorModelDeclarations = [{
   model: 'openai/gpt-image-2',
   mode: '图生图',
 }, {
+  listingId: '01a0ccea-2449-7796-ba40-bfcded89b97d',
+  listingVersionId: '01a0ebbc-f8f9-7e13-9ac4-c0501d93346b',
+  model: 'openai/gpt-image-2',
+  mode: '图生图',
+}, {
   listingId: '01a0d302-73cd-7702-a072-0358de4e9b86',
   listingVersionId: '01a0d302-73e8-7936-a8e3-80a108d19bb2',
   model: 'bytedance/doubao-seedream-4.5',

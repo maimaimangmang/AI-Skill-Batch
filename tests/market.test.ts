@@ -16,6 +16,7 @@ test('模型标签识别明确的模型 ID 声明，不从普通描述推断模�
 test('作者提供的模型信息仅应用于确认过的 Skill 版本，公开声明优先', () => {
   const listing = { ...item('01a0ccea-2449-7796-ba40-bfcded89b97d'), listingVersionId: '01a0ccf2-f42f-7486-8198-69922ca9c15c' };
   assert.equal(listingModelLabel(listing), 'openai/gpt-image-2 · 图生图');
+  assert.equal(listingModelLabel({ ...listing, listingVersionId: '01a0ebbc-f8f9-7e13-9ac4-c0501d93346b' }), 'openai/gpt-image-2 · 图生图');
   assert.equal(listingModelLabel({ ...listing, listingVersionId: 'new-version' }), '');
   assert.equal(listingModelLabel({ ...listing, id: 'different-skill' }), '');
   assert.equal(listingModelLabel({ ...listing, description: '模型 ID：another/model' }), 'another/model');

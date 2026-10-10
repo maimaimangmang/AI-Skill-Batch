@@ -46,7 +46,11 @@ export function workflowExamples(listing: Listing, schema: Schema): WorkflowExam
     .filter(row => row && typeof row === 'object' && !Array.isArray(row) && schema.fields.some(field => cellText(row[field.key]).trim()))
     .slice(0, 10).map((input, index) => ({ label: `填写示例 ${index + 1}`, input }));
   if (listing.id === '01a0ccea-2449-7796-ba40-bfcded89b97d'
-    && listing.listingVersionId === '01a0ccf2-f42f-7486-8198-69922ca9c15c') {
+    && [
+      '01a0ccf2-f42f-7486-8198-69922ca9c15c',
+      // Fee-only republication; inputs and the GPT workflow are unchanged.
+      '01a0ebbc-f8f9-7e13-9ac4-c0501d93346b',
+    ].includes(listing.listingVersionId || '')) {
     return [remixTrial, ...samples].slice(0, 10);
   }
   if (listing.id === '01a0d302-73cd-7702-a072-0358de4e9b86'
