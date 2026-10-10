@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { ArrowRight, ArrowUpRight, FileText, Flame, Image as ImageIcon, Images, Search, Sparkles, RefreshCw } from 'lucide-react';
 import { PublicShell } from './public-site';
 import WorkflowAuthor from './workflow-author';
+import CreatorFeeLabel from './creator-fee-label';
 import { useI18n } from './language-provider';
 import { useState, useTransition } from 'react';
 import { refreshPublicCatalog } from '@/app/skills/actions';
@@ -69,7 +70,7 @@ export function PublicCatalog({ skills, featured, total, page, pages, query }: {
       <div className="card-top"><span className="workflow-icon"><FileText size={20} /></span><div className="card-title"><h2><Link href={skillPath(skill.id)}>{skill.displayName}</Link></h2><WorkflowAuthor name={skill.creator?.nickname} /></div></div>
       <p>{skill.description}</p>
       <div className="card-model-tags"><span className={`model-tag${skill.model ? ' disclosed' : ''}`}><Sparkles size={11} />{skill.model || t('暂无模型信息')}</span></div>
-      <div className="card-bottom"><div><strong>{price(skill)}</strong>{!skill.officialTemplateId && skill.taskFixedFeeT != null && <span>{t('/ 任务调用费')}</span>}</div><Link className="card-use" href={appPath(skill.id)} aria-label={t('使用 {0}', skill.displayName)}>{t('使用')}<ArrowRight size={15} /></Link></div>
+      <div className="card-bottom"><div><strong>{price(skill)}</strong>{!skill.officialTemplateId && skill.taskFixedFeeT != null && <CreatorFeeLabel />}</div><Link className="card-use" href={appPath(skill.id)} aria-label={t('使用 {0}', skill.displayName)}>{t('使用')}<ArrowRight size={15} /></Link></div>
     </article>)}</div> : <div className="public-empty"><h2>{t('暂未找到匹配的 Skill')}</h2><p>{t('试试更短的关键词，例如“图片”“文案”或“翻译”。')}</p><Link href="/skills">{t('浏览全部 Skill')}</Link></div>}
     <nav className="market-pagination" aria-label={t('工作流市场分页')}>
       <span className="pagination-summary">{t('第 {0} 页{1} · 本页 {2} 项', page, t(' / 共 {0} 页', pages), skills.length)}{t(' · 每页 ')}24{t(' 项')}</span>

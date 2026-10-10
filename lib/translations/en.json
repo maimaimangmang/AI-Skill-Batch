@@ -559,5 +559,7 @@
   "作者试跑案例（GPT Image 2）": "Creator trial (GPT Image 2)",
   "作者试跑案例（豆包4.5）": "Creator trial (Seedream 4.5)",
   "上传 Skill": "Upload Skill",
-  "刷新失败，请重试。": "Refresh failed. Please try again."
+  "刷新失败，请重试。": "Refresh failed. Please try again.",
+  "调用费说明": "Task fee information",
+  "调用费由创作者设置，非平台收费": "The task fee is set by the creator, not charged by the platform."
 }
