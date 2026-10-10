@@ -34,9 +34,9 @@ export function useI18n() {
   return value;
 }
 
-export function LanguageSwitcher() {
+export function LanguageSwitcher({ corner = false }: { corner?: boolean }) {
   const { locale, setLocale } = useI18n();
-  return <div className="language-switcher" role="group" aria-label={locale === 'en' ? 'Website language' : '网页语言'}>
+  return <div className={`language-switcher${corner ? ' language-switcher-corner' : ''}`} role="group" aria-label={locale === 'en' ? 'Website language' : '网页语言'}>
     <button type="button" lang="zh-CN" aria-label="切换为中文" aria-pressed={locale === 'zh-CN'} onClick={() => setLocale('zh-CN')}>中</button>
     <span aria-hidden="true">/</span>
     <button type="button" lang="en" aria-label="Switch to English" aria-pressed={locale === 'en'} onClick={() => setLocale('en')}>EN</button>

@@ -1,7 +1,8 @@
-.language-switcher{position:fixed;top:20px;right:24px;z-index:24;display:flex;align-items:center;gap:3px;color:#9aa3bd;font-size:13px;line-height:1.4}
+.language-switcher{display:flex;flex-shrink:0;align-items:center;gap:3px;color:#9aa3bd;font-size:13px;line-height:1.4}
+.language-switcher-corner{position:absolute;top:20px;right:24px;z-index:24}
 .language-switcher button{min-width:30px;min-height:36px;padding:6px 4px;color:#8993ad;font:inherit;font-weight:500;border-radius:5px;background:transparent}
 .language-switcher button[aria-pressed="true"]{color:#5433ff;font-weight:700}
-.language-switcher button:hover{color:#5433ff;background:#eeeaff}
+.language-switcher button:hover{color:#5433ff;background:transparent}
 .language-switcher button:focus-visible{outline:2px solid #8b78e5;outline-offset:2px}
 .main-shell{padding-top:58px}
 html[lang="en"] .login-story h1{font-size:clamp(32px,3.4vw,54px);line-height:1.2;letter-spacing:-1.2px}
@@ -12,4 +13,4 @@ html[lang="en"] .button{white-space:normal}
 html[lang="en"] .featured-card h3{overflow-wrap:anywhere}
 html[lang="en"] .sidebar-resource-links a{flex-wrap:wrap}
 html[lang="en"] .settings-rows strong{max-width:58%;text-align:right}
-@media(max-width:760px){.language-switcher{top:14px;right:14px;padding:0;gap:2px;font-size:12px}.login-story>.brand{padding-right:110px}.main-shell{padding-top:48px}html[lang="en"] .login-story h1{font-size:29px;letter-spacing:-.7px}html[lang="en"] .login-form h2{font-size:25px}html[lang="en"] .login-story p{font-size:12px}html[lang="en"] .demo-banner{flex-wrap:wrap}html[lang="en"] .market-toolbar{flex-wrap:wrap}html[lang="en"] .market-tabs{min-width:100px}html[lang="en"] .search{max-width:100%;flex:1;min-width:160px}}
+@media(max-width:760px){.language-switcher-corner{top:14px;right:14px}.language-switcher{padding:0;gap:2px;font-size:12px}.login-story>.brand{padding-right:110px}.main-shell{padding-top:48px}html[lang="en"] .login-story h1{font-size:29px;letter-spacing:-.7px}html[lang="en"] .login-form h2{font-size:25px}html[lang="en"] .login-story p{font-size:12px}html[lang="en"] .demo-banner{flex-wrap:wrap}html[lang="en"] .market-toolbar{flex-wrap:wrap}html[lang="en"] .market-tabs{min-width:100px}html[lang="en"] .search{max-width:100%;flex:1;min-width:160px}}

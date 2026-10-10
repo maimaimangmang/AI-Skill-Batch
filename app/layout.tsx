@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import "./studio-market.css";
 import "./public.css";
-import { LanguageProvider, LanguageSwitcher } from '@/components/language-provider';
+import { LanguageProvider } from '@/components/language-provider';
 import './language.css';
 export const metadata: Metadata = {
   metadataBase: new URL("https://loomskill.com"),
@@ -11,5 +11,5 @@ export const metadata: Metadata = {
   icons: { icon: "/loomdesk-mark.svg" }
 };
 export default function RootLayout({ children }: { children: React.ReactNode }) {
-  return <html lang="zh-CN"><body><LanguageProvider><LanguageSwitcher />{children}</LanguageProvider></body></html>;
+  return <html lang="zh-CN"><body><LanguageProvider>{children}</LanguageProvider></body></html>;
 }
