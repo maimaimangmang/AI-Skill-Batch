@@ -7,6 +7,7 @@ import { featuredModelDisclosure, listingModelLabel } from '@/lib/market';
 import type { Listing } from '@/lib/types';
 import WorkflowAuthor from './workflow-author';
 import { money } from '@/lib/domain';
+import { skillPath } from '@/lib/skill-links';
 
 type Props = {
   demo: boolean;
@@ -48,12 +49,12 @@ export default function FeaturedWorkflows({ demo, busy, api, onChoose }: Props) 
       const CategoryIcon = { commerce: Images, image: ImageIcon, text: Type, video: Clapperboard }[entry.cover];
       return <article className={`featured-card${entry.hot ? ' featured-hot' : ''}`} key={entry.url}>
         <div className="featured-category-row"><span className="featured-category"><span className="featured-category-icon"><CategoryIcon size={17} strokeWidth={1.8} aria-hidden="true" /></span>{t(entry.category)}</span>{entry.hot && <span className="featured-hot-badge" role="img" aria-label={t("热门推荐")} title={t("热门推荐")}><Flame size={16} fill="currentColor" aria-hidden="true" /></span>}</div>
-        <h3>{entry.title}</h3>
+        <h3><a href={skillPath(entry.officialTemplateId || entry.listingId!)} target="_blank" rel="noopener noreferrer">{entry.title}</a></h3>
         <WorkflowAuthor name={listing?.creator?.nickname?.trim() || entry.authorName} />
         {modelLabel && <span className="featured-model-label" title={t("模型（作者说明）：{0}", modelLabel)}><Sparkles size={10} aria-hidden="true" />{modelLabel}</span>}
         <p>{t(entry.reason)}</p>
         <div className="featured-card-footer"><div className="featured-price"><strong>{price}</strong><span>{entry.listingId ? t("/ 次") : t("无技能调用费")}</span></div>
-        {external ? <a className="featured-action" href={entry.url} target="_blank" rel="noopener noreferrer" title={t("在胜算云打开（新窗口）")} aria-label={t("{0}{1}（在胜算云新窗口打开）", demo ? t("查看") : t("使用"), entry.title)}>{demo ? t("查看 Skill") : t("使用 Skill")}<ArrowUpRight size={15} /></a>
+        {external ? <a className="featured-action" href={skillPath(entry.officialTemplateId || entry.listingId!)} target="_blank" rel="noopener noreferrer" title={t("查看详情（新窗口）")} aria-label={t("{0}{1}（在新窗口打开）", demo ? t("查看") : t("使用"), entry.title)}>{demo ? t("查看 Skill") : t("使用 Skill")}<ArrowUpRight size={15} /></a>
           : listing === null ? <button className="featured-action" disabled={busy} onClick={() => setRefresh(value => value + 1)}>{t("加载失败，重试")}</button>
           : <button className="featured-action" disabled={busy || !listing || !!unavailable} aria-label={t("使用推荐：{0}", entry.title)} onClick={() => listing && onChoose(listing)}>
             {!listing ? <><LoaderCircle className="spin" size={14} />{t("读取中")}</> : unavailable ? t("暂不可用") : <>{t("使用 Skill")}<ArrowUpRight size={15} /></>}

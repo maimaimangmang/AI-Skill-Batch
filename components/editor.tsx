@@ -1,6 +1,7 @@
 'use client';
 import { sourceMessage } from '@/lib/i18n';
 import { useI18n } from './language-provider';
+import { skillPath } from '@/lib/skill-links';
 import WorkflowAuthor from './workflow-author';
 import AssetInput, { type AssetPreview, type AssetUploadStatus } from './asset-input';
 import { assetValues } from '@/lib/asset-input';
@@ -104,7 +105,7 @@ export default function Editor({ listing, schema, rows, setRows, demo, busy, err
   }
   return <>
     <button className="back-button" disabled={locked} onClick={onBack}><ArrowLeft size={16} />{t("返回工作流市场")}</button>
-    <div className="page-heading"><div><div className="eyebrow">BATCH WORKSPACE</div><h1>{listing.displayName}</h1><WorkflowAuthor name={listing.creator?.nickname} /><p>{listing.description}</p></div><AgentInstall key={listing.id} listing={listing} demo={demo} /></div>
+    <div className="page-heading"><div><div className="eyebrow">BATCH WORKSPACE</div><h1>{listing.displayName}</h1><WorkflowAuthor name={listing.creator?.nickname} /><p>{listing.description}</p>{!demo && <a className="public-details-link" href={skillPath(listing.id)} target="_blank" rel="noopener noreferrer">{t("查看并分享 Skill 详情")} ↗</a>}</div><AgentInstall key={listing.id} listing={listing} demo={demo} /></div>
     <div className="steps"><span className="done"><Check size={15} />{t("选择工作流")}</span><i /><span className="active"><b>2</b>{t("填写任务表")}</span><i /><span><b>3</b>{t("确认并执行")}</span><i /><span><b>4</b>{t("收集结果")}</span></div>
     <WorkflowExamples key={listing.id} listing={listing} schema={schema} demo={demo} disabled={locked} onUse={row => {
       if (rows.some(r => !isBlankRow(r, fields)) && !window.confirm(t("用这组示例输入替换当前表格？"))) return;
