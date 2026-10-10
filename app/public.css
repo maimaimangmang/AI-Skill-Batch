@@ -2,3 +2,40 @@
 @media(max-width:1000px){.public-hero{gap:30px;padding-top:45px}.public-hero h1{font-size:44px}.preview-result img{height:290px}.public-detail-layout{gap:30px;grid-template-columns:minmax(0,1fr) 260px}.public-cards{grid-template-columns:repeat(2,minmax(0,1fr))}.public-detail-heading h1{font-size:33px}.public-fields>div{grid-template-columns:120px minmax(0,1fr)}}
 @media(max-width:760px){.public-header{padding:20px 140px 18px 22px;min-height:78px;align-items:start;flex-wrap:wrap;gap:14px}.public-brand{font-size:21px}.public-brand img{width:28px;height:28px}.public-header nav{gap:20px;font-size:12px;flex-wrap:wrap}.public-hero{grid-template-columns:1fr;gap:36px;padding:35px 24px 45px}.public-hero h1{font-size:42px;letter-spacing:-1.5px}.public-hero-copy>p{font-size:15px}.public-benefits{gap:12px;font-size:10px}.public-hero-preview{max-width:470px;width:100%;margin:0 auto;transform:none}.preview-result img{height:300px}.preview-inputs{gap:10px}.preview-inputs img{height:45px;width:45px}.preview-inputs p{font-size:11px}.public-section{padding:42px 24px}.public-section-heading{align-items:start;flex-direction:column;gap:10px;margin-bottom:24px}.public-section h2,.public-end h2{font-size:25px}.public-section-heading p{font-size:13px}.public-cards,.public-hero+.public-section .public-cards{grid-template-columns:1fr}.public-card{padding:23px}.public-steps{grid-template-columns:1fr;gap:26px;margin-top:26px}.public-steps article{border-bottom:1px solid #e6e7f0;padding-bottom:20px}.public-steps h3{margin-top:15px}.public-steps p{margin-bottom:0}.public-end{padding:42px 24px;margin:0}.public-end p{font-size:13px}.public-footer{padding:30px 24px;gap:10px}.public-footer p{width:100%;margin:0}.public-footer>div{margin:10px 0 0;gap:26px}.public-catalog{padding:30px 24px 45px}.public-catalog-heading h1{font-size:33px}.public-catalog-heading p{font-size:14px}.public-search{gap:5px;padding-left:12px}.public-search input{font-size:13px;padding-left:5px}.public-search .public-button{padding:9px 14px;font-size:12px}.public-detail{padding:22px 24px}.public-breadcrumb{margin-bottom:24px}.public-detail-layout{display:flex;flex-direction:column;gap:30px}.public-detail-heading h1{font-size:31px}.public-detail-aside{order:-1;padding:0}.public-use-card{position:static;padding:18px;display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px}.public-use-card>.public-eyebrow,.public-use-card>h2,.public-use-card>.public-back,.public-use-card>small{display:none}.public-use-card>.public-price{width:100%;margin-bottom:8px}.public-use-card>.public-button{flex:1;font-size:12px;min-width:130px;margin:0}.public-use-card>p{display:block;width:100%;margin:0 0 8px;font-size:11px}.public-use-card>p.notice{color:#a06a35}.public-description{font-size:15px;line-height:1.9}.public-detail-section>h2{font-size:21px}.public-fields>div{grid-template-columns:1fr;gap:7px;padding:15px 0}.public-fields dt small{margin-left:10px}.public-example{padding:14px}.public-example-inputs{gap:10px}.public-example-inputs img{height:155px}.public-example dl>div{grid-template-columns:70px minmax(0,1fr)}.public-detail>.public-section{padding-top:38px}}
 .login-skill-handoff{font-size:12px!important;background:#efebff;color:#7761bd!important;padding:10px 12px;border-radius:7px}.login-skill-handoff a{text-decoration:underline;margin-left:5px}
+
+/* Public catalog shares the original market layout, without its app sidebar. */
+.public-site:has(.public-catalog.studio-market) { background:#f4f7fe; }
+.public-catalog.studio-market { max-width:1500px; padding:28px 32px 60px; }
+.public-catalog.studio-market .market-heading h1 { color:#2b3674; font-weight:720; letter-spacing:-.8px; margin:0; }
+.public-catalog.studio-market .market-heading p { color:#7581a3; }
+.public-catalog.studio-market .featured-card { min-width:0; }
+.public-catalog.studio-market .featured-card-footer .featured-action { display:inline-flex; align-items:center; color:var(--blue); }
+.public-catalog.studio-market .market-toolbar { justify-content:space-between; align-items:center; margin-bottom:22px; }
+.public-catalog.studio-market .market-toolbar h2 { font-size:15px; font-weight:650; margin:0; }
+.public-catalog.studio-market .search { width:265px; margin:0; padding:8px 15px; }
+.public-catalog.studio-market .search button { display:flex; flex:none; align-items:center; justify-content:center; color:#9ba5b5; }
+.public-catalog.studio-market .search input { font-size:12px; outline:none; }
+.public-catalog.studio-market .search:focus-within { outline:2px solid #b8a9ff; outline-offset:2px; }
+.public-catalog.studio-market .card-bottom { margin-top:auto; }
+.public-catalog.studio-market .card-use { color:var(--blue); white-space:nowrap; flex-shrink:0; }
+.public-catalog.studio-market .card-use:hover { color:#fff; background:var(--blue); }
+.public-catalog.studio-market .public-catalog-count { margin:0 0 20px; }
+.public-catalog.studio-market :is(a,button):focus-visible { outline:3px solid #aa97ff; outline-offset:3px; }
+@media (max-width:900px) {
+  .public-catalog.studio-market .workflow-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
+}
+@media (max-width:600px) {
+  .public-catalog.studio-market { padding:24px 18px 40px; }
+  .public-catalog.studio-market .market-heading h1 { font-size:25px; }
+  .public-catalog.studio-market .workflow-grid { grid-template-columns:1fr; }
+  .public-catalog.studio-market .market-toolbar { flex-wrap:wrap; gap:14px; }
+  .public-catalog.studio-market .search { width:100%; flex:auto; }
+  .public-catalog.studio-market .featured-grid { grid-template-columns:1fr; }
+  .public-catalog.studio-market .featured-card { padding:16px 0; }
+  .public-catalog.studio-market .featured-card+.featured-card { border-left:0; border-top:1px solid #edf0f8; }
+  .public-catalog.studio-market .featured-card:first-child { padding-top:0; }
+  .public-catalog.studio-market .featured-card:last-child { padding-bottom:0; }
+  .public-catalog.studio-market .featured-card-footer { flex-direction:row; align-items:center; }
+  .public-catalog.studio-market .featured-card h3 { font-size:15px; }
+  .public-catalog.studio-market .featured-card>p { font-size:12px; }
+}

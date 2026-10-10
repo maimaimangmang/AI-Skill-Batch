@@ -1,6 +1,10 @@
 import { notFound, redirect } from 'next/navigation';
-import { PublicCatalog } from '@/components/public-site';
-import { getPublicSkills } from '@/lib/public-skills';
+import { PublicCatalog } from '@/components/public-catalog';
+import { featuredWorkflows } from '@/lib/featured';
+import { schemaOf } from '@/lib/domain';
+import { listingModelLabel } from '@/lib/market';
+import type { PublicSkill } from '@/lib/public-skills';
+import { getPublicSkill, getPublicSkills } from '@/lib/public-skills';
 import { pageMetadata } from '@/lib/seo';
 type Params = { searchParams: Promise<{ q?: string; page?: string }> };
 export async function generateMetadata({ searchParams }: Params) {
@@ -20,6 +24,27 @@ export default async function SkillsPage({ searchParams }: Params) {
   const filtered = query ? all.filter(skill => `${skill.displayName} ${skill.description}`.toLocaleLowerCase().includes(query.toLocaleLowerCase())) : all;
   const pages = Math.max(1, Math.ceil(filtered.length / 24));
   if (page > pages) notFound();
-  const skills = filtered.slice((page - 1) * 24, page * 24).map(({ id, displayName, description, creator, officialTemplateId, taskFixedFeeT, currency }) => ({ id, displayName, description, creator, officialTemplateId, taskFixedFeeT, currency }));
-  return <PublicCatalog skills={skills} total={filtered.length} page={page} pages={pages} query={query} />;
+  function card(skill: PublicSkill) {
+    const { id, displayName, description, creator, officialTemplateId, taskFixedFeeT, currency } = skill;
+    let requiredFields: number | null = null;
+    try { requiredFields = schemaOf(skill).fields.filter(field => field.required).length; } catch { /* Keep unknown field counts distinct from zero. */ }
+    return { id, displayName, description, creator, officialTemplateId, taskFixedFeeT, currency, requiredFields, model: listingModelLabel(skill) };
+  }
+  const visible = filtered.slice((page - 1) * 24, page * 24);
+  // The list response omits creator names. Read only public details for the author row.
+  const skills = visible.map(card);
+  for (let start = 0; start < skills.length; start += 6) {
+    await Promise.all(skills.slice(start, start + 6).map(async skill => {
+      if (skill.creator?.nickname) return;
+      try {
+        const detail = await getPublicSkill(skill.id);
+        if (detail?.creator?.nickname) skill.creator = detail.creator;
+      } catch { /* A missing author must not prevent browsing the catalog. */ }
+    }));
+  }
+  const featured = featuredWorkflows.map(entry => {
+    const skill = all.find(item => item.id === (entry.listingId || entry.officialTemplateId));
+    return { entry, skill: skill ? card(skill) : null };
+  });
+  return <PublicCatalog skills={skills} featured={featured} total={filtered.length} page={page} pages={pages} query={query} />;
 }
