@@ -1,5 +1,5 @@
 'use client';
-
+import { useI18n } from './language-provider';
 import { useState } from 'react';
 import { Check, Copy } from 'lucide-react';
 import { agentInstallPrompt } from '@/lib/agent-install';
@@ -7,6 +7,7 @@ import type { Listing } from '@/lib/types';
 import Modal from './modal';
 
 export default function AgentInstall({ listing, demo }: { listing: Listing; demo: boolean }) {
+  const { t } = useI18n();
   const [copied, setCopied] = useState(false);
   const [manual, setManual] = useState(false);
   const prompt = demo ? null : agentInstallPrompt(listing);
@@ -23,14 +24,14 @@ export default function AgentInstall({ listing, demo }: { listing: Listing; demo
   }
   return <div className="agent-install">
     <button className="button small" disabled={!prompt} onClick={copy}>
-      {copied ? <Check size={15} /> : <Copy size={15} />}{copied ? '安装提示词已复制' : '复制安装提示词'}
+      {copied ? <Check size={15} /> : <Copy size={15} />}{copied ? t("安装提示词已复制") : t("复制安装提示词")}
     </button>
-    <span role="status">{demo ? '演示 Skill 不支持安装' : !prompt ? '暂无可用安装链接' : copied ? '粘贴给你的 Agent 即可安装' : '粘贴到 Agent 中安装使用'}</span>
-    {manual && <Modal title="复制安装提示词" onClose={() => setManual(false)}>
-      <div className="modal-body"><p className="agent-copy-note">浏览器未允许自动复制，请选中下方内容手动复制，再粘贴给你的 Agent。</p>
-        <textarea className="agent-prompt" aria-label="安装提示词" readOnly value={prompt || ''} onFocus={event => event.currentTarget.select()} />
-        <p className="agent-copy-note">此提示词用于安装 Skill，不会提交工作流任务。</p>
-      </div><div className="modal-foot"><button className="button" onClick={() => setManual(false)}>关闭</button><button className="button primary" onClick={copy}><Copy size={15} />重新复制</button></div>
+    <span role="status">{demo ? t("演示 Skill 不支持安装") : !prompt ? t("暂无可用安装链接") : copied ? t("粘贴给你的 Agent 即可安装") : t("粘贴到 Agent 中安装使用")}</span>
+    {manual && <Modal title={t("复制安装提示词")} onClose={() => setManual(false)}>
+      <div className="modal-body"><p className="agent-copy-note">{t("浏览器未允许自动复制，请选中下方内容手动复制，再粘贴给你的 Agent。")}</p>
+        <textarea className="agent-prompt" aria-label={t("安装提示词")} readOnly value={prompt || ''} onFocus={event => event.currentTarget.select()} />
+        <p className="agent-copy-note">{t("此提示词用于安装 Skill，不会提交工作流任务。")}</p>
+      </div><div className="modal-foot"><button className="button" onClick={() => setManual(false)}>{t("关闭")}</button><button className="button primary" onClick={copy}><Copy size={15} />{t("重新复制")}</button></div>
     </Modal>}
   </div>;
 }

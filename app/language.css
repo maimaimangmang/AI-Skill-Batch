@@ -1,0 +1,13 @@
+.language-switcher{position:fixed;top:20px;right:24px;z-index:24;display:flex;align-items:center;gap:8px;padding:8px 12px;border:1px solid #dde2f1;border-radius:10px;color:#39466c;background:#ffffffed;box-shadow:0 2px 8px #1e2c4d08;font-size:13px;line-height:1.4}
+.language-switcher select{background:transparent;color:inherit;border:0;cursor:pointer;min-height:24px;padding-right:3px;font:inherit}
+.language-switcher:focus-within{outline:2px solid #8b78e5;outline-offset:3px}
+.main-shell{padding-top:58px}
+html[lang="en"] .login-story h1{font-size:clamp(32px,3.4vw,54px);line-height:1.2;letter-spacing:-1.2px}
+html[lang="en"] .login-caption{font-size:12px}
+html[lang="en"] .login-form h2{font-size:30px}
+html[lang="en"] .login-story p{line-height:1.8}
+html[lang="en"] .button{white-space:normal}
+html[lang="en"] .featured-card h3{overflow-wrap:anywhere}
+html[lang="en"] .sidebar-resource-links a{flex-wrap:wrap}
+html[lang="en"] .settings-rows strong{max-width:58%;text-align:right}
+@media(max-width:760px){.language-switcher{top:14px;right:14px;padding:6px 9px;gap:5px;font-size:12px}.login-story>.brand{padding-right:110px}.main-shell{padding-top:48px}html[lang="en"] .login-story h1{font-size:29px;letter-spacing:-.7px}html[lang="en"] .login-form h2{font-size:25px}html[lang="en"] .login-story p{font-size:12px}html[lang="en"] .demo-banner{flex-wrap:wrap}html[lang="en"] .market-toolbar{flex-wrap:wrap}html[lang="en"] .market-tabs{min-width:100px}html[lang="en"] .search{max-width:100%;flex:1;min-width:160px}}
