@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useEffect, useRef } from 'react';
-import { ArrowRight, ArrowUpRight, FileText, ImageIcon, Layers, Sparkles } from 'lucide-react';
+import { ArrowRight, ArrowUpRight, FileText, ImageIcon, Layers } from 'lucide-react';
 import { useI18n } from './language-provider';
 import { skillPath } from '@/lib/skill-links';
 import { money } from '@/lib/domain';
@@ -118,11 +118,10 @@ export function HomeShowcase({ skills, discovery, total }: { skills: HomeSkill[]
   return <section className="public-section home-showcase">
     <div className="public-section-heading">
       <div><span className="public-eyebrow">START WITH A SKILL</span><h2>{t('从一个具体需求开始')}</h2><p>{t('选择 Skill → 填写任务 → 云端执行 → 得到结果')}</p></div>
-      <Link href="/skills">{t('浏览全部 Skill')}<ArrowRight size={17} /></Link>
+      <Link href="/skills">{total > 0 ? t('浏览全部 {0} 个 Skill', total) : t('浏览全部 Skill')}<ArrowRight size={17} /></Link>
     </div>
     <div className="home-skill-layout">
       <div className="home-curated">
-        <div className="home-column-heading"><h3><Sparkles size={16} />{t('精选 Skill')}</h3></div>
         <div className="home-curated-list">{skills.map((skill, index) => <article className="home-featured-card" data-home-motion key={skill.id}>
           <span className="home-skill-icon"><SkillIcon skill={skill} /></span>
           <div className="home-featured-content"><h3><Link href={skillPath(skill.id)} prefetch={false}>{skill.displayName}</Link></h3><p>{skill.description}</p>
@@ -131,7 +130,6 @@ export function HomeShowcase({ skills, discovery, total }: { skills: HomeSkill[]
         </article>)}</div>
       </div>
       <div className="home-discovery">
-        <div className="home-column-heading"><h3>{total > 0 ? t('{0} 个 Skill，等你探索', total) : t('探索更多 Skill')}</h3></div>
         <div className="home-skill-stream" ref={streamRef} role="region" aria-label={t('探索更多 Skill')} tabIndex={0}>
           {columns.map((column, index) => <div className="home-stream-column" key={index}><div className="home-stream-track">
             {[0, 1].map(copy => <div className="home-stream-group" key={copy} aria-hidden={copy === 1 ? true : undefined}>

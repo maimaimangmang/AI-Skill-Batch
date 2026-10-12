@@ -521,6 +521,7 @@
   "查看详情：{0}": "View details: {0}",
   "模型费用另计，执行前查看预估。": "Model usage is charged separately. Review the estimate before running.",
   "浏览全部 Skill": "Browse all Skills",
+  "浏览全部 {0} 个 Skill": "Browse all {0} Skills",
   "点击“使用这个 Skill”，连接胜算云 API Key。": "Select “Use this Skill” and connect your Shengsuanyun API key.",
   "点击使用会直接扣费吗？": "Will clicking Use charge me?",
   "生成说明": "Generation instructions",

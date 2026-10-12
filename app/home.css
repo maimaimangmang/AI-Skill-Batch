@@ -8,9 +8,6 @@
 .public-home .public-hero-preview[data-pointer-active]{box-shadow:0 24px 65px #67559822}
 .public-home .public-button{transition:transform .2s,box-shadow .2s}
 .public-home .home-skill-layout{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:32px}
-.public-home .home-column-heading{height:40px;display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px}
-.public-home .home-column-heading h3{display:flex;align-items:center;gap:8px;margin:0;font-size:14px;font-weight:650;letter-spacing:.1px}
-.public-home .home-column-heading h3 svg{color:#8e73df}
 .public-home .home-curated-list{display:grid;gap:12px}
 .public-home .home-featured-card{display:flex;gap:14px;padding:20px;background:#fff;border:1px solid #e5e3f1;border-radius:16px;min-height:136px;min-width:0;transform:perspective(1000px) rotateX(var(--tilt-x,0deg)) rotateY(var(--tilt-y,0deg))}
 .public-home .home-skill-icon{display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;flex-shrink:0;border-radius:11px;background:#f0ebff;color:#8b6cdd}
@@ -34,12 +31,11 @@
  .public-home .home-stream-card:hover{border-color:#bda6e2;box-shadow:0 4px 14px #77628f12}
  .public-home .public-button:hover{transform:translateY(-3px);box-shadow:0 8px 20px #7660c321}
 }
-@media(max-width:1000px){.public-home .home-skill-layout{gap:22px;grid-template-columns:1fr 1fr}.public-home .home-skill-stream{gap:10px}.public-home .home-stream-card{padding:13px}.public-home .home-featured-card{padding:17px 15px;gap:10px}.public-home .home-featured-content h3{font-size:14px}.public-home .home-column-heading h3{font-size:13px}}
+@media(max-width:1000px){.public-home .home-skill-layout{gap:22px;grid-template-columns:1fr 1fr}.public-home .home-skill-stream{gap:10px}.public-home .home-stream-card{padding:13px}.public-home .home-featured-card{padding:17px 15px;gap:10px}.public-home .home-featured-content h3{font-size:14px}}
 @media(max-width:760px){
  .public-home .home-skill-layout{grid-template-columns:1fr;gap:26px}
  .public-home .home-featured-card{min-height:126px}
  .public-home .home-skill-stream{height:420px}
- .public-home .home-column-heading{margin-bottom:12px}
  .public-home .public-hero-preview{transform:none}
  .public-home .home-stream-card{height:128px}
  .public-home .public-steps article{padding:12px 0 24px}
