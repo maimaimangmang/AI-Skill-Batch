@@ -122,7 +122,7 @@ export function HomeShowcase({ skills, discovery, total }: { skills: HomeSkill[]
     </div>
     <div className="home-skill-layout">
       <div className="home-curated">
-        <div className="home-column-heading"><h3><Sparkles size={16} />{t('精选 Skill')}</h3><span>01 — {String(skills.length).padStart(2, '0')}</span></div>
+        <div className="home-column-heading"><h3><Sparkles size={16} />{t('精选 Skill')}</h3></div>
         <div className="home-curated-list">{skills.map((skill, index) => <article className="home-featured-card" data-home-motion key={skill.id}>
           <span className="home-skill-icon"><SkillIcon skill={skill} /></span>
           <div className="home-featured-content"><h3><Link href={skillPath(skill.id)} prefetch={false}>{skill.displayName}</Link></h3><p>{skill.description}</p>
@@ -131,17 +131,16 @@ export function HomeShowcase({ skills, discovery, total }: { skills: HomeSkill[]
         </article>)}</div>
       </div>
       <div className="home-discovery">
-        <div className="home-column-heading"><h3>{t('更多灵感，更多 Skill')}</h3></div>
+        <div className="home-column-heading"><h3>{total > 0 ? t('{0} 个 Skill，等你探索', total) : t('探索更多 Skill')}</h3></div>
         <div className="home-skill-stream" ref={streamRef} role="region" aria-label={t('探索更多 Skill')} tabIndex={0}>
           {columns.map((column, index) => <div className="home-stream-column" key={index}><div className="home-stream-track">
             {[0, 1].map(copy => <div className="home-stream-group" key={copy} aria-hidden={copy === 1 ? true : undefined}>
               {column.map(skill => <Link className="home-stream-card" key={skill.id} href={skillPath(skill.id)} prefetch={false} tabIndex={copy ? -1 : undefined}>
-                <div><span className="home-skill-icon"><SkillIcon skill={skill} /></span><ArrowUpRight size={15} /></div><h3>{skill.displayName}</h3><p>{skill.description || t('查看输入要求，开始你的下一批创作。')}</p><span className="home-stream-kind">{skill.officialTemplateId ? t('官方模板') : t('创作者 Skill')}</span>
+                <h3>{skill.displayName}</h3><p>{skill.description || t('查看输入要求，开始你的下一批创作。')}</p>
               </Link>)}
             </div>)}
           </div></div>)}
         </div>
-        <div className="home-discovery-caption"><span><i />{total > 0 ? t('{0} 个 Skill，等你探索', total) : t('探索更多 Skill')}</span><small>{t('随页面滚动 · 左右反向')}</small></div>
       </div>
     </div>
   </section>;
