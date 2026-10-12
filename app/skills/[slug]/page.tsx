@@ -1,4 +1,6 @@
 import { notFound, permanentRedirect } from 'next/navigation';
+import Workbench from '@/components/workbench';
+import { LanguageSwitcher } from '@/components/language-provider';
 import { PublicSkillDetail } from '@/components/public-site';
 import { getPublicSkill, skillId, skillPath, SITE_URL } from '@/lib/public-skills';
 import { schemaOf } from '@/lib/domain';
@@ -26,5 +28,11 @@ export default async function SkillPage({ params }: Params) {
     { '@type': 'ListItem', position: 2, name: 'Skill', item: SITE_URL + '/skills' },
     { '@type': 'ListItem', position: 3, name: skill.displayName, item: SITE_URL + skillPath(skill.id) },
   ] };
-  return <><script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(data) }} /><PublicSkillDetail key={skill.id} skill={skill} schema={schema} model={listingModelLabel(skill)} examples={schema ? workflowExamples(skill, schema) : []} related={related} /></>;
+  return <><script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(data) }} /><SkillContent key={skill.id} skill={skill} schema={schema} model={listingModelLabel(skill)} examples={schema ? workflowExamples(skill, schema) : []} related={related} /></>;
+}
+
+function SkillContent(props: React.ComponentProps<typeof PublicSkillDetail>) {
+  const { skill, schema } = props;
+  if (!schema || (skill.executionAvailabilityStatus && skill.executionAvailabilityStatus !== 'available')) return <PublicSkillDetail {...props} />;
+  return <><LanguageSwitcher corner /><Workbench initialSkill={skill.id} draftListing={skill} canonicalSkill /></>;
 }

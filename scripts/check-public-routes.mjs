@@ -25,8 +25,8 @@ try {
     assert.equal(home.status, 200, `Public home must not redirect: ${home.status} ${home.headers.get('location')}`);
     assert.match(await home.text(), /AI批量生成/);
     const app = await read('/app?skill=text-image-v1');
-    assert.equal(app.status, 200);
-    assert.match(await app.text(), /text-image-v1/);
+    assert.equal(app.status, 308);
+    assert.equal(app.headers.get('location'), '/skills/text-to-image');
     const privateApp = await read('/app');
     assert.equal(privateApp.status, 307);
     assert.equal(privateApp.headers.get('location'), '/login');
@@ -35,7 +35,13 @@ try {
   }
   const detail = await read('/skills/text-to-image');
   assert.equal(detail.status, 200);
-  assert.match(await detail.text(), /图片提示词/);
+  const html = await detail.text();
+  for (const text of ['图片提示词', '任务表', '需要准备什么', '生成说明', '常见问题', '继续探索', '校验并预估费用']) assert.ok(html.includes(text), `Missing SSR content: ${text}`);
+  assert.match(html, /rel="canonical" href="https:\/\/loomskill.com\/skills\/text-to-image"/);
+  const alias = await read('/skills/text-image-v1');
+  assert.equal(alias.status, 308);
+  assert.equal(alias.headers.get('location'), '/skills/text-to-image');
+  assert.equal((await read('/app?demo=1')).status, 200);
   console.log('Container public home, Skill detail, and authentication routes verified.');
 } finally {
   server.kill('SIGTERM');

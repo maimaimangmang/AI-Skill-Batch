@@ -605,5 +605,10 @@
   "选择{0}": "Select {0}",
   "继续选择{0}": "Select more {0}",
   "待上传附件合计不能超过 100 MB。": "Pending attachments cannot exceed 100 MB in total.",
-  "本地附件已失效，请重新选择文件。": "The local attachment is no longer available. Please select the file again."
+  "本地附件已失效，请重新选择文件。": "The local attachment is no longer available. Please select the file again.",
+  "分享 Skill": "Share Skill",
+  "先填写任务，预估费用时再连接胜算云 API Key。": "Fill in your tasks first. Connect your Shengsuanyun API Key when estimating costs.",
+  "先填写任务，预估费用时再连接。": "Fill in tasks first. Connect when estimating costs.",
+  "填写任务需要登录吗？": "Do I need to sign in to fill in tasks?",
+  "不需要。可以先填写、导入任务和选择附件，预估费用时再连接 API Key。草稿仅保留在当前页面，刷新后会清除。": "No. Fill in or import tasks and select attachments first, then connect your API Key to estimate costs. Drafts stay on this page only and are cleared on refresh."
 }

@@ -30,7 +30,7 @@ function workflowIcon(title: string) {
   return { Icon: FileText, tone: 'text' };
 }
 
-export default function Workbench({ initialSkill, draftListing }: { initialSkill?: string; draftListing?: Listing }) {
+export default function Workbench({ initialSkill, draftListing, canonicalSkill = false }: { initialSkill?: string; draftListing?: Listing; canonicalSkill?: boolean }) {
   const [draftAccess, setDraftAccess] = useState(!!draftListing);
   const [connectionOpen, setConnectionOpen] = useState(false);
   const resumeQuote = useRef(false);
@@ -87,18 +87,19 @@ export default function Workbench({ initialSkill, draftListing }: { initialSkill
   }, [connected, demo, view, listings, loadAuthors]);
   useEffect(() => {
     let active = true;
-    if (new URLSearchParams(window.location.search).get('demo') === '1') { setDemo(true); setConnected(true); setReady(true); return; }
+    if (!canonicalSkill && new URLSearchParams(window.location.search).get('demo') === '1') { setDemo(true); setConnected(true); setReady(true); return; }
     request('/session').then(data => { if (active) setConnected(data.connected); }).catch(e => { if (active) setLoginError(e.message); }).finally(() => { if (active) setReady(true); });
     return () => { active = false; };
   }, []);
   useEffect(() => {
     if (!ready) return;
-    const target = !connected && !draftAccess ? loginPath(targetSkill) : appPath(targetSkill, demo);
+    const publicEditor = canonicalSkill && view === 'editor' && targetSkill === initialSkill;
+    const target = publicEditor ? skillPath(initialSkill!) : !connected && !draftAccess ? loginPath(targetSkill) : appPath(targetSkill, demo);
     if (window.location.pathname + window.location.search !== target) {
       window.history.replaceState(null, '', target);
     }
-    document.title = connected || draftAccess ? t("LoomSkill · AI 批处理工作台") : t("登录 · LoomSkill");
-  }, [ready, connected, draftAccess, demo, t, targetSkill]);
+    document.title = publicEditor ? `${draftListing!.displayName} · AI 批量工作流 | LoomSkill` : connected || draftAccess ? t("LoomSkill · AI 批处理工作台") : t("登录 · LoomSkill");
+  }, [ready, connected, draftAccess, demo, t, targetSkill, canonicalSkill, initialSkill, draftListing, view]);
   useEffect(() => {
     if (!connected) { attemptedSkill.current = ''; return; }
     if (!ready || !targetSkill || (listing?.id === targetSkill && schema)) return;
@@ -154,6 +155,7 @@ export default function Workbench({ initialSkill, draftListing }: { initialSkill
   }
   function navigate(next: View) { if (!connected) { if (next === 'market') window.location.assign('/skills'); else { resumeQuote.current = false; setConnectionOpen(true); } return; } setTargetSkill(undefined); attemptedSkill.current = ''; setView(next); setMobileNav(false); setError(''); }
   async function choose(item: Listing, retryRows?: ResultRow[]) {
+    if (!demo && !retryRows) { window.location.assign(skillPath(item.id)); return; }
     setLoading(true); setError('');
     try {
       const fresh: Listing = await api(workflowPath(item)); const shape = schemaOf(fresh);
@@ -190,7 +192,7 @@ export default function Workbench({ initialSkill, draftListing }: { initialSkill
     scrollMarketAfterLoad.current = true;
     setMarketPage(page);
   }
-  if (!ready) return <main className="boot"><img src="/loomdesk-mark.svg" alt="" /><LoaderCircle className="spin" /><p>{t("正在打开 LoomSkill…")}</p></main>;
+  if (!ready && !draftListing) return <main className="boot"><img src="/loomdesk-mark.svg" alt="" /><LoaderCircle className="spin" /><p>{t("正在打开 LoomSkill…")}</p></main>;
   if (!connected && !draftAccess) return <main className="login-page"><div className="login-story"><a className="brand" href="/"><img src="/loomdesk-mark-light.svg" alt="" />LoomSkill<span>WORKSPACE</span></a><div className="login-brand-tagline">{t("全国首创，Skill 并行批处理")}</div><div className="login-story-content"><div className="eyebrow">{t("AI BATCH STUDIO · 电商批处理")}</div><h1>{t("AI批量生成，")}<br />{t("从一张表开始")}</h1><p>{t("主图、详情图、营销文案，选好 Skill，填表批量生成。")}<br />{t("多任务并行，减少逐张等待。")}</p><div className="login-grid" aria-hidden="true">{Array.from({ length: 10 }, (_, i) => <div key={i}><span>{String(i + 1).padStart(2, '0')}</span><i /><Check size={17} /></div>)}</div><div className="login-caption"><Table2 size={17} />{t("批量调用 Skill · 统一查看与下载结果")}</div></div><span className="login-footer">{t("LoomSkill · 电商 AI 批处理工作台")}</span></div><div className="login-form-side"><form className="login-form" onSubmit={login}><h2>{t("连接你的工作空间")}</h2><p>{t("由胜算云提供多模型调用和结算服务。")}</p>{targetSkill && <p className="login-skill-handoff">{t("登录后将继续使用所选 Skill。")} <a href={skillPath(targetSkill)}>{t("查看详情")}</a></p>}<label className="field-label">{t("胜算云 API Key")}<input required type="password" autoComplete="off" spellCheck={false} value={key} placeholder={t("输入你的 API Key")} onChange={e => setKey(e.target.value)} /></label><div className="login-help"><div><span>{t("还没有 API Key？")}</span><a href="https://www.shengsuanyun.com/?from=Zoey" target="_blank" rel="noopener noreferrer">{t("注册领取体验额度")}<ArrowRight size={13} /></a></div><p>{t("通过此链接注册，可领取 ")}<strong>{t("10 元")}</strong>{t("体验额度。")}</p></div>{loginError && <p className="error" role="alert">{t(loginError)}</p>}<button className="button primary full" disabled={loginBusy || !key.trim()}>{loginBusy ? <LoaderCircle className="spin" size={18} /> : <ArrowRight size={18} />}{t("连接工作台")}</button><p className="privacy-note"><ShieldCheck size={16} />{t("Key 加密保存在服务器会话中，12 小时后过期；不会写入浏览器本地存储。")}</p><div className="or"><span />{t("或者")}<span /></div><button className="button full" type="button" onClick={enterDemo}><FlaskConical size={17} />{t("先体验演示")}</button><small className="demo-explainer">{t("使用示例数据，不提交真实任务、不产生费用。")}</small></form></div></main>;
   const current = view === 'editor' ? 'market' : view === 'detail' ? 'runs' : view;
   return <div className={`app-shell studio-app${view === 'market' ? ' studio-market' : ' studio-workspace'}`}>
@@ -217,7 +219,7 @@ export default function Workbench({ initialSkill, draftListing }: { initialSkill
         </nav>
         <div className="market-foot"><ShieldCheck size={14} />{t("提交前展示预估费用，确认后才执行。调用费之外的模型费用以实际用量为准。")}</div>
       </>}
-      {view === 'editor' && listing && schema && <Editor listing={listing} schema={schema} rows={rows} setRows={next => { setRows(next); setValidation([]); setConfirmation(null); }} demo={demo} guest={!connected} api={editorApi} busy={busy} errors={validation} onBack={() => navigate('market')} onQuote={() => void quote()} />}
+      {view === 'editor' && listing && schema && <Editor listing={listing} schema={schema} rows={rows} setRows={next => { setRows(next); setValidation([]); setConfirmation(null); }} demo={demo} guest={!connected} api={editorApi} busy={busy || !ready} errors={validation} onBack={() => navigate('market')} onQuote={() => void quote()} />}
       <RunsView active={view === 'runs'} api={api} refreshKey={refresh} onNew={() => navigate('market')} onResult={id => { setRunId(id); navigate('detail'); }} />
       {view === 'detail' && <Results key={runId} runId={runId} demo={demo} api={api} onBack={() => navigate('runs')} onRetry={async (listingId, failedRows, officialTemplateId) => { await choose({ id: listingId, officialTemplateId } as Listing, failedRows); }} />}
       {view === 'settings' && <><div className="page-heading"><div><div className="eyebrow">CONNECTION</div><h1>{t("连接设置")}</h1><p>{t("管理你的胜算云连接与工作空间。")}</p></div></div><section className="settings-card"><span className="settings-icon"><KeyRound size={25} /></span><h2>{demo ? t("当前为演示模式") : t("胜算云已连接")}</h2><p>{demo ? t("连接自己的 API Key，即可浏览真实市场并提交任务。") : t("你的 Key 仅用于调用胜算云 LoomLoom 服务。退出后会立即删除当前服务端会话。")}</p><div className="settings-rows"><div><span>{t("接入方式")}</span><strong>{demo ? t("演示数据") : t("个人 API Key")}</strong></div><div><span>{t("任务行数")}</span><strong>{t("按实际填写行数")}</strong></div><div><span>{t("会话有效期")}</span><strong>{t("12 小时")}</strong></div><div><span>{t("数据与结果")}</span><strong>{t("由胜算云账号隔离")}</strong></div><div><span>{t("可用余额")}</span><strong>{balance ? t(money(balance.availableBalanceT, balance.currency)) : t("暂未返回")}</strong></div></div><button className="button primary" onClick={logout}>{demo ? t("连接真实账号") : t("退出并更换 API Key")}<ArrowRight size={16} /></button><p className="subtle">{t("LoomSkill v0.1 · MIT · 独立开源客户端")}</p></section></>}

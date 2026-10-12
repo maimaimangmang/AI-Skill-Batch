@@ -98,3 +98,26 @@
 .example-input-note{font-size:10px;line-height:1.7;color:#8795aa;margin:7px 0 0}
 .examples-expanded .example-picture-frame{height:320px}
 @media(max-width:760px){.examples-grid:has(.example-picture){grid-template-columns:minmax(0,1fr)}.examples-grid:has(.example-picture) .example-input{border-right:0;border-bottom:1px solid var(--line)}.example-picture-frame{height:160px}.example-picture-caption{flex-wrap:wrap;gap:2px}}
+
+/* The canonical Skill page keeps the editor first and its reference guide below. */
+button.public-details-link { display: inline-flex; align-items: center; gap: 6px; border: 0; background: none; padding: 0; cursor: pointer; font: inherit; font-size: 13px; }
+.skill-guide { margin-top: 48px; border-top: 1px solid var(--line); padding-top: 32px; }
+.skill-guide-columns { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 24px; align-items: start; }
+.skill-guide-section { min-width: 0; margin-bottom: 24px; border: 1px solid var(--line); border-radius: 16px; padding: 24px; background: white; }
+.skill-guide-section h2 { margin: 0 0 18px; font-size: 19px; }
+.skill-guide-section p, .skill-guide-section li, .skill-guide-section dd { color: var(--muted); font-size: 13px; line-height: 1.85; overflow-wrap: anywhere; }
+.skill-guide-section p { margin: 12px 0; }
+.skill-guide-section .public-fields { margin-bottom: 0; }
+.skill-guide-faq details { border-top: 1px solid var(--line); padding: 16px 0; }
+.skill-guide-faq details:last-child { padding-bottom: 0; }
+.skill-guide-faq summary { cursor: pointer; font-size: 14px; font-weight: 600; }
+.skill-guide-heading { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; }
+.skill-guide-heading > a { display: inline-flex; align-items: center; gap: 5px; font-size: 13px; color: #6d4aff; }
+.skill-guide-related { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+.skill-guide-related > a { display: block; padding: 18px; border: 1px solid var(--line); border-radius: 12px; transition: border-color .15s; }
+.skill-guide-related > a:hover { border-color: #6d4aff; }
+.skill-guide-related h3 { display: flex; align-items: start; justify-content: space-between; gap: 8px; font-size: 14px; margin: 0; }
+.skill-guide-related h3 svg { flex-shrink: 0; }
+.skill-guide-related p { margin-bottom: 0; }
+@media (max-width: 900px) { .skill-guide-columns, .skill-guide-related { grid-template-columns: minmax(0, 1fr); } .skill-guide-columns { gap: 0; } }
+@media (max-width: 520px) { .skill-guide-section { padding: 18px; } .skill-guide-heading { align-items: start; flex-direction: column; gap: 0; margin-bottom: 16px; } }

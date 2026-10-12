@@ -13,11 +13,15 @@ import { cellText, emptyRow, money, isBlankRow } from '@/lib/domain';
 import { base64, download, exportSheet, post, type ApiRequestOptions } from '@/lib/client';
 import WorkflowExamples from './workflow-examples';
 import AgentInstall from './agent-install';
+import SkillGuide from './skill-guide';
 import { workflowPath } from '@/lib/official';
 import ImportDialog, { type ImportSheet } from './import-dialog';
 type Props = { listing: Listing; schema: Schema; rows: InputRow[]; setRows: (rows: InputRow[]) => void; demo: boolean; guest?: boolean; busy: boolean; errors: string[]; api: (path: string, options?: ApiRequestOptions) => Promise<any>; onBack: () => void; onQuote: () => void };
 export default function Editor({ listing, schema, rows, setRows, demo, guest = false, busy, errors, api, onBack, onQuote }: Props) {
   const { t } = useI18n();
+  const [copied, setCopied] = useState(false);
+  const [copyFailed, setCopyFailed] = useState(false);
+  async function share() { try { await navigator.clipboard.writeText(window.location.origin + skillPath(listing.id)); setCopied(true); setCopyFailed(false); } catch { setCopyFailed(true); } }
   const [localError, setLocalError] = useState(''); const [uploading, setUploading] = useState(false);
   const [sheets, setSheets] = useState<ImportSheet[] | null>(null); const input = useRef<HTMLInputElement>(null);
   const [previews, setPreviews] = useState<Record<string, AssetPreview>>({});
@@ -105,14 +109,14 @@ export default function Editor({ listing, schema, rows, setRows, demo, guest = f
   }
   return <>
     <button className="back-button" disabled={locked} onClick={onBack}><ArrowLeft size={16} />{t("返回工作流市场")}</button>
-    <div className="page-heading"><div><div className="eyebrow">BATCH WORKSPACE</div><h1>{listing.displayName}</h1><WorkflowAuthor name={listing.creator?.nickname} /><p>{listing.description}</p>{!demo && <a className="public-details-link" href={skillPath(listing.id)} target="_blank" rel="noopener noreferrer">{t("查看并分享 Skill 详情")} ↗</a>}</div><AgentInstall key={listing.id} listing={listing} demo={demo} /></div>
+    <div className="page-heading"><div><div className="eyebrow">BATCH WORKSPACE</div><h1>{listing.displayName}</h1><WorkflowAuthor name={listing.creator?.nickname} /><p>{listing.description}</p>{!demo && <><button className="public-details-link" onClick={share}><Copy size={14} />{copied ? t("链接已复制") : t("分享 Skill")}</button><span className="sr-only" role="status">{copied ? t("链接已复制") : ""}</span>{copyFailed && <p role="status">{t("请复制浏览器地址栏中的链接。")}</p>}</>}</div><AgentInstall key={listing.id} listing={listing} demo={demo} /></div>
     <div className="steps"><span className="done"><Check size={15} />{t("选择工作流")}</span><i /><span className="active"><b>2</b>{t("填写任务表")}</span><i /><span><b>3</b>{t("确认并执行")}</span><i /><span><b>4</b>{t("收集结果")}</span></div>
     <WorkflowExamples key={listing.id} listing={listing} schema={schema} demo={demo} disabled={locked} onUse={row => {
       if (rows.some(r => !isBlankRow(r, fields)) && !window.confirm(t("用这组示例输入替换当前表格？"))) return;
       setRows([Object.fromEntries(fields.map(field => [field.key, row[field.key] ?? field.default_value ?? '']))]);
       setLocalError('');
     }} />
-    <details className="instructions"><summary><Info size={17} />{t("填写说明与工作流信息")}<ChevronDown size={16} /></summary><div><p>{schema.input_summary || t("每一行会作为一个独立任务提交。必填字段已用 * 标出。")}</p>{schema.instructions?.map((s, i) => <p key={i}>{s}</p>)}<p>{listing.officialTemplateId ? t("无技能调用费，模型费用按实际用量结算，提交前会显示预估金额。") : t("创作者调用费：{0} / 任务，模型费用以提交前的预估为准。", t(money(listing.taskFixedFeeT, listing.currency)))}</p>{fields.map(f => f.description && <p key={f.key}><strong>{f.label}：</strong>{f.description}</p>)}</div></details>
+        {demo && <details className="instructions"><summary><Info size={17} />{t("填写说明与工作流信息")}<ChevronDown size={16} /></summary><div><p>{schema.input_summary || t("每一行会作为一个独立任务提交。必填字段已用 * 标出。")}</p>{schema.instructions?.map((s, i) => <p key={i}>{s}</p>)}<p>{listing.officialTemplateId ? t("无技能调用费，模型费用按实际用量结算，提交前会显示预估金额。") : t("创作者调用费：{0} / 任务，模型费用以提交前的预估为准。", t(money(listing.taskFixedFeeT, listing.currency)))}</p>{fields.map(f => f.description && <p key={f.key}><strong>{f.label}：</strong>{f.description}</p>)}</div></details>}
     <section className="editor-card">
       <div className="table-toolbar"><div><FileSpreadsheet size={20} /><strong>{t("任务表")}</strong><span className="count">{t("已填 ")}{taskCount} {t(" 行")}</span></div><div className="toolbar-actions"><button className="button small" disabled={locked} onClick={() => input.current?.click()}><Upload size={15} />{t("导入表格")}</button><button className="button small" disabled={locked} onClick={async () => { try { if (demo || guest) await exportSheet(fields.map(f => f.label), [fields.map(f => cellText(f.default_value))], 'loomdesk-template.xlsx'); else await download(`${workflowPath(listing)}/workbook`, 'loomdesk-template.xlsx'); } catch (e) { setLocalError((e as Error).message); } }}><Download size={15} />{t("下载模板")}</button><input type="file" ref={input} className="sr-only" accept=".xlsx,.csv,.tsv" aria-label={t("导入 Excel 或 CSV")} onChange={e => importFile(e.target.files?.[0])} /></div></div>
       <div className="table-scroll editor-scroll"><table className="task-table"><thead><tr><th className="row-number">#</th>{fields.map(f => <th key={f.key}><span>{f.label}{f.required && <em> *</em>}</span><small>{f.value_type.includes('asset_ref') ? t("附件 / 链接") : f.enum_values ? t("下拉选择") : f.value_type === 'boolean' ? t("是 / 否") : t("输入内容")}</small></th>)}<th className="row-actions">{t("操作")}</th></tr></thead><tbody>{rows.map((row, i) => <tr key={rowId(row)}><td className="row-number">{String(i + 1).padStart(2, '0')}</td>{fields.map((f, j) => <td key={f.key}>
@@ -123,6 +127,7 @@ export default function Editor({ listing, schema, rows, setRows, demo, guest = f
     {uploading && !uploadController.current && <p className="notice"><LoaderCircle className="spin" size={16} />{t("正在处理文件…")}</p>}
     {(localError || errors.length > 0) && <div className="error-list" role="alert">{localError && <p>{t(localError)}</p>}{errors.map((e, i) => <p key={i}>{t(e)}</p>)}</div>}
     <div className="execute-bar"><div><strong>{taskCount} {t(" 个已填任务，确认费用后运行")}</strong><p>{t("先查看预计费用，确认后才会使用你的胜算云余额。")}</p></div><button className="button primary" disabled={locked} onClick={onQuote}>{busy ? <LoaderCircle className="spin" size={17} /> : null}{t("校验并预估费用")}<ArrowRight size={17} /></button></div>
+    {!demo && <SkillGuide listing={listing} schema={schema} />}
     {sheets && <ImportDialog sheets={sheets} fields={fields} onClose={() => setSheets(null)} onImport={imported => { setRows(imported); setSheets(null); setLocalError(''); }} />}
   </>;
 }
