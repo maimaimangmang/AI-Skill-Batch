@@ -1,7 +1,6 @@
 'use client';
 import { sourceMessage, localizePublicExample } from '@/lib/i18n';
 import { useI18n } from './language-provider';
-import { skillPath } from '@/lib/skill-links';
 import WorkflowAuthor from './workflow-author';
 import AssetInput, { type AssetPreview, type AssetUploadStatus } from './asset-input';
 import { assetValues } from '@/lib/asset-input';
@@ -20,9 +19,6 @@ import ImportDialog, { type ImportSheet } from './import-dialog';
 type Props = { listing: Listing; schema: Schema; rows: InputRow[]; setRows: (rows: InputRow[]) => void; demo: boolean; guest?: boolean; busy: boolean; errors: string[]; api: (path: string, options?: ApiRequestOptions) => Promise<any>; onBack: () => void; onQuote: () => void };
 export default function Editor({ listing, schema, rows, setRows, demo, guest = false, busy, errors, api, onBack, onQuote }: Props) {
   const { t, skillText, locale } = useI18n();
-  const [copied, setCopied] = useState(false);
-  const [copyFailed, setCopyFailed] = useState(false);
-  async function share() { try { await navigator.clipboard.writeText(window.location.origin + skillPath(listing.id)); setCopied(true); setCopyFailed(false); } catch { setCopyFailed(true); } }
   const [localError, setLocalError] = useState(''); const [uploading, setUploading] = useState(false);
   const [sheets, setSheets] = useState<ImportSheet[] | null>(null); const input = useRef<HTMLInputElement>(null);
   const [previews, setPreviews] = useState<Record<string, AssetPreview>>({});
@@ -109,8 +105,8 @@ export default function Editor({ listing, schema, rows, setRows, demo, guest = f
     setRows(next); setLocalError('');
   }
   return <>
-    <button className="back-button" disabled={locked} onClick={onBack}><ArrowLeft size={16} />{t("返回工作流市场")}</button>
-    <div className="page-heading"><div><div className="eyebrow">BATCH WORKSPACE</div><h1>{skillText(listing.displayName)}</h1><WorkflowAuthor name={listing.creator?.nickname} /><p>{skillText(listing.description)}</p>{!demo && <><FavoriteButton skill={listing} label /><button className="public-details-link" onClick={share}><Copy size={14} />{copied ? t("链接已复制") : t("分享 Skill")}</button><span className="sr-only" role="status">{copied ? t("链接已复制") : ""}</span>{copyFailed && <p role="status">{t("请复制浏览器地址栏中的链接。")}</p>}</>}</div><AgentInstall key={listing.id} listing={listing} demo={demo} /></div>
+    <div className="editor-navigation"><button className="back-button" disabled={locked} onClick={onBack}><ArrowLeft size={16} />{t("返回工作流市场")}</button></div>
+    <div className="page-heading"><div><div className="eyebrow">BATCH WORKSPACE</div><h1>{skillText(listing.displayName)}</h1><WorkflowAuthor name={listing.creator?.nickname} /><p>{skillText(listing.description)}</p>{!demo && <FavoriteButton skill={listing} label />}</div><AgentInstall key={listing.id} listing={listing} demo={demo} /></div>
     <div className="steps"><span className="done"><Check size={15} />{t("选择工作流")}</span><i /><span className="active"><b>2</b>{t("填写任务表")}</span><i /><span><b>3</b>{t("确认并执行")}</span><i /><span><b>4</b>{t("收集结果")}</span></div>
     <WorkflowExamples key={listing.id} listing={listing} schema={schema} demo={demo} disabled={locked} onUse={row => {
       if (rows.some(r => !isBlankRow(r, fields)) && !window.confirm(t("用这组示例输入替换当前表格？"))) return;

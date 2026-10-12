@@ -302,3 +302,10 @@
 .asset-transfer.failed { color:#b43748; background:#fff3f3; }
 @keyframes asset-transfer-wait { to { background-position:-200% 0; } }
 @media(prefers-reduced-motion:reduce) { .asset-transfer progress:indeterminate { animation:none; } }
+
+/* Align the editor return action with the page language controls. */
+.studio-app .main-shell { position:relative; }
+.editor-navigation { position:absolute; top:20px; left:0; right:0; width:100%; max-width:1500px; margin:0 auto; padding:0 120px 0 32px; }
+.studio-workspace .editor-navigation .back-button { min-height:36px; margin:0; }
+@media(max-width:1150px) { .editor-navigation { padding-left:26px; } }
+@media(max-width:760px) { .editor-navigation { top:14px; padding-left:18px; padding-right:110px; } }
