@@ -126,7 +126,7 @@ export default function Editor({ listing, schema, rows, setRows, demo, guest = f
     </section>
     {uploading && !uploadController.current && <p className="notice"><LoaderCircle className="spin" size={16} />{t("正在处理文件…")}</p>}
     {(localError || errors.length > 0) && <div className="error-list" role="alert">{localError && <p>{t(localError)}</p>}{errors.map((e, i) => <p key={i}>{t(e)}</p>)}</div>}
-    <div className="execute-bar"><div><strong>{taskCount} {t(" 个已填任务，确认费用后运行")}</strong><p>{t("先查看预计费用，确认后才会使用你的胜算云余额。")}</p></div><button className="button primary" disabled={locked} onClick={onQuote}>{busy ? <LoaderCircle className="spin" size={17} /> : null}{t("校验并预估费用")}<ArrowRight size={17} /></button></div>
+    <div className="execute-bar"><div><strong>{taskCount} {t(" 个已填任务，确认 Token 消耗费用后运行")}</strong><p>{t("先查看预计费用，确认后才会使用你的胜算云余额。")}</p></div><button className="button primary" disabled={locked} onClick={onQuote}>{busy ? <LoaderCircle className="spin" size={17} /> : null}{t("校验并预估费用")}<ArrowRight size={17} /></button></div>
     {!demo && <SkillGuide listing={listing} schema={schema} />}
     {sheets && <ImportDialog sheets={sheets} fields={fields} onClose={() => setSheets(null)} onImport={imported => { setRows(imported); setSheets(null); setLocalError(''); }} />}
   </>;

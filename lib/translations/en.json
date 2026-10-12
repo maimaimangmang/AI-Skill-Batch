@@ -93,7 +93,7 @@
   "填入示例": "Use sample",
   "支持从 Excel 复制多格粘贴 · 空白行自动忽略": "Paste multiple cells from Excel · Empty rows are skipped",
   "正在处理文件…": "Processing file…",
-  " 个已填任务，确认费用后运行": " tasks ready. Confirm costs to run.",
+  " 个已填任务，确认 Token 消耗费用后运行": " tasks ready. Confirm token usage costs to run.",
   "先查看预计费用，确认后才会使用你的胜算云余额。": "Review the estimate first. Your Shengsuanyun balance is used only after confirmation.",
   "校验并预估费用": "Validate and estimate",
   "金牌推荐": "Featured workflows",
