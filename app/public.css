@@ -65,3 +65,11 @@
   .public-header nav { width:100%; gap:16px; flex-wrap:nowrap; }
   .public-header nav .language-switcher { margin-left:auto; }
 }
+
+.public-nav-button { display:inline-flex; align-items:center; gap:5px; padding:0; border:0; background:none; color:inherit; font:inherit; line-height:inherit; white-space:nowrap; cursor:pointer; }
+.public-nav-button:disabled { cursor:wait; opacity:.65; }
+.public-nav-button:focus-visible { outline:2px solid #8b72ff; outline-offset:5px; border-radius:3px; }
+.public-connection-form .connection-intro { margin:0 0 20px; color:#7886a2; font-size:14px; line-height:1.8; }
+.public-connection-form .privacy-note { display:flex; gap:8px; color:#8b96ad; font-size:12px; line-height:1.8; margin:0; }
+.public-connection-form .privacy-note svg { flex-shrink:0; margin-top:3px; }
+.public-site .public-connection-form .login-help a { color:#6546ed; line-height:1.8; }

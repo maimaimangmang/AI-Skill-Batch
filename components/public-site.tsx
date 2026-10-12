@@ -1,8 +1,10 @@
 'use client';
 import Link from 'next/link';
 import Image from 'next/image';
-import { ArrowRight, ArrowUpRight, Check, Copy, Layers, Search, Table2, Sparkles } from 'lucide-react';
-import { useState } from 'react';
+import { ArrowRight, ArrowUpRight, Check, Copy, Layers, Search, Table2, Sparkles, LoaderCircle } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import PublicConnectionDialog from './public-connection-dialog';
+import { request } from '@/lib/client';
 import { useI18n, LanguageSwitcher } from './language-provider';
 import { skillPath, appPath } from '@/lib/skill-links';
 import { money, cellText } from '@/lib/domain';
@@ -15,7 +17,28 @@ import type { WorkflowExample } from '@/lib/workflow-examples';
 type CardSkill = Pick<PublicSkill, 'id' | 'displayName' | 'description' | 'creator' | 'officialTemplateId' | 'taskFixedFeeT' | 'currency'>;
 export function PublicShell({ children, catalog = false }: { children: React.ReactNode; catalog?: boolean }) {
   const { t } = useI18n();
-  return <div className="public-site"><header className="public-header"><Link className="public-brand" href="/"><img src="/loomdesk-mark.svg" alt="" />LoomSkill</Link><nav aria-label={t('网站导航')}>{!catalog && <Link href="/skills">{t('探索 Skill')}</Link>}<a href="https://www.shengsuanyun.com/zh/loomloom" target="_blank" rel="noopener noreferrer">{t('上传 Skill')}<ArrowUpRight size={14} /></a><Link className="public-login" href="/app">{t('进入工作台')}<ArrowUpRight size={15} /></Link><LanguageSwitcher /></nav></header>{children}<footer className="public-footer"><Link className="public-brand" href="/">LoomSkill</Link><p>{t('AI批量生成，从一张表开始。')}</p><div><Link href="/skills">{t('探索 Skill')}</Link><Link href="/login">{t('登录')}</Link><a href="https://www.shengsuanyun.com/?from=Zoey" target="_blank" rel="noopener noreferrer">{t('胜算云')} ↗</a></div></footer></div>;
+  const [connectionOpen, setConnectionOpen] = useState(false);
+  const [checking, setChecking] = useState(false);
+  const sessionCheck = useRef<AbortController | null>(null);
+  useEffect(() => () => { sessionCheck.current?.abort(); sessionCheck.current = null; }, []);
+  async function enterWorkspace() {
+    if (sessionCheck.current) return;
+    const controller = new AbortController(); sessionCheck.current = controller;
+    const timeout = setTimeout(() => { if (sessionCheck.current === controller) { controller.abort(); setConnectionOpen(true); } }, 10000);
+    setChecking(true);
+    try {
+      const session = await request('/session', { signal: controller.signal });
+      if (session.connected) { window.location.assign('/app'); return; }
+      setConnectionOpen(true);
+    } catch {
+      // An unavailable session check must not strand the visitor on this page.
+      if (!controller.signal.aborted) setConnectionOpen(true);
+    } finally {
+      clearTimeout(timeout);
+      if (sessionCheck.current === controller) { sessionCheck.current = null; setChecking(false); }
+    }
+  }
+  return <div className="public-site"><header className="public-header"><Link className="public-brand" href="/"><img src="/loomdesk-mark.svg" alt="" />LoomSkill</Link><nav aria-label={t('网站导航')}>{!catalog && <Link href="/skills">{t('探索 Skill')}</Link>}<a href="https://www.shengsuanyun.com/zh/loomloom" target="_blank" rel="noopener noreferrer">{t('上传 Skill')}<ArrowUpRight size={14} /></a><button type="button" className="public-login public-nav-button" disabled={checking} aria-busy={checking} onClick={enterWorkspace}>{t('进入工作台')}{checking ? <LoaderCircle className="spin" size={15} /> : <ArrowUpRight size={15} />}</button><LanguageSwitcher /></nav></header>{children}<footer className="public-footer"><Link className="public-brand" href="/">LoomSkill</Link><p>{t('AI批量生成，从一张表开始。')}</p><div><Link href="/skills">{t('探索 Skill')}</Link><button type="button" className="public-nav-button" disabled={checking} onClick={enterWorkspace}>{t('登录')}</button><a href="https://www.shengsuanyun.com/?from=Zoey" target="_blank" rel="noopener noreferrer">{t('胜算云')} ↗</a></div></footer>{connectionOpen && <PublicConnectionDialog onClose={() => setConnectionOpen(false)} />}</div>;
 }
 export function SkillCards({ skills }: { skills: CardSkill[] }) {
   const { t } = useI18n();
