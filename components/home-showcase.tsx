@@ -117,7 +117,7 @@ export function HomeShowcase({ skills, discovery, total }: { skills: HomeSkill[]
   const columns = [discovery.filter((_, i) => i % 2 === 0), discovery.filter((_, i) => i % 2 === 1)].filter(column => column.length);
   return <section className="public-section home-showcase">
     <div className="public-section-heading">
-      <div><span className="public-eyebrow">START WITH A SKILL</span><h2>{t('从一个具体需求开始')}</h2><p>{t('选择 Skill → 填写任务 → 云端执行 → 得到结果')}</p></div>
+      <div><span className="public-eyebrow">START WITH A SKILL</span><h2>{t('在线运行 Skill，手机也能用')}</h2><p>{t('选择 Skill → 填写任务 → 云端执行 → 得到结果')}</p></div>
       <Link href="/skills">{total > 0 ? t('浏览全部 {0} 个 Skill', total) : t('浏览全部 Skill')}<ArrowRight size={17} /></Link>
     </div>
     <div className="home-skill-layout">
