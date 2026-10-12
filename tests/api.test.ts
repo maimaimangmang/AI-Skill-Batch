@@ -280,3 +280,55 @@ test('binary assets retain authentication and origin checks, forward intact byte
   const legacy = await call('assets', { filename: 'old.png', contentType: 'image/png', content: Buffer.from(bytes).toString('base64') }, cookie);
   assert.equal(legacy.response.status, 200);
 });
+
+test('API：收藏必须连接，写入需要同源并按 API Key 隔离，退出和重连后保留', async () => {
+  const item = { id: 'test-listing', displayName: '测试工作流', description: '收藏说明', apiKey: 'must-not-store', inputSchemaSnapshot: 'private task data' };
+  for (const method of ['GET', 'POST', 'DELETE']) {
+    const result = await call('favorites', method === 'GET' ? undefined : { items: [item] }, undefined, 'http://localhost:3000', method);
+    assert.equal(result.response.status, 401);
+  }
+  const a = await login('favorites-account-a');
+  const first = await call('favorites', undefined, a);
+  const scope = first.body.scope;
+  assert.equal(first.response.headers.get('cache-control'), 'no-store');
+  assert.deepEqual(first.body.items, []);
+  assert.equal((await call('favorites', { scope, items: [item] }, a, 'https://other.test')).response.status, 403);
+  const saved = await call('favorites', { scope, items: [item] }, a);
+  assert.equal(saved.response.status, 200);
+  assert.deepEqual(Object.keys(saved.body.items[0]).sort(), ['description', 'displayName', 'id', 'savedAt']);
+  assert.equal((await call('favorites', { scope, items: [item, item] }, a)).body.items.length, 1);
+  const row = db().prepare('SELECT owner, payload FROM favorites WHERE owner = ?').get(scope) as { owner: string; payload: string };
+  assert.ok(!row.owner.includes('favorites-account-a'));
+  assert.ok(!row.payload.includes('收藏说明'));
+  assert.ok(!JSON.stringify(unseal(row.payload)).includes('must-not-store'));
+  const b = await login('favorites-account-b');
+  const bState = await call('favorites', undefined, b);
+  assert.notEqual(bState.body.scope, scope);
+  assert.deepEqual(bState.body.items, []);
+  assert.equal((await call('favorites', { scope, id: item.id }, b, 'http://localhost:3000', 'DELETE')).response.status, 409);
+  assert.equal((await call('favorites', { scope, items: [item] }, b)).response.status, 409);
+  const anotherDevice = await login('favorites-account-a');
+  assert.equal((await call('favorites', undefined, anotherDevice)).body.items.length, 1);
+  await call('session', undefined, a, 'http://localhost:3000', 'DELETE');
+  assert.equal((await call('favorites', undefined, a)).response.status, 401);
+  const reconnected = await login('favorites-account-a');
+  assert.equal((await call('favorites', undefined, reconnected)).body.items.length, 1);
+  assert.equal((await call('favorites', { scope, id: item.id }, reconnected, 'http://localhost:3000', 'DELETE')).body.items.length, 0);
+  assert.equal((await call('favorites', { scope, id: item.id }, reconnected, 'http://localhost:3000', 'DELETE')).body.items.length, 0);
+});
+
+test('API：收藏验证输入，批量保存超限时整体回滚', async () => {
+  const cookie = await login('favorites-limit-key');
+  const { body: { scope } } = await call('favorites', undefined, cookie);
+  for (const items of [null, [], [{ id: '../../bad', displayName: '标题', description: '' }], [{ id: 'x', displayName: '', description: '' }], [{ id: 'x', displayName: 'x', description: 'x'.repeat(6001) }]]) {
+    assert.equal((await call('favorites', { scope, items }, cookie)).response.status, 400);
+  }
+  const items = Array.from({ length: 200 }, (_, i) => ({ id: `saved-${i}`, displayName: `Skill ${i}`, description: '' }));
+  assert.equal((await call('favorites', { scope, items }, cookie)).body.items.length, 200);
+  assert.equal((await call('favorites', { scope, items: [items[0]] }, cookie)).response.status, 200);
+  const overLimit = await call('favorites', { scope, items: [{ ...items[0], description: 'must roll back' }, { id: 'overflow', displayName: 'Extra', description: '' }] }, cookie);
+  assert.equal(overLimit.response.status, 400);
+  const persisted = (await call('favorites', undefined, cookie)).body.items;
+  assert.equal(persisted.length, 200);
+  assert.equal(persisted.find((item: any) => item.id === 'saved-0').description, '');
+});

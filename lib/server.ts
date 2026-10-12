@@ -1,4 +1,4 @@
-import { createCipheriv, createDecipheriv, createHash, randomBytes, randomUUID } from 'node:crypto';
+import { createCipheriv, createDecipheriv, createHash, createHmac, randomBytes, randomUUID } from 'node:crypto';
 import { mkdirSync, readFileSync, writeFileSync, chmodSync } from 'node:fs';
 import path from 'node:path';
 import { DatabaseSync } from 'node:sqlite';
@@ -42,9 +42,12 @@ export function db() {
   d.exec(`PRAGMA journal_mode=WAL; PRAGMA busy_timeout=5000;
     CREATE TABLE IF NOT EXISTS sessions (id TEXT PRIMARY KEY, secret TEXT NOT NULL, expires INTEGER NOT NULL);
     CREATE TABLE IF NOT EXISTS quotes (id TEXT PRIMARY KEY, session TEXT NOT NULL, payload TEXT NOT NULL, expires INTEGER NOT NULL, started INTEGER NOT NULL DEFAULT 0, result TEXT);
+    CREATE TABLE IF NOT EXISTS favorites (owner TEXT NOT NULL, id TEXT NOT NULL, payload TEXT NOT NULL, saved_at INTEGER NOT NULL, PRIMARY KEY(owner,id));
     CREATE TABLE IF NOT EXISTS limits (id TEXT PRIMARY KEY, count INTEGER NOT NULL, expires INTEGER NOT NULL);`);
   return globalStore.loomDb = d;
 }
+// Stable per-key namespace survives logout without storing the API key in favorites.
+export const favoriteOwner = (apiKey: string) => createHmac('sha256', encryptionKey()).update('favorites:v1:').update(apiKey).digest('hex');
 export const digest = (s: string) => createHash('sha256').update(s).digest('hex');
 export function limit(id: string, maximum = 60, windowMs = 60000) {
   const d = db(); const now = Date.now();

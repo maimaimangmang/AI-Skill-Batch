@@ -13,6 +13,7 @@ import { cellText, emptyRow, money, isBlankRow } from '@/lib/domain';
 import { base64, download, exportSheet, post, type ApiRequestOptions } from '@/lib/client';
 import WorkflowExamples from './workflow-examples';
 import AgentInstall from './agent-install';
+import FavoriteButton from './favorite-button';
 import SkillGuide from './skill-guide';
 import { workflowPath } from '@/lib/official';
 import ImportDialog, { type ImportSheet } from './import-dialog';
@@ -109,7 +110,7 @@ export default function Editor({ listing, schema, rows, setRows, demo, guest = f
   }
   return <>
     <button className="back-button" disabled={locked} onClick={onBack}><ArrowLeft size={16} />{t("返回工作流市场")}</button>
-    <div className="page-heading"><div><div className="eyebrow">BATCH WORKSPACE</div><h1>{listing.displayName}</h1><WorkflowAuthor name={listing.creator?.nickname} /><p>{listing.description}</p>{!demo && <><button className="public-details-link" onClick={share}><Copy size={14} />{copied ? t("链接已复制") : t("分享 Skill")}</button><span className="sr-only" role="status">{copied ? t("链接已复制") : ""}</span>{copyFailed && <p role="status">{t("请复制浏览器地址栏中的链接。")}</p>}</>}</div><AgentInstall key={listing.id} listing={listing} demo={demo} /></div>
+    <div className="page-heading"><div><div className="eyebrow">BATCH WORKSPACE</div><h1>{listing.displayName}</h1><WorkflowAuthor name={listing.creator?.nickname} /><p>{listing.description}</p>{!demo && <><FavoriteButton skill={listing} label /><button className="public-details-link" onClick={share}><Copy size={14} />{copied ? t("链接已复制") : t("分享 Skill")}</button><span className="sr-only" role="status">{copied ? t("链接已复制") : ""}</span>{copyFailed && <p role="status">{t("请复制浏览器地址栏中的链接。")}</p>}</>}</div><AgentInstall key={listing.id} listing={listing} demo={demo} /></div>
     <div className="steps"><span className="done"><Check size={15} />{t("选择工作流")}</span><i /><span className="active"><b>2</b>{t("填写任务表")}</span><i /><span><b>3</b>{t("确认并执行")}</span><i /><span><b>4</b>{t("收集结果")}</span></div>
     <WorkflowExamples key={listing.id} listing={listing} schema={schema} demo={demo} disabled={locked} onUse={row => {
       if (rows.some(r => !isBlankRow(r, fields)) && !window.confirm(t("用这组示例输入替换当前表格？"))) return;

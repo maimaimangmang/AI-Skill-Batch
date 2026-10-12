@@ -1,5 +1,6 @@
 'use client';
 import Link from 'next/link';
+import FavoriteButton from './favorite-button';
 import { ArrowRight, ArrowUpRight, FileText, Flame, Image as ImageIcon, Images, Search, Sparkles, RefreshCw } from 'lucide-react';
 import { PublicShell } from './public-site';
 import WorkflowAuthor from './workflow-author';
@@ -46,7 +47,7 @@ export function PublicCatalog({ skills, featured, total, page, pages, query }: {
         const id = entry.listingId || entry.officialTemplateId!;
         const Icon = entry.cover === 'commerce' ? Images : ImageIcon;
         return <article className="featured-card" key={id}>
-          <div className="featured-category-row"><span className="featured-category"><span className="featured-category-icon"><Icon size={18} /></span>{t(entry.category)}</span>{entry.hot && <span className="featured-hot-badge"><Flame size={17} fill="currentColor" aria-label={t('热门')} /></span>}</div>
+          <div className="featured-category-row">{skill && <FavoriteButton skill={skill} />}<span className="featured-category"><span className="featured-category-icon"><Icon size={18} /></span>{t(entry.category)}</span>{entry.hot && <span className="featured-hot-badge"><Flame size={17} fill="currentColor" aria-label={t('热门')} /></span>}</div>
           <h3>{skill ? <Link href={skillPath(id)}>{t(entry.title)}</Link> : t(entry.title)}</h3>
           <WorkflowAuthor name={skill?.creator?.nickname || entry.authorName} />
           {skill?.model && <span className="featured-model-label"><Sparkles size={11} />{skill.model}</span>}
@@ -67,7 +68,7 @@ export function PublicCatalog({ skills, featured, total, page, pages, query }: {
     {refreshError && <p role="alert" className="error">{t('刷新失败，请重试。')}</p>}
     {query && <div className="public-catalog-count"><span>{t('“{0}”的搜索结果', query)} · {total}</span><Link href="/skills">{t('清除搜索')}</Link></div>}
     {skills.length ? <div className="workflow-grid">{skills.map(skill => <article className="workflow-card" key={skill.id}>
-      <div className="card-top"><span className="workflow-icon"><FileText size={20} /></span><div className="card-title"><h2><Link href={skillPath(skill.id)}>{skill.displayName}</Link></h2><WorkflowAuthor name={skill.creator?.nickname} /></div></div>
+      <div className="card-top"><span className="workflow-icon"><FileText size={20} /></span><div className="card-title"><h2><Link href={skillPath(skill.id)}>{skill.displayName}</Link></h2><WorkflowAuthor name={skill.creator?.nickname} /></div><FavoriteButton skill={skill} /></div>
       <p>{skill.description}</p>
       <div className="card-model-tags"><span className={`model-tag${skill.model ? ' disclosed' : ''}`}><Sparkles size={11} />{skill.model || t('暂无模型信息')}</span></div>
       <div className="card-bottom"><div><strong>{price(skill)}</strong>{!skill.officialTemplateId && skill.taskFixedFeeT != null && <CreatorFeeLabel />}</div><Link className="card-use" href={skillPath(skill.id)} aria-label={t('使用 {0}', skill.displayName)}>{t('使用')}<ArrowRight size={15} /></Link></div>

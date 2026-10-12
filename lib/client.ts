@@ -5,6 +5,10 @@ export async function request<T = any>(path: string, options?: ApiRequestOptions
   const response = await fetch(`/api${path}`, { ...options, headers: { ...(options?.body ? { 'Content-Type': 'application/json' } : {}), ...options?.headers }, cache: 'no-store' });
   const value = await response.json();
   if (!response.ok) throw new RequestError(value.error || '请求失败，请重试。', response.status);
+  if (path === '/session' && ['POST', 'DELETE'].includes(options?.method || '') && typeof window !== 'undefined') {
+    window.dispatchEvent(new Event('loomskill-session-change'));
+    try { localStorage.setItem('loomskill-session-change', String(Date.now())); } catch { /* Other tabs recheck on focus. */ }
+  }
   return value;
 }
 // Upload events measure browser → server transfer only; the response confirms storage.

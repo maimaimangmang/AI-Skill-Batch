@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import FavoriteButton from './favorite-button';
 import { useEffect, useRef } from 'react';
 import { ArrowRight, ArrowUpRight, FileText, ImageIcon, Layers } from 'lucide-react';
 import { useI18n } from './language-provider';
@@ -124,20 +125,20 @@ export function HomeShowcase({ skills, discovery, total }: { skills: HomeSkill[]
     </div>
     <div className="home-skill-layout">
       <div className="home-curated">
-        <div className="home-curated-list">{skills.map((skill, index) => <article className="home-featured-card" data-home-motion key={skill.id}>
+        <div className="home-curated-list">{skills.map(skill => <article className="home-featured-card" data-home-motion key={skill.id}>
           <span className="home-skill-icon"><SkillIcon skill={skill} /></span>
           <div className="home-featured-content"><h3><Link href={skillPath(skill.id)} prefetch={false}>{cardText(skill.displayName)}</Link></h3><p>{cardText(skill.description)}</p>
             <div className="home-featured-footer"><span>{skill.officialTemplateId ? t('按模型用量计费') : skill.taskFixedFeeT === 0 ? t('无创作者调用费') : skill.taskFixedFeeT != null ? `${money(skill.taskFixedFeeT, skill.currency)} ${t('/ 次 · 模型费另计')}` : t('执行前查看预估费用')}</span><Link href={skillPath(skill.id)} prefetch={false} aria-label={t('查看详情：{0}', cardText(skill.displayName))}>{t('探索')}<ArrowUpRight size={14} /></Link></div>
-          </div><span className="home-featured-number" aria-hidden="true">0{index + 1}</span>
+          </div><div className="home-featured-save"><FavoriteButton skill={skill} /></div>
         </article>)}</div>
       </div>
       <div className="home-discovery">
         <div className="home-skill-stream" ref={streamRef} role="region" aria-label={t('探索更多 Skill')} tabIndex={0}>
           {columns.map((column, index) => <div className="home-stream-column" key={index}><div className="home-stream-track">
             {[0, 1].map(copy => <div className="home-stream-group" key={copy} aria-hidden={copy === 1 ? true : undefined}>
-              {column.map(skill => <Link className="home-stream-card" key={skill.id} href={skillPath(skill.id)} prefetch={false} tabIndex={copy ? -1 : undefined}>
+              {column.map(skill => <div className="home-stream-card" key={skill.id}><FavoriteButton skill={skill} tabIndex={copy ? -1 : undefined} /><Link href={skillPath(skill.id)} prefetch={false} tabIndex={copy ? -1 : undefined}>
                 <h3>{cardText(skill.displayName)}</h3><p>{cardText(skill.description) || t('查看输入要求，开始你的下一批创作。')}</p>
-              </Link>)}
+              </Link></div>)}
             </div>)}
           </div></div>)}
         </div>

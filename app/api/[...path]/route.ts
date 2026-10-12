@@ -1,4 +1,5 @@
 import { parseRunFilters, readRunsPage } from '@/lib/runs';
+import { readFavorites, changeFavorites } from '@/lib/favorites-server';
 import { MARKET_PAGE_SIZE } from '@/lib/market';
 import { marketOffsetToken, countMarketItems } from '@/lib/market-count';
 import { NextRequest, NextResponse } from 'next/server';
@@ -64,6 +65,11 @@ async function handle(request: NextRequest, context: { params: Promise<{ path: s
     }
     const session = sessionFromToken(request.cookies.get(cookie)?.value); limit(session.id, 180);
     const key = session.apiKey;
+    if (route === 'favorites') {
+      if (method === 'GET') return json(readFavorites(key));
+      if (method === 'POST' || method === 'DELETE') return json(changeFavorites(key, await jsonBody(request, 2 * 1024 * 1024), method === 'DELETE'));
+      throw new ApiError('不支持此操作。', 405);
+    }
     if (method === 'GET') {
       if (route === 'pending') {
         const records = db().prepare('SELECT id, payload, expires FROM quotes WHERE session = ? AND started = 1 AND result IS NULL').all(session.id) as { id: string; payload: string; expires: number }[];
