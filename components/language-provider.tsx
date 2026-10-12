@@ -1,10 +1,10 @@
 'use client';
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
-import { translate, type Locale, languagePreference } from '@/lib/i18n';
+import { translate, translateSkillText, type Locale, languagePreference } from '@/lib/i18n';
 
 const preferenceKey = 'loomskill-language';
-type I18n = { locale: Locale; setLocale: (locale: Locale) => void; t: (source: string, ...values: unknown[]) => string };
+type I18n = { locale: Locale; setLocale: (locale: Locale) => void; t: (source: string, ...values: unknown[]) => string; skillText: (source: string) => string };
 const LanguageContext = createContext<I18n | null>(null);
 
 export function LanguageProvider({ children }: { children: React.ReactNode }) {
@@ -24,7 +24,8 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
     try { localStorage.setItem(preferenceKey, next); } catch { /* Switching still works for this page. */ }
   }, []);
   const t = useCallback((source: string, ...values: unknown[]) => translate(locale, source, ...values), [locale]);
-  const value = useMemo(() => ({ locale, setLocale, t }), [locale, setLocale, t]);
+  const skillText = useCallback((source: string) => translateSkillText(locale, source), [locale]);
+  const value = useMemo(() => ({ locale, setLocale, t, skillText }), [locale, setLocale, t, skillText]);
   return <LanguageContext.Provider value={value}>{children}</LanguageContext.Provider>;
 }
 

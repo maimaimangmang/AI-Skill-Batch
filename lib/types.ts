@@ -3,7 +3,7 @@ export type Field = {
   key: string; label: string; value_type: string; required?: boolean; order?: number;
   description?: string; enum_values?: unknown[]; default_value?: unknown;
   accepted_mime_types?: string[]; max_values?: number;
-  presentation?: { widget?: string; hint?: string };
+  presentation?: { widget?: string; hint?: string; placeholder?: string };
 };
 export type Schema = { fields: Field[]; input_summary?: string; instructions?: string[]; sample_rows?: InputRow[] };
 export type Money = { amount: string; currency: string };

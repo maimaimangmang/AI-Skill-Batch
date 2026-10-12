@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { languagePreference, sourceMessage, translate, translateSkillCardText } from '../lib/i18n';
+import { languagePreference, sourceMessage, translate, translateSkillCardText, translateSkillText, localizePublicExample } from '../lib/i18n';
 import english from '../lib/translations/en.json';
 
 test('language defaults to Chinese, including missing or invalid saved preferences', () => {
@@ -35,4 +35,48 @@ test('reviewed card translations switch language without changing task or update
   assert.equal(translateSkillCardText('en', ''), '');
   assert.equal(translateSkillCardText('en', 'toString'), 'toString');
   assert.equal(translate('en', source), source);
+});
+
+
+test('public Skill metadata includes titles, instructions, labels, options and model disclosures', () => {
+  for (const source of [
+    '归藏网页 PPT', '庭审准备演练工作流', '任务描述', '图片提示词',
+    '风格要求', '复刻要求（选填）', '输出语言', '简体中文',
+    '每行填写一段图片提示词，可补充风格要求并指定图片比例；每行生成一个图片任务。',
+    '系统依次执行提示词整理和图片生成，最终交付图片。',
+    'openai/gpt-image-2 · 图生图',
+  ]) {
+    assert.doesNotMatch(translateSkillText('en', source), /[\u3400-\u9fff]/u, source);
+    assert.equal(translateSkillText('zh-CN', source), source);
+  }
+  assert.equal(translateSkillText('en', '填写示例 2'), 'Input example 2');
+  assert.equal(translateSkillText('en', '简体中文'), 'Simplified Chinese');
+  assert.equal(translateSkillText('en', 'openai/gpt-image-2 · 图生图'), 'openai/gpt-image-2 · Image to image');
+});
+
+test('Skill translations retain limits and identifiers without translating arbitrary input', () => {
+  assert.match(translateSkillText('en', '最多 160 字；请简要填写需要修改的背景、布局或文案。'), /160 characters/);
+  assert.match(translateSkillText('en', '论文文档（5000字以内）'), /5000 characters/);
+  for (const original of ['bytedance/doubao-seedream-4.5', '2048x2048', '1:1', 'toString', '我刚写好的新任务', '填写创作者刚更新的说明']) {
+    assert.equal(translateSkillText('en', original), original);
+  }
+});
+
+
+test('English public samples keep wire keys, enum values, assets and unknown content intact', () => {
+  const fields = [
+    { key: '提示词', label: '图片提示词', value_type: 'string' },
+    { key: 'language', label: '输出语言', value_type: 'string', enum_values: ['简体中文', '英语'] },
+    { key: 'image', label: '参考图', value_type: 'asset_ref' },
+    { key: 'other', label: '备注', value_type: 'string' },
+  ];
+  const source = Object.freeze({ 提示词: '极简', language: '简体中文', image: 'asset-id-123', other: '未收录的新示例内容' });
+  const localized = localizePublicExample('en', source, fields);
+  assert.equal(localized.提示词, 'minimalist');
+  assert.equal(localized.language, '简体中文');
+  assert.equal(localized.image, 'asset-id-123');
+  assert.equal(localized.other, source.other);
+  assert.deepEqual(Object.keys(localized), Object.keys(source));
+  assert.equal(source.提示词, '极简');
+  assert.deepEqual(localizePublicExample('zh-CN', source, fields), source);
 });

@@ -18,7 +18,7 @@ type CatalogSkill = Pick<PublicSkill, 'id' | 'displayName' | 'description' | 'cr
 type Recommendation = { entry: FeaturedWorkflow; skill: CatalogSkill | null };
 
 export function PublicCatalog({ skills, featured, total, page, pages, query }: { skills: CatalogSkill[]; featured: Recommendation[]; total: number; page: number; pages: number; query: string }) {
-  const { t } = useI18n();
+  const { t, skillText } = useI18n();
   const [refreshing, startRefresh] = useTransition();
   const [refreshError, setRefreshError] = useState(false);
   function refresh() {
@@ -50,9 +50,9 @@ export function PublicCatalog({ skills, featured, total, page, pages, query }: {
           <div className="featured-category-row">{skill && <FavoriteButton skill={skill} />}<span className="featured-category"><span className="featured-category-icon"><Icon size={18} /></span>{t(entry.category)}</span>{entry.hot && <span className="featured-hot-badge"><Flame size={17} fill="currentColor" aria-label={t('热门')} /></span>}</div>
           <h3>{skill ? <Link href={skillPath(id)}>{t(entry.title)}</Link> : t(entry.title)}</h3>
           <WorkflowAuthor name={skill?.creator?.nickname || entry.authorName} />
-          {skill?.model && <span className="featured-model-label"><Sparkles size={11} />{skill.model}</span>}
+          {skill?.model && <span className="featured-model-label"><Sparkles size={11} />{skillText(skill.model)}</span>}
           <p>{t(entry.reason)}</p>
-          <div className="featured-card-footer"><div className="featured-price"><strong>{skill ? price(skill) : t('暂未提供')}</strong>{skill && !skill.officialTemplateId && skill.taskFixedFeeT != null && <span>{t('/ 次')}</span>}</div>{skill && <Link className="featured-action" href={skillPath(id)} aria-label={t('使用 {0}', entry.title)}>{t('使用')}<ArrowUpRight size={14} /></Link>}</div>
+          <div className="featured-card-footer"><div className="featured-price"><strong>{skill ? price(skill) : t('暂未提供')}</strong>{skill && !skill.officialTemplateId && skill.taskFixedFeeT != null && <span>{t('/ 次')}</span>}</div>{skill && <Link className="featured-action" href={skillPath(id)} aria-label={t('使用 {0}', skillText(entry.title))}>{t('使用')}<ArrowUpRight size={14} /></Link>}</div>
         </article>;
       })}</div>
       <p className="featured-price-note">{t('模型费用按实际用量另计，提交前会展示预估费用。')}</p>
@@ -68,10 +68,10 @@ export function PublicCatalog({ skills, featured, total, page, pages, query }: {
     {refreshError && <p role="alert" className="error">{t('刷新失败，请重试。')}</p>}
     {query && <div className="public-catalog-count"><span>{t('“{0}”的搜索结果', query)} · {total}</span><Link href="/skills">{t('清除搜索')}</Link></div>}
     {skills.length ? <div className="workflow-grid">{skills.map(skill => <article className="workflow-card" key={skill.id}>
-      <div className="card-top"><span className="workflow-icon"><FileText size={20} /></span><div className="card-title"><h2><Link href={skillPath(skill.id)}>{skill.displayName}</Link></h2><WorkflowAuthor name={skill.creator?.nickname} /></div><FavoriteButton skill={skill} /></div>
-      <p>{skill.description}</p>
-      <div className="card-model-tags"><span className={`model-tag${skill.model ? ' disclosed' : ''}`}><Sparkles size={11} />{skill.model || t('暂无模型信息')}</span></div>
-      <div className="card-bottom"><div><strong>{price(skill)}</strong>{!skill.officialTemplateId && skill.taskFixedFeeT != null && <CreatorFeeLabel />}</div><Link className="card-use" href={skillPath(skill.id)} aria-label={t('使用 {0}', skill.displayName)}>{t('使用')}<ArrowRight size={15} /></Link></div>
+      <div className="card-top"><span className="workflow-icon"><FileText size={20} /></span><div className="card-title"><h2><Link href={skillPath(skill.id)}>{skillText(skill.displayName)}</Link></h2><WorkflowAuthor name={skill.creator?.nickname} /></div><FavoriteButton skill={skill} /></div>
+      <p>{skillText(skill.description)}</p>
+      <div className="card-model-tags"><span className={`model-tag${skill.model ? ' disclosed' : ''}`}><Sparkles size={11} />{skillText(skill.model) || t('暂无模型信息')}</span></div>
+      <div className="card-bottom"><div><strong>{price(skill)}</strong>{!skill.officialTemplateId && skill.taskFixedFeeT != null && <CreatorFeeLabel />}</div><Link className="card-use" href={skillPath(skill.id)} aria-label={t('使用 {0}', skillText(skill.displayName))}>{t('使用')}<ArrowRight size={15} /></Link></div>
     </article>)}</div> : <div className="public-empty"><h2>{t('暂未找到匹配的 Skill')}</h2><p>{t('试试更短的关键词，例如“图片”“文案”或“翻译”。')}</p><Link href="/skills">{t('浏览全部 Skill')}</Link></div>}
     <nav className="market-pagination" aria-label={t('工作流市场分页')}>
       <span className="pagination-summary">{t('第 {0} 页{1} · 本页 {2} 项', page, t(' / 共 {0} 页', pages), skills.length)}{t(' · 每页 ')}24{t(' 项')}</span>

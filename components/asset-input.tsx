@@ -19,7 +19,7 @@ type Props = {
   onPaste: (event: React.ClipboardEvent) => void;
 };
 export default function AssetInput({ localDraft = false, field, value, rowNumber, disabled, previews, upload, onCancelUpload, onChange, onUpload, onPaste }: Props) {
-  const { t } = useI18n();
+  const { t, skillText } = useI18n();
   const input = useRef<HTMLInputElement>(null);
   const [linkOpen, setLinkOpen] = useState(false);
   const [linkDraft, setLinkDraft] = useState('');
@@ -56,16 +56,16 @@ export default function AssetInput({ localDraft = false, field, value, rowNumber
       {!values.length && !active && <small>{t("单个文件不超过 10 MB")}</small>}
     </button>
     {upload && <div className={`asset-transfer ${upload.phase}`} aria-busy={active}>
-      <div className="asset-transfer-heading"><span title={upload.name}>{upload.name}</span>{active && <button type="button" onClick={onCancelUpload} aria-label={t("取消第 {0} 行{1}上传", rowNumber, field.label)}>{t("取消")}</button>}</div>
-      {upload.phase !== 'failed' && <progress max={100} value={upload.phase === 'succeeded' ? 100 : upload.phase === 'uploading' && upload.percent !== null ? upload.percent : undefined} aria-label={t("第 {0} 行{1}上传进度", rowNumber, field.label)} />}
+      <div className="asset-transfer-heading"><span title={upload.name}>{upload.name}</span>{active && <button type="button" onClick={onCancelUpload} aria-label={t("取消第 {0} 行{1}上传", rowNumber, skillText(field.label))}>{t("取消")}</button>}</div>
+      {upload.phase !== 'failed' && <progress max={100} value={upload.phase === 'succeeded' ? 100 : upload.phase === 'uploading' && upload.percent !== null ? upload.percent : undefined} aria-label={t("第 {0} 行{1}上传进度", rowNumber, skillText(field.label))} />}
       <div className="asset-transfer-status"><span role="status">{upload.phase === 'succeeded' && <Check size={12} />}{status.replace(t("图片 / 附件"), noun)}</span><span>{upload.phase === 'uploading' && upload.percent !== null ? `${upload.percent}%` : active ? t("{0} 秒", elapsed) : ''}</span></div>
       {upload.phase === 'processing' && <small>{t("文件已传送，保存成功后即可使用。")}</small>}
       {active && elapsed >= 15 && <small>{t("本次上传较慢，请稍候；也可以取消后重试。")}</small>}
     </div>}
-    <input ref={input} type="file" className="sr-only" disabled={disabled || full} accept={field.accepted_mime_types?.join(',') || (image ? 'image/*' : undefined)} aria-label={t("第 {0} 行上传{1}", rowNumber, field.label)} onChange={e => { onUpload(e.target.files?.[0]); e.target.value = ''; }} />
+    <input ref={input} type="file" className="sr-only" disabled={disabled || full} accept={field.accepted_mime_types?.join(',') || (image ? 'image/*' : undefined)} aria-label={t("第 {0} 行上传{1}", rowNumber, skillText(field.label))} onChange={e => { onUpload(e.target.files?.[0]); e.target.value = ''; }} />
     <button type="button" className="asset-link-toggle" disabled={disabled} aria-expanded={linkOpen} onClick={() => setLinkOpen(open => !open)}><Link2 size={12} />{linkOpen ? t("收起链接输入") : t("使用{0}链接", noun)}</button>
     {linkOpen && <div className="asset-link-editor">
-      <textarea rows={2} aria-label={t("第 {0} 行 {1}链接", rowNumber, field.label)} disabled={disabled} value={linkDraft} placeholder={multiple ? t("粘贴 HTTPS 链接，每行一个") : t("粘贴图片或文件的 HTTPS 直链")} onPaste={onPaste} onChange={e => { setLinkDraft(e.target.value); setLinkError(''); }} />
+      <textarea rows={2} aria-label={t("第 {0} 行 {1}链接", rowNumber, skillText(field.label))} disabled={disabled} value={linkDraft} placeholder={multiple ? t("粘贴 HTTPS 链接，每行一个") : t("粘贴图片或文件的 HTTPS 直链")} onPaste={onPaste} onChange={e => { setLinkDraft(e.target.value); setLinkError(''); }} />
       <button type="button" className="asset-link-apply" disabled={disabled || !linkDraft.trim()} onClick={() => {
         try {
           update(mergeAssetLinks(value, linkDraft, multiple, field.max_values));

@@ -1,3 +1,4 @@
+import { translateSkillText } from '@/lib/i18n';
 import { notFound, redirect } from 'next/navigation';
 import { PublicCatalog } from '@/components/public-catalog';
 import { featuredWorkflows } from '@/lib/featured';
@@ -20,7 +21,7 @@ export default async function SkillsPage({ searchParams }: Params) {
   const page = Number(params.page || 1);
   if (params.page === '1' && !query) redirect('/skills');
   const all = await getPublicSkills();
-  const filtered = query ? all.filter(skill => `${skill.displayName} ${skill.description}`.toLocaleLowerCase().includes(query.toLocaleLowerCase())) : all;
+  const filtered = query ? all.filter(skill => `${skill.displayName} ${skill.description} ${translateSkillText('en', skill.displayName)} ${translateSkillText('en', skill.description)}`.toLocaleLowerCase().includes(query.toLocaleLowerCase())) : all;
   const pages = Math.max(1, Math.ceil(filtered.length / 24));
   if (page > pages) notFound();
   function card(skill: PublicSkill) {

@@ -643,5 +643,7 @@
   "收藏读取失败，请重试。": "Could not load favorites. Please retry.",
   "连接后查看我的收藏": "Connect to view your favorites",
   "连接后收藏常用 Skill，并在手机和电脑之间同步。": "Connect to save your go-to Skills and sync them across your phone and computer.",
-  "收藏保存失败，请再次点击五角星重试。": "Could not save your favorite. Click the star again to retry."
+  "收藏保存失败，请再次点击五角星重试。": "Could not save your favorite. Click the star again to retry.",
+  "LoomLoom 官方": "LoomLoom Official",
+  "{0} · AI 批量工作流 | LoomSkill": "{0} · AI Batch Workflow | LoomSkill"
 }
