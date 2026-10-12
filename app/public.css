@@ -73,3 +73,5 @@
 .public-connection-form .privacy-note { display:flex; gap:8px; color:#8b96ad; font-size:12px; line-height:1.8; margin:0; }
 .public-connection-form .privacy-note svg { flex-shrink:0; margin-top:3px; }
 .public-site .public-connection-form .login-help a { color:#6546ed; line-height:1.8; }
+
+.public-header nav a[aria-current="page"] { color:var(--public-purple); font-weight:700; text-decoration:underline; text-decoration-thickness:2px; text-underline-offset:8px; }
