@@ -3,6 +3,7 @@ import "./globals.css";
 import "./studio-market.css";
 import "./public.css";
 import "./home.css";
+import "./plush.css";
 import { LanguageProvider } from '@/components/language-provider';
 import './language.css';
 export const metadata: Metadata = {

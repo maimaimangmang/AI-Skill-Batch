@@ -8,13 +8,14 @@ import { skillPath, appPath } from '@/lib/skill-links';
 import { money, cellText } from '@/lib/domain';
 import type { PublicSkill } from '@/lib/public-skills';
 import type { Schema } from '@/lib/types';
+import { PlushHero } from './plush-hero';
 import { HomeShowcase, useHomeMotion, type HomeSkill } from './home-showcase';
 import type { WorkflowExample } from '@/lib/workflow-examples';
 
 type CardSkill = Pick<PublicSkill, 'id' | 'displayName' | 'description' | 'creator' | 'officialTemplateId' | 'taskFixedFeeT' | 'currency'>;
-export function PublicShell({ children, catalog = false }: { children: React.ReactNode; catalog?: boolean }) {
+export function PublicShell({ children, catalog = false, home = false }: { children: React.ReactNode; catalog?: boolean; home?: boolean }) {
   const { t } = useI18n();
-  return <div className="public-site"><header className="public-header"><Link className="public-brand" href="/"><img src="/loomdesk-mark.svg" alt="" />LoomSkill</Link><nav aria-label={t('网站导航')}>{!catalog && <Link href="/skills">{t('探索 Skill')}</Link>}<a href="https://www.shengsuanyun.com/zh/loomloom" target="_blank" rel="noopener noreferrer">{t('上传 Skill')}<ArrowUpRight size={14} /></a><Link className="public-login" href="/app">{t('进入工作台')}<ArrowUpRight size={15} /></Link><LanguageSwitcher /></nav></header>{children}<footer className="public-footer"><Link className="public-brand" href="/">LoomSkill</Link><p>{t('AI批量生成，从一张表开始。')}</p><div><Link href="/skills">{t('探索 Skill')}</Link><Link href="/login">{t('登录')}</Link><a href="https://www.shengsuanyun.com/?from=Zoey" target="_blank" rel="noopener noreferrer">{t('胜算云')} ↗</a></div></footer></div>;
+  return <div className={`public-site${home ? ' public-plush-site' : ''}`}><header className="public-header"><Link className="public-brand" href="/"><img src="/loomdesk-mark.svg" alt="" />LoomSkill</Link><nav aria-label={t('网站导航')}>{!catalog && <Link href="/skills">{t('探索 Skill')}</Link>}<a href="https://www.shengsuanyun.com/zh/loomloom" target="_blank" rel="noopener noreferrer">{t('上传 Skill')}<ArrowUpRight size={14} /></a><Link className="public-login" href="/app">{t('进入工作台')}<ArrowUpRight size={15} /></Link><LanguageSwitcher /></nav></header>{children}<footer className="public-footer"><Link className="public-brand" href="/">LoomSkill</Link><p>{t('AI批量生成，从一张表开始。')}</p><div><Link href="/skills">{t('探索 Skill')}</Link><Link href="/login">{t('登录')}</Link><a href="https://www.shengsuanyun.com/?from=Zoey" target="_blank" rel="noopener noreferrer">{t('胜算云')} ↗</a></div></footer></div>;
 }
 export function SkillCards({ skills }: { skills: CardSkill[] }) {
   const { t } = useI18n();
@@ -23,7 +24,7 @@ export function SkillCards({ skills }: { skills: CardSkill[] }) {
 export function PublicHome({ skills, discovery, total }: { skills: HomeSkill[]; discovery: HomeSkill[]; total: number }) {
   const { t } = useI18n();
   const motionRef = useHomeMotion();
-  return <PublicShell><main className="public-home" ref={motionRef}><section className="public-hero" data-home-motion><div className="public-hero-copy"><span className="public-eyebrow">AI BATCH STUDIO</span><h1>{t('AI批量生成，')}<br /><em>{t('从一张表开始')}</em></h1><p>{t('主图、详情图、营销文案。找到合适的 Skill，填好一张表，把重复工作交给 AI。')}</p><div className="public-actions"><Link className="public-button primary" href="/skills">{t('探索 Skill')}<ArrowRight size={18} /></Link><Link className="public-button" href="/app?demo=1">{t('先体验演示')}</Link></div><div className="public-benefits"><span><Check size={15} />{t('免登录浏览')}</span><span><Check size={15} />{t('执行前确认费用')}</span><span><Check size={15} />{t('结果统一下载')}</span></div></div><div className="public-hero-preview" data-home-motion><div className="preview-label"><span /><span>{t('电商图复刻 · 作者真实试跑')}</span></div><div className="preview-result"><Image src="/examples/ecommerce-image-remix/result.png" width={1024} height={1024} alt={t('AI 生成案例：暖光床头场景中的陶瓷杯')} priority /></div><div className="preview-inputs"><Image src="/examples/ecommerce-image-remix/reference.png" width={120} height={120} alt={t('参考图')} /><span>+</span><Image src="/examples/ecommerce-image-remix/product.jpeg" width={120} height={120} alt={t('产品原图')} /><ArrowRight size={18} /><p>{t('参考风格 + 你的产品')}<small>{t('一行输入，一张商品图')}</small></p></div></div></section><HomeShowcase skills={skills} discovery={discovery} total={total} /><section className="public-section public-how" id="how-it-works"><span className="public-eyebrow">HOW IT WORKS</span><h2>{t('三步，完成一批任务')}</h2><div className="public-steps">{[
+  return <PublicShell home><main className="public-home" ref={motionRef}><PlushHero /><HomeShowcase skills={skills} discovery={discovery} total={total} /><section className="public-section public-how" id="how-it-works"><span className="public-eyebrow">HOW IT WORKS</span><h2>{t('三步，完成一批任务')}</h2><div className="public-steps">{[
     { Icon: Search, title: '选择 Skill', text: '浏览用途、输入说明和公开示例，找到适合当前任务的工作流。' },
     { Icon: Table2, title: '填写任务表', text: '连接胜算云 API Key，直接填表或导入 Excel / CSV，每行对应一项任务。' },
     { Icon: Sparkles, title: '确认费用，批量生成', text: '检查预估金额后执行，在我的任务中查看进度、结果和下载文件。' },
