@@ -1,4 +1,5 @@
 import english from './translations/en.json';
+import skillCardEnglish from './translations/skill-cards.en.json';
 
 export type Locale = 'zh-CN' | 'en';
 export const languagePreference = (value: string | null): Locale => value === 'en' ? 'en' : 'zh-CN';
@@ -25,4 +26,11 @@ export function translate(locale: Locale, source: string, ...values: unknown[]):
     }
   }
   return format(source, values);
+}
+
+// Reviewed public card copy only. Exact source matching avoids showing a stale
+// translation when an author updates a listing, and never changes task content.
+export function translateSkillCardText(locale: Locale, source: string): string {
+  const cards: Record<string, string> = skillCardEnglish;
+  return locale === 'en' && Object.hasOwn(cards, source) ? cards[source] : source;
 }

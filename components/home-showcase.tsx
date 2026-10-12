@@ -6,6 +6,7 @@ import { ArrowRight, ArrowUpRight, FileText, ImageIcon, Layers } from 'lucide-re
 import { useI18n } from './language-provider';
 import { skillPath } from '@/lib/skill-links';
 import { money } from '@/lib/domain';
+import { translateSkillCardText } from '@/lib/i18n';
 import { skillStreamOffset } from '@/lib/home-scroll';
 import type { PublicSkill } from '@/lib/public-skills';
 
@@ -112,7 +113,8 @@ function SkillIcon({ skill }: { skill: HomeSkill }) {
 }
 
 export function HomeShowcase({ skills, discovery, total }: { skills: HomeSkill[]; discovery: HomeSkill[]; total: number }) {
-  const { t } = useI18n();
+  const { locale, t } = useI18n();
+  const cardText = (source: string) => translateSkillCardText(locale, source);
   const streamRef = useSkillScroll();
   const columns = [discovery.filter((_, i) => i % 2 === 0), discovery.filter((_, i) => i % 2 === 1)].filter(column => column.length);
   return <section className="public-section home-showcase">
@@ -124,8 +126,8 @@ export function HomeShowcase({ skills, discovery, total }: { skills: HomeSkill[]
       <div className="home-curated">
         <div className="home-curated-list">{skills.map((skill, index) => <article className="home-featured-card" data-home-motion key={skill.id}>
           <span className="home-skill-icon"><SkillIcon skill={skill} /></span>
-          <div className="home-featured-content"><h3><Link href={skillPath(skill.id)} prefetch={false}>{skill.displayName}</Link></h3><p>{skill.description}</p>
-            <div className="home-featured-footer"><span>{skill.officialTemplateId ? t('按模型用量计费') : skill.taskFixedFeeT === 0 ? t('无创作者调用费') : skill.taskFixedFeeT != null ? `${money(skill.taskFixedFeeT, skill.currency)} ${t('/ 次 · 模型费另计')}` : t('执行前查看预估费用')}</span><Link href={skillPath(skill.id)} prefetch={false} aria-label={t('查看详情：{0}', skill.displayName)}>{t('探索')}<ArrowUpRight size={14} /></Link></div>
+          <div className="home-featured-content"><h3><Link href={skillPath(skill.id)} prefetch={false}>{cardText(skill.displayName)}</Link></h3><p>{cardText(skill.description)}</p>
+            <div className="home-featured-footer"><span>{skill.officialTemplateId ? t('按模型用量计费') : skill.taskFixedFeeT === 0 ? t('无创作者调用费') : skill.taskFixedFeeT != null ? `${money(skill.taskFixedFeeT, skill.currency)} ${t('/ 次 · 模型费另计')}` : t('执行前查看预估费用')}</span><Link href={skillPath(skill.id)} prefetch={false} aria-label={t('查看详情：{0}', cardText(skill.displayName))}>{t('探索')}<ArrowUpRight size={14} /></Link></div>
           </div><span className="home-featured-number" aria-hidden="true">0{index + 1}</span>
         </article>)}</div>
       </div>
@@ -134,7 +136,7 @@ export function HomeShowcase({ skills, discovery, total }: { skills: HomeSkill[]
           {columns.map((column, index) => <div className="home-stream-column" key={index}><div className="home-stream-track">
             {[0, 1].map(copy => <div className="home-stream-group" key={copy} aria-hidden={copy === 1 ? true : undefined}>
               {column.map(skill => <Link className="home-stream-card" key={skill.id} href={skillPath(skill.id)} prefetch={false} tabIndex={copy ? -1 : undefined}>
-                <h3>{skill.displayName}</h3><p>{skill.description || t('查看输入要求，开始你的下一批创作。')}</p>
+                <h3>{cardText(skill.displayName)}</h3><p>{cardText(skill.description) || t('查看输入要求，开始你的下一批创作。')}</p>
               </Link>)}
             </div>)}
           </div></div>)}

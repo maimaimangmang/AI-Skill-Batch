@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { languagePreference, sourceMessage, translate } from '../lib/i18n';
+import { languagePreference, sourceMessage, translate, translateSkillCardText } from '../lib/i18n';
 import english from '../lib/translations/en.json';
 
 test('language defaults to Chinese, including missing or invalid saved preferences', () => {
@@ -24,4 +24,15 @@ test('stored validation errors translate at render time without changing their s
 test('all translated templates preserve their interpolation parameters', () => {
   const parameters = (text: string) => [...new Set(text.match(/\{\d+\}/g) || [])].sort();
   for (const [source, translated] of Object.entries(english)) assert.deepEqual(parameters(translated), parameters(source), source);
+});
+
+test('reviewed card translations switch language without changing task or updated creator content', () => {
+  const source = '根据提示词批量生成高质量图片，适合插画、概念图、场景图和通用视觉素材生成。';
+  assert.equal(translateSkillCardText('en', '电商爆款图复刻'), 'Product Image Style Remix');
+  assert.match(translateSkillCardText('en', source), /^Generate high-quality images/);
+  assert.equal(translateSkillCardText('zh-CN', source), source);
+  assert.equal(translateSkillCardText('en', source + '新版说明。'), source + '新版说明。');
+  assert.equal(translateSkillCardText('en', ''), '');
+  assert.equal(translateSkillCardText('en', 'toString'), 'toString');
+  assert.equal(translate('en', source), source);
 });
