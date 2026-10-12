@@ -592,5 +592,18 @@
   "选择你的搭档": "Choose your companion",
   "从一个想法，到一张真实作品。": "From an idea to something real.",
   "查看电商图复刻案例": "View the product image remix example",
-  "查看案例": "View example"
+  "查看案例": "View example",
+  "连接后预估费用": "Connect to estimate the cost",
+  "已填写的任务和附件会保留。连接后继续预估费用，确认金额后才会执行。": "Your tasks and attachments will be kept. After connecting, review the estimated cost before confirming execution.",
+  "继续填写": "Keep editing",
+  "连接并继续": "Connect and continue",
+  "执行前连接": "Connect before running",
+  "访客草稿": "Guest draft",
+  "先填写，后连接": "Fill in first, connect later",
+  "可以先填写任务、导入表格和选择附件，预估费用时再连接。草稿仅保留在当前页面，关闭或刷新页面会清除。": "Fill in tasks, import a spreadsheet, and select attachments before connecting to estimate the cost. This draft stays on this page only and is cleared if you close or refresh it.",
+  "已选择，连接后上传": "Selected; upload after connecting",
+  "选择{0}": "Select {0}",
+  "继续选择{0}": "Select more {0}",
+  "待上传附件合计不能超过 100 MB。": "Pending attachments cannot exceed 100 MB in total.",
+  "本地附件已失效，请重新选择文件。": "The local attachment is no longer available. Please select the file again."
 }

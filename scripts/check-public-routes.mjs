@@ -25,8 +25,13 @@ try {
     assert.equal(home.status, 200, `Public home must not redirect: ${home.status} ${home.headers.get('location')}`);
     assert.match(await home.text(), /AI批量生成/);
     const app = await read('/app?skill=text-image-v1');
-    assert.equal(app.status, 307);
-    assert.equal(app.headers.get('location'), '/login?skill=text-image-v1');
+    assert.equal(app.status, 200);
+    assert.match(await app.text(), /text-image-v1/);
+    const privateApp = await read('/app');
+    assert.equal(privateApp.status, 307);
+    assert.equal(privateApp.headers.get('location'), '/login');
+    const quote = await read('/api/balance');
+    assert.equal(quote.status, 401);
   }
   const detail = await read('/skills/text-to-image');
   assert.equal(detail.status, 200);

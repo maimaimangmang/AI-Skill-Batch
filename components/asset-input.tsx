@@ -12,13 +12,13 @@ export type AssetUploadStatus = {
   percent: number | null;
 };
 type Props = {
-  field: Field; value: unknown; rowNumber: number; disabled: boolean;
+  localDraft?: boolean; field: Field; value: unknown; rowNumber: number; disabled: boolean;
   previews: Record<string, AssetPreview>;
   upload?: AssetUploadStatus; onCancelUpload?: () => void;
   onChange: (value: unknown) => void; onUpload: (file?: File) => void;
   onPaste: (event: React.ClipboardEvent) => void;
 };
-export default function AssetInput({ field, value, rowNumber, disabled, previews, upload, onCancelUpload, onChange, onUpload, onPaste }: Props) {
+export default function AssetInput({ localDraft = false, field, value, rowNumber, disabled, previews, upload, onCancelUpload, onChange, onUpload, onPaste }: Props) {
   const { t } = useI18n();
   const input = useRef<HTMLInputElement>(null);
   const [linkOpen, setLinkOpen] = useState(false);
@@ -32,7 +32,7 @@ export default function AssetInput({ field, value, rowNumber, disabled, previews
     tick(); const timer = setInterval(tick, 1000);
     return () => clearInterval(timer);
   }, [active, upload?.startedAt]);
-  const status = upload?.phase === 'preparing' ? t("正在读取文件") : upload?.phase === 'processing' ? t("正在保存图片 / 附件") : upload?.phase === 'succeeded' ? t("上传完成") : upload?.phase === 'failed' ? t("上传未完成，请重试") : t("正在上传");
+  const status = upload?.phase === 'preparing' ? t("正在读取文件") : upload?.phase === 'processing' ? t("正在保存图片 / 附件") : upload?.phase === 'succeeded' ? (localDraft ? t("已选择，连接后上传") : t("上传完成")) : upload?.phase === 'failed' ? t("上传未完成，请重试") : t("正在上传");
   const values = assetValues(value);
   const multiple = field.value_type.endsWith('[]');
   const image = field.accepted_mime_types?.length
@@ -52,7 +52,7 @@ export default function AssetInput({ field, value, rowNumber, disabled, previews
       </div>;
     })}</div>}
     <button type="button" className={`asset-upload${values.length ? ' has-value' : ''}`} disabled={disabled || full} onClick={() => input.current?.click()}>
-      {active ? <LoaderCircle className="spin" size={18} /> : image ? <ImagePlus size={18} /> : <Upload size={18} />}<span>{active ? status.replace(t("图片 / 附件"), noun) : values.length ? (multiple ? t("继续上传{0}", noun) : t("替换{0}", noun)) : t("上传{0}", noun)}</span>
+      {active ? <LoaderCircle className="spin" size={18} /> : image ? <ImagePlus size={18} /> : <Upload size={18} />}<span>{active ? status.replace(t("图片 / 附件"), noun) : values.length ? (multiple ? (localDraft ? t("继续选择{0}", noun) : t("继续上传{0}", noun)) : t("替换{0}", noun)) : (localDraft ? t("选择{0}", noun) : t("上传{0}", noun))}</span>
       {!values.length && !active && <small>{t("单个文件不超过 10 MB")}</small>}
     </button>
     {upload && <div className={`asset-transfer ${upload.phase}`} aria-busy={active}>
