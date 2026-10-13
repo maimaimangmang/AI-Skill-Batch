@@ -1,4 +1,8 @@
 {
+  "连接后可查看余额，并管理你的任务与收藏。": "Connect to view your balance and manage your tasks and favorites.",
+  "重新读取余额": "Refresh balance",
+  "更换 API Key": "Change API Key",
+  "账户": "Account",
   "安装提示词已复制": "Install prompt copied",
   "复制安装提示词": "Copy install prompt",
   "演示 Skill 不支持安装": "Demo Skills cannot be installed",

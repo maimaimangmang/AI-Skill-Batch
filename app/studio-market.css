@@ -313,6 +313,6 @@
 /* Task headings occupy the top row; mobile menu and language controls share it. */
 .studio-runs .main-shell { padding-top:0; }
 @media(min-width:761px) {
-  .studio-runs .main-shell:has(>.demo-banner,>.main-content>.error,>.main-content>.notice) { padding-top:58px; }
+  .studio-runs:not(.studio-top-nav) .main-shell:has(>.demo-banner,>.main-content>.error,>.main-content>.notice) { padding-top:58px; }
 }
 @media(max-width:760px) { .studio-runs .mobile-navigation { padding-right:110px; } }

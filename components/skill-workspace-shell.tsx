@@ -1,40 +1,32 @@
 'use client';
 
-import { ArrowLeft, ArrowUpRight, CircleHelp, KeyRound, LoaderCircle } from 'lucide-react';
+import { ArrowLeft, ArrowUpRight, CircleHelp } from 'lucide-react';
 import { LanguageSwitcher, useI18n } from './language-provider';
 import SidebarCommunity from './sidebar-community';
+import AccountMenu from './account-menu';
 
-type SkillWorkspaceHeaderProps = {
-  connected: boolean;
-  ready: boolean;
-  busy: boolean;
-  onConnect: () => void;
-  onBack: () => void;
-};
+type NavigationProps = React.ComponentProps<typeof AccountMenu> & { activePage?: 'skills' | 'favorites' | 'tasks' };
 
-export function SkillWorkspaceHeader({ connected, ready, busy, onConnect, onBack }: SkillWorkspaceHeaderProps) {
+export function WorkspaceNavigation({ activePage, ...account }: NavigationProps) {
   const { t } = useI18n();
+  return <nav className="skill-workspace-nav" aria-label={t('网站导航')}>
+    <a href="/skills" aria-current={activePage === 'skills' ? 'page' : undefined}>{t('探索 Skill')}</a>
+    <a href="/favorites" aria-current={activePage === 'favorites' ? 'page' : undefined}>{t('我的收藏')}</a>
+    <a href="/tasks" aria-current={activePage === 'tasks' ? 'page' : undefined}>{t('我的任务')}</a>
+    <LanguageSwitcher />
+    <AccountMenu {...account} />
+  </nav>;
+}
 
-  return <header className="skill-workspace-header">
-    <div className="skill-workspace-header-inner">
-      <div className="skill-workspace-location">
-        <a className="skill-workspace-brand" href="/"><img src="/loomdesk-mark.svg" alt="" />LoomSkill</a>
-        <button type="button" className="skill-workspace-back" disabled={busy} onClick={onBack}>
-          <ArrowLeft size={15} aria-hidden="true" />{t('返回 Skill 列表')}
-        </button>
-      </div>
-      <nav className="skill-workspace-nav" aria-label={t('网站导航')}>
-        <a href="/favorites">{t('我的收藏')}</a>
-        <a href="/tasks">{t('我的任务')}</a>
-        <LanguageSwitcher />
-        {connected ? <a className="skill-workspace-connection is-connected" href="/settings">
-          <span className="skill-workspace-connection-dot" aria-hidden="true" />{t('API Key 已连接')}
-        </a> : <button type="button" className="skill-workspace-connection" disabled={!ready || busy} aria-busy={!ready} onClick={onConnect}>
-          {ready ? <KeyRound size={14} aria-hidden="true" /> : <LoaderCircle className="spin" size={14} aria-hidden="true" />}{t('连接 API Key')}
-        </button>}
-      </nav>
+export function SkillWorkspaceHeader({ onBack, ...navigation }: NavigationProps & { onBack?: () => void }) {
+  const { t } = useI18n();
+  return <header className="skill-workspace-header"><div className="skill-workspace-header-inner">
+    <div className="skill-workspace-location">
+      <a className="skill-workspace-brand" href="/"><img src="/loomdesk-mark.svg" alt="" />LoomSkill</a>
+      {onBack && <button type="button" className="skill-workspace-back" disabled={navigation.busy} onClick={onBack}><ArrowLeft size={15} aria-hidden="true" />{t('返回 Skill 列表')}</button>}
     </div>
-  </header>;
+    <WorkspaceNavigation {...navigation} />
+  </div></header>;
 }
 
 export function SkillWorkspaceFooter() {

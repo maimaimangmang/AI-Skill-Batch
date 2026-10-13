@@ -1,19 +1,19 @@
 /* The canonical Skill editor has a full-width shell and shared page gutters. */
-.studio-skill-page .main-shell {
+.studio-top-nav .main-shell {
   margin-left: 0;
   padding-top: 0;
 }
 
-.studio-skill-page .main-content,
-.studio-skill-page .skill-workspace-header-inner,
-.studio-skill-page .skill-workspace-footer-inner {
+.studio-top-nav .main-content,
+.studio-top-nav .skill-workspace-header-inner,
+.studio-top-nav .skill-workspace-footer-inner {
   width: 100%;
   max-width: 1500px;
   margin-inline: auto;
   padding-inline: 32px;
 }
 
-.studio-skill-page .main-content { padding-top: 28px; }
+.studio-top-nav .main-content { padding-top: 28px; }
 
 .skill-workspace-header {
   flex-shrink: 0;
@@ -133,9 +133,9 @@
 .studio-skill-page .skill-execution-balance a:hover { color: var(--blue-dark); text-decoration: underline; }
 
 @media (max-width: 1150px) {
-  .studio-skill-page .main-content,
-  .studio-skill-page .skill-workspace-header-inner,
-  .studio-skill-page .skill-workspace-footer-inner { padding-inline: 26px; }
+  .studio-top-nav .main-content,
+  .studio-top-nav .skill-workspace-header-inner,
+  .studio-top-nav .skill-workspace-footer-inner { padding-inline: 26px; }
   .skill-workspace-header-inner { gap: 12px 20px; }
   .skill-workspace-location { gap: 18px; }
   .skill-workspace-nav { column-gap: 18px; }
@@ -143,10 +143,10 @@
 }
 
 @media (max-width: 760px) {
-  .studio-skill-page .main-content,
-  .studio-skill-page .skill-workspace-header-inner,
-  .studio-skill-page .skill-workspace-footer-inner { padding-inline: 18px; }
-  .studio-skill-page .main-content { padding-top: 24px; }
+  .studio-top-nav .main-content,
+  .studio-top-nav .skill-workspace-header-inner,
+  .studio-top-nav .skill-workspace-footer-inner { padding-inline: 18px; }
+  .studio-top-nav .main-content { padding-top: 24px; }
   .skill-workspace-header-inner { align-items: flex-start; padding-block: 13px; gap: 10px; }
   .skill-workspace-location { justify-content: space-between; width: 100%; gap: 8px 14px; }
   .skill-workspace-brand { font-size: 21px; }

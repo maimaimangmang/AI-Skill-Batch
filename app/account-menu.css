@@ -1,0 +1,59 @@
+/* Shared account disclosure, kept separate from navigation links and page content. */
+.account-menu { position:relative; flex-shrink:0; margin-left:auto; }
+.account-trigger { display:inline-flex; align-items:center; justify-content:center; gap:7px; min-height:38px; padding:8px 12px; border:1px solid #e3e6f3; border-radius:10px; background:#fff; color:#526183; font-size:13px; line-height:1.4; white-space:nowrap; }
+.account-trigger:hover:not(:disabled),.account-trigger.is-open { color:#5433ff; background:#f3f0ff; border-color:#daceff; }
+.account-trigger:focus-visible { outline:2px solid #927aff; outline-offset:3px; }
+.account-panel { position:absolute; z-index:60; right:0; top:calc(100% + 12px); width:min(318px,calc(100vw - 36px)); padding:20px; border:1px solid #e5e8f3; border-radius:16px; background:#fff; box-shadow:0 16px 48px #27325b24; color:#2b365e; font-size:13px; line-height:1.6; text-align:left; outline:none; }
+.account-panel-heading { display:flex; align-items:center; justify-content:space-between; gap:12px; }
+.account-panel-heading>strong { font-size:15px; }
+.account-panel-heading>span { display:inline-flex; align-items:center; gap:5px; color:#8090a8; font-size:11px; }
+.account-panel-heading i { width:6px; height:6px; border-radius:50%; background:#3aa78c; }
+.account-panel-balance { padding:22px 0 18px; }
+.account-panel-balance>span { display:block; color:#7b89a3; font-size:12px; }
+.account-panel-balance>strong { display:block; margin:5px 0; color:#2b3674; font-size:30px; font-weight:700; letter-spacing:-.8px; font-variant-numeric:tabular-nums; overflow-wrap:anywhere; }
+.account-panel-balance>small { color:#909bb0; font-size:11px; }
+.account-panel-balance>small a { display:inline; margin:0 3px; color:#6546e8; }
+.account-settings { padding:12px 0; border-top:1px solid #eef0f7; }
+.account-settings summary { cursor:pointer; font-weight:600; }
+.account-settings dl { margin:12px 0; }
+.account-settings dl>div { display:flex; justify-content:space-between; gap:12px; margin:8px 0; font-size:12px; }
+.account-settings dt { color:#8190a8; }
+.account-settings dd { margin:0; text-align:right; }
+.account-settings>p { color:#8a96ad; font-size:11px; line-height:1.8; margin:12px 0 0; }
+.account-panel-actions { border-top:1px solid #eef0f7; padding-top:8px; display:grid; gap:4px; }
+.account-panel-actions>button,.account-panel-error>button { display:flex; align-items:center; gap:9px; padding:9px 8px; border-radius:7px; font-size:12px; text-align:left; color:#5c6a86; }
+.account-panel-actions>button:hover:not(:disabled),.account-panel-error>button:hover { background:#f4f2ff; color:#6546e8; }
+.account-panel-error { color:#b64655; font-size:12px; overflow-wrap:anywhere; }
+.account-panel-error p { margin:0; }
+.skill-workspace-nav>a[aria-current="page"] { color:#6546e8; font-weight:700; text-decoration:underline; text-underline-offset:8px; text-decoration-thickness:2px; }
+.public-header nav.skill-workspace-nav { gap:20px; flex-wrap:wrap; }
+.public-header .account-trigger { font-size:13px; }
+.public-header .account-panel { line-height:1.6; }
+/* The public catalog and workspace use the same horizontal content gutters. */
+.studio-top-nav.studio-runs .main-shell { padding-top:0; }
+@media(max-width:900px) {
+ .public-header { flex-wrap:wrap; gap:12px 24px; }
+ .public-header nav.skill-workspace-nav { margin-left:auto; gap:12px 18px; }
+}
+@media(max-width:760px) {
+ .public-header nav.skill-workspace-nav { width:100%; justify-content:space-between; gap:8px 12px; font-size:12px; }
+ .public-header nav.skill-workspace-nav .language-switcher { margin-left:0; }
+ .public-header .account-trigger,.skill-workspace-nav .account-trigger { font-size:12px; padding:7px 9px; }
+ .skill-workspace-nav { column-gap:12px; }
+ .account-panel { padding:18px; }
+}
+@media(max-width:420px) {
+ .public-header nav.skill-workspace-nav,.skill-workspace-nav { column-gap:8px; }
+ .account-trigger { gap:4px; }
+ .account-trigger>svg { width:14px; }
+}
+.account-panel { max-height:calc(100dvh - 110px); overflow-y:auto; }
+@media(max-width:760px) {
+ .skill-workspace-header-inner,.public-header { position:relative; }
+ .skill-workspace-location { padding-right:132px; }
+ .skill-workspace-location .skill-workspace-back { display:none; }
+ .skill-workspace-nav>.account-menu { position:absolute; top:13px; right:18px; margin-left:0; }
+ .public-header nav.skill-workspace-nav>.account-menu { top:20px; right:22px; }
+ .public-header>.public-brand { padding-right:132px; }
+ .account-panel { max-height:calc(100dvh - 82px); }
+}

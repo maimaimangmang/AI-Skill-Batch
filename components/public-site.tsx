@@ -2,11 +2,12 @@
 import Link from 'next/link';
 import FavoriteButton from './favorite-button';
 import Image from 'next/image';
-import { ArrowRight, ArrowUpRight, Check, Copy, Layers, Search, Table2, Sparkles, LoaderCircle } from 'lucide-react';
+import { ArrowRight, ArrowUpRight, Check, Copy, Layers, Search, Table2, Sparkles } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
 import PublicConnectionDialog from './public-connection-dialog';
+import { WorkspaceNavigation } from './skill-workspace-shell';
 import { request } from '@/lib/client';
-import { useI18n, LanguageSwitcher } from './language-provider';
+import { useI18n } from './language-provider';
 import { skillPath, appPath, tasksPath, workspaceDestination } from '@/lib/skill-links';
 import { money, cellText } from '@/lib/domain';
 import type { PublicSkill } from '@/lib/public-skills';
@@ -50,7 +51,7 @@ export function PublicShell({ children, catalog = false, activePage }: { childre
       if (sessionCheck.current === controller) { sessionCheck.current = null; setChecking(false); }
     }
   }
-  return <div className="public-site"><header className="public-header"><Link className="public-brand" href="/"><img src="/loomdesk-mark.svg" alt="" />LoomSkill</Link><nav aria-label={t('网站导航')}><Link href="/favorites" aria-current={activePage === 'favorites' ? 'page' : undefined}>{t('我的收藏')}</Link>{!catalog && <Link href="/skills">{t('探索 Skill')}</Link>}<a href="https://www.shengsuanyun.com/zh/loomloom/?from=Zoey" target="_blank" rel="noopener noreferrer">{t('上传 Skill')}<ArrowUpRight size={14} /></a><button type="button" className="public-login public-nav-button" disabled={checking} aria-busy={checking} onClick={enterWorkspace}>{t('我的任务')}{checking ? <LoaderCircle className="spin" size={15} /> : <ArrowUpRight size={15} />}</button><LanguageSwitcher /></nav></header>{children}<footer className="public-footer"><Link className="public-brand" href="/">LoomSkill</Link><p>{t('AI批量生成，从一张表开始')}</p><div role="navigation" aria-label={t('网站导航')}><Link href="/favorites" aria-current={activePage === 'favorites' ? 'page' : undefined}>{t('我的收藏')}</Link><Link href="/skills" aria-current={catalog ? 'page' : undefined}>{t('探索 Skill')}</Link><a href="https://www.shengsuanyun.com/zh/loomloom/?from=Zoey" target="_blank" rel="noopener noreferrer">{t('上传 Skill')}<ArrowUpRight size={14} /></a><button type="button" className="public-nav-button" disabled={checking} aria-busy={checking} onClick={enterWorkspace}>{t('我的任务')}</button></div></footer>{connectionOpen && <PublicConnectionDialog destination={connectionDestination} onClose={() => { setConnectionOpen(false); setConnectionDestination(tasksPath()); }} />}</div>;
+  return <div className="public-site"><header className="public-header"><Link className="public-brand" href="/"><img src="/loomdesk-mark.svg" alt="" />LoomSkill</Link><WorkspaceNavigation activePage={catalog ? 'skills' : activePage} /></header>{children}<footer className="public-footer"><Link className="public-brand" href="/">LoomSkill</Link><p>{t('AI批量生成，从一张表开始')}</p><div role="navigation" aria-label={t('网站导航')}><Link href="/favorites" aria-current={activePage === 'favorites' ? 'page' : undefined}>{t('我的收藏')}</Link><Link href="/skills" aria-current={catalog ? 'page' : undefined}>{t('探索 Skill')}</Link><a href="https://www.shengsuanyun.com/zh/loomloom/?from=Zoey" target="_blank" rel="noopener noreferrer">{t('上传 Skill')}<ArrowUpRight size={14} /></a><button type="button" className="public-nav-button" disabled={checking} aria-busy={checking} onClick={enterWorkspace}>{t('我的任务')}</button></div></footer>{connectionOpen && <PublicConnectionDialog destination={connectionDestination} onClose={() => { setConnectionOpen(false); setConnectionDestination(tasksPath()); }} />}</div>;
 }
 export function SkillCards({ skills }: { skills: CardSkill[] }) {
   const { t, skillText } = useI18n();
