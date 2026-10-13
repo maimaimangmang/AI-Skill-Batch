@@ -1,20 +1,8 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { requestedSkill, appPath, loginPath, connectionPath, requestedRunId, tasksPath, workspaceDestination, taskConnectionPath, skillId, skillPath, hiddenSkillIds } from '../lib/skill-links';
+import { requestedRunId, tasksPath, workspaceDestination, taskConnectionPath, skillId, skillPath, hiddenSkillIds } from '../lib/skill-links';
 import { isPublicSkill, publicFields } from '../lib/public-skills';
 import { jsonLd } from '../lib/seo';
-test('Skill handoff carries only identifiers, never a redirect URL', () => {
-  for (const value of ['https://evil.test', '//evil.test', '../login', 'abc&demo=1', ['abc'], '', ...hiddenSkillIds]) assert.equal(requestedSkill(value), undefined);
-  assert.equal(appPath(), '/tasks');
-  assert.equal(appPath('text-image-v1'), '/skills/text-to-image');
-  assert.equal(appPath('another-public-skill'), '/skills/another-public-skill');
-  assert.equal(loginPath('text-image-v1'), '/login?skill=text-image-v1');
-  assert.equal(appPath(undefined, true), '/app?demo=1');
-  assert.equal(appPath('demo-copy', true), '/app?demo=1&skill=demo-copy');
-  assert.equal(appPath('//evil.test'), '/tasks');
-  assert.equal(appPath('//evil.test', true), '/app?demo=1');
-  assert.equal(loginPath('//evil.test'), '/login');
-});
 test('Stable canonical detail links support aliases and arbitrary published IDs', () => {
   for (const id of ['text-image-v1', 'text-v1', '01a0ccea-2449-7796-ba40-bfcded89b97d', 'another-public-skill']) assert.equal(skillId(skillPath(id).split('/').at(-1)!), id);
 });
@@ -49,14 +37,6 @@ test('Public reads are anonymous and do not confuse outage with missing Skill', 
     await assert.rejects(getPublicSkill('outage'), /暂时不可用/);
     assert.equal(await getPublicSkill([...hiddenSkillIds][0]), null);
   } finally { globalThis.fetch = native; }
-});
-
-test('connection entry preserves only validated Skill destinations', () => {
-  assert.equal(connectionPath(), '/?connect=1');
-  assert.equal(connectionPath('text-image-v1'), '/skills/text-to-image');
-  for (const value of ['https://evil.test', '//evil.test', 'abc&connect=1', ...hiddenSkillIds]) {
-    assert.equal(connectionPath(value), '/?connect=1');
-  }
 });
 
 test('task links accept opaque API identifiers without accepting paths or query strings', () => {

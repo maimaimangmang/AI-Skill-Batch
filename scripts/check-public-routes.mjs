@@ -24,19 +24,10 @@ try {
     const home = await read('/');
     assert.equal(home.status, 200, `Public home must not redirect: ${home.status} ${home.headers.get('location')}`);
     assert.match(await home.text(), /AI批量生成/);
-    const app = await read('/app?skill=text-image-v1');
-    assert.equal(app.status, 308);
-    assert.equal(app.headers.get('location'), '/skills/text-to-image');
-    const privateApp = await read('/app');
-    assert.equal(privateApp.status, 308);
-    assert.equal(privateApp.headers.get('location'), '/tasks');
     const quote = await read('/api/balance');
     assert.equal(quote.status, 401);
   }
   for (const [path, destination] of [
-    ['/login', '/?connect=1'],
-    ['/login?skill=text-image-v1', '/skills/text-to-image'],
-    ['/login?skill=https%3A%2F%2Fevil.test', '/?connect=1'],
     ['/tasks', '/?connect=1'],
     ['/tasks/run_ABC-123', '/?connect=1&next=%2Ftasks%2Frun_ABC-123'],
     ['/settings', '/?connect=1&next=%2Fsettings'],
@@ -65,7 +56,19 @@ try {
   const alias = await read('/skills/text-image-v1');
   assert.equal(alias.status, 308);
   assert.equal(alias.headers.get('location'), '/skills/text-to-image');
-  assert.equal((await read('/app?demo=1')).status, 200);
+  for (const path of ['/app', '/app?skill=text-image-v1', '/app?demo=1', '/login', '/login?skill=text-image-v1']) {
+    const removed = await read(path);
+    assert.equal(removed.status, 404, `Removed entry must return 404: ${path}`);
+    assert.equal(removed.headers.get('location'), null);
+    assert.match(await removed.text(), /name="robots" content="noindex"/);
+  }
+  const oldDemoHome = await read('/?demo=1');
+  assert.equal(oldDemoHome.status, 200);
+  assert.equal(oldDemoHome.headers.get('location'), null);
+  assert.match(await oldDemoHome.text(), /AI批量生成/);
+  const taskDemo = await read('/tasks?demo=1');
+  assert.equal(taskDemo.status, 307);
+  assert.equal(taskDemo.headers.get('location'), '/?connect=1');
   console.log('Container public Skill pages, canonical task routes, protected task APIs, and connection handoffs verified.');
 } finally {
   server.kill('SIGTERM');

@@ -8,7 +8,7 @@
 
 Skill 在服务端黑盒执行。使用者按要求提供输入、收取结果，不需要安装 Skill、搭建内部流程；作者可以提供可调用的能力，保留内部提示词和编排逻辑。
 
-[在线使用](https://loomdesk-production.up.railway.app/) · [先看演示，无需 Key](https://loomdesk-production.up.railway.app/?demo=1) · [上架自己的 Skill](https://www.shengsuanyun.com/zh/loomloom) · [自行部署](docs/SELF-HOSTING.md)
+[在线使用](https://loomskill.com/) · [浏览 Skill，无需 Key](https://loomskill.com/skills) · [上架自己的 Skill](https://www.shengsuanyun.com/zh/loomloom) · [自行部署](docs/SELF-HOSTING.md)
 
 网页里的名字是 **LoomDesk**，是接入胜算云 LoomLoom 的独立开源工作台。批量填写、提交和查看结果在这里完成；自定义 Skill 的上传、定价和上架审核在 LoomLoom 平台完成。运行真实任务需要自己的胜算云 API Key。
 
@@ -46,7 +46,7 @@ Skill 在服务端黑盒执行。使用者按要求提供输入、收取结果�
 
 ## 怎么用
 
-1. 打开网站，输入胜算云 API Key。只想看看界面，可以先进入演示模式。
+1. 打开网站，免登录浏览 Skill 和填写任务表，预估费用时再连接胜算云 API Key。
 2. 在工作流市场选一个 Skill，下载它的模板，或在网页里填任务表。
 3. 点击「校验并预估费用」，核对任务数量和预计费用，再确认执行。
 4. 到「我的任务」看进度和结果。可以按名称、编号、状态或提交时间查找。
@@ -65,7 +65,7 @@ npm run setup
 npm run dev
 ```
 
-打开 [http://localhost:3000](http://localhost:3000)，就可以进入演示或连接自己的 Key。
+打开 [http://localhost:3000](http://localhost:3000)，即可浏览 Skill，或连接自己的 Key 使用任务功能。
 
 `npm run setup` 会生成本地配置，不覆盖已有的 `.env.local`。API Key 在网页里输入，不用写进代码或配置文件。请不要把 `.env.local`、`.data` 和真实任务数据提交到仓库。
 
@@ -73,7 +73,7 @@ npm run dev
 
 ## 使用前了解这几件事
 
-- 演示模式使用示例数据，不调用真实模型，也不产生费用。
+- 浏览 Skill 和填写任务表不会执行任务；连接 Key 并确认预估费用后才提交执行。
 - 开源的是这个工作台。真实任务的 Skill 调用费和模型费用以页面预估及胜算云最终结算为准。
 - Key 加密保存在部署服务器上，会话最长保留 12 小时，退出连接后删除。请在你信任的网站使用 Key，也可以自行部署。
 - 运行端支持公开市场 Skill 和通用文生图、通用文本生成。自定义 Skill 通过侧栏入口前往 LoomLoom 上传、定价和上架；本项目暂不提供站内私有 Skill 编辑器或团队协作。

@@ -4,8 +4,12 @@ Public routes:
 - `/`: public introduction, actual creator trial images, featured Skill links.
 - `/skills`: server-rendered catalog (24 per page); `?page=N` pages have their own canonical. Keyword search (`?q=`) is noindex/follow.
 - `/skills/[slug]`: publicly listed Skills and the two supported official templates, with description, schema, usage steps, existing examples, fee disclosure and share link. Unknown, hidden and delisted records return 404. Known IDs redirect to stable descriptive aliases; other IDs remain stable URLs even if the title changes.
-- `/login`: noindex; accepts only a validated `skill` identifier.
-- `/app`: protected, noindex; opens the selected Skill after authentication. `/app?demo=1` is the demo; old `/?demo=1` links redirect to it.
+- `/batch-image-generation`: image workflow guide, actual creator trial and links to image Skills.
+- `/tasks` and `/tasks/[runId]`: authenticated, noindex; disconnected visitors enter the home connection dialog with a validated return destination.
+- `/favorites`: noindex; personal saved Skills.
+- `/settings`: noindex; connects when needed, then opens account settings from the tasks page.
+
+`/app` and `/login` have been removed and return 404, including their query variants. The old `/?demo=1` query no longer activates a demo or redirects; it renders the normal homepage.
 
 ## Data boundary
 
@@ -13,7 +17,7 @@ Public routes:
 
 ## Search and sharing
 
-Unique titles, descriptions, canonical URLs, Open Graph/Twitter tags, PNG share image and escaped BreadcrumbList JSON-LD are present in initial HTML. `/robots.txt` links to `/sitemap.xml`. The sitemap enumerates all published public Skill URLs plus home/catalog; it excludes private pages, search results and hidden records. No fabricated ratings, reviews or generated-result claims.
+Unique titles, descriptions, canonical URLs, Open Graph/Twitter tags, PNG share image and escaped BreadcrumbList JSON-LD are present in initial HTML. `/robots.txt` links to `/sitemap.xml`. The sitemap enumerates all published public Skill URLs plus home/catalog/batch-image-generation; it excludes private pages, search results and hidden records. No fabricated ratings, reviews or generated-result claims.
 
 Chinese is the indexable source language in this release. The existing language selector translates site interface text; creator titles, descriptions and inputs keep their original language. No English hreflang/duplicate URLs are declared for untranslated creator content. Dedicated English SEO pages require reviewed English main content.
 
@@ -21,4 +25,4 @@ Publishing a sitemap does not submit or verify a Search Console/Bing property an
 
 ## Validation
 
-Unit tests cover safe login handoff, stable canonical mapping, hidden/unpublished filtering, public data allowlist, JSON-LD escaping, anonymous upstream fetches and outage-vs-404 behavior. Production HTTP checks cover public HTML, canonical/share metadata, sitemap, search noindex, invalid-page 404s, alias redirects and auth/demo routes. Browser checks use only a local mock account; no paid tasks are executed.
+Unit tests cover safe task connection destinations, stable canonical mapping, hidden/unpublished filtering, public data allowlist, JSON-LD escaping, anonymous upstream fetches and outage-vs-404 behavior. Production HTTP checks cover public HTML, canonical/share metadata, sitemap, search noindex, invalid-page 404s, alias redirects and authenticated routes and removed-entry 404s. Browser checks use only a local mock account; no paid tasks are executed.

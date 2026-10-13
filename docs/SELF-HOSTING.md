@@ -75,7 +75,7 @@ components/          市场、表格、导入、结果与确认弹窗
 lib/domain.ts        schema、输入校验、金额与状态
 lib/server.ts        加密会话、报价存储、上游请求
 lib/workbook.ts      文件大小、ZIP 边界、表格解析
-lib/demo.ts          独立演示数据与模拟执行
+lib/demo.ts          测试用示例数据与模拟执行（无公开演示入口）
 tests/               接口与表格测试，示例 CSV
 ```
 
