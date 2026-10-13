@@ -309,3 +309,11 @@
 .studio-workspace .editor-navigation .back-button { min-height:36px; margin:0; }
 @media(max-width:1150px) { .editor-navigation { padding-left:26px; } }
 @media(max-width:760px) { .editor-navigation { top:14px; padding-left:18px; padding-right:110px; } }
+
+/* Task headings occupy the top row; refresh sits below the language controls. */
+.studio-runs .main-shell { padding-top:0; }
+.studio-runs .page-heading { align-items:flex-end; }
+@media(min-width:761px) {
+  .studio-runs .main-shell:has(>.demo-banner,>.main-content>.error,>.main-content>.notice) { padding-top:58px; }
+}
+@media(max-width:760px) { .studio-runs .mobile-navigation { padding-right:110px; } }

@@ -86,7 +86,7 @@ export default function RunsView({ active, api, refreshKey, onNew, onResult }: P
   const current = pages[page], runs = current?.items || [];
   const filtered = !!filterQuery;
   return <>
-    <div className="page-heading"><div><div className="eyebrow">MY RUNS</div><h1>{t("我的任务")}<span className="heading-dot">.</span></h1><p>{t("按提交时间从新到旧排列，最新任务在首页。")}</p></div><button className="button" disabled={loading} onClick={() => apply()}><RefreshCw size={16} />{t("刷新任务")}</button></div>
+    <div className="page-heading"><div><div className="eyebrow">MY RUNS</div><h1>{t("我的任务")}</h1><p>{t("按提交时间从新到旧排列，最新任务在首页。")}</p></div><button className="button" disabled={loading} onClick={() => apply()}><RefreshCw size={16} />{t("刷新任务")}</button></div>
     <section className="editor-card runs-panel" id="runs-panel">
       <div className="table-toolbar"><div><ListChecks size={20} /><strong>{t("运行记录")}</strong></div><button className="button small primary" onClick={onNew}><Play size={14} />{t("新建任务")}</button></div>
       <form className="runs-filters" onSubmit={e => { e.preventDefault(); apply(); }}>
