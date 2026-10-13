@@ -15,7 +15,7 @@ import { FavoritesNotice } from '@/components/favorite-button';
 export const metadata: Metadata = {
   metadataBase: new URL("https://loomskill.com"),
   title: "LoomSkill · AI 批处理工作台",
-  description: "LoomSkill 是独立开发的电商 AI 批处理工作台。选择 Skill，填写表格，批量生成商品图片与营销文案，统一查看和下载结果。",
+  description: "LoomSkill 是 AI Skill 批处理平台。在线填表或导入 Excel / CSV，批量生成商品图片、视觉素材与营销文案，执行前确认费用，统一查看和下载结果。",
   icons: { icon: "/loomdesk-mark.svg" }
 };
 export default function RootLayout({ children }: { children: React.ReactNode }) {

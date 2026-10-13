@@ -38,7 +38,7 @@ export function PublicCatalog({ skills, featured, total, page, pages, query }: {
   }
   return <PublicShell catalog><main className="public-catalog studio-market">
     <header className="market-heading">
-      <h1>{t('找到工作流，')}{t('开始批量创作')}</h1>
+      <h1>{t('AI Skill 工作流目录')}</h1>
       <p>{t('选择 Skill → 填写批量任务 → 确认费用 → 下载结果')}</p>
     </header>
     <section className="featured" aria-labelledby="featured-title">
@@ -68,7 +68,7 @@ export function PublicCatalog({ skills, featured, total, page, pages, query }: {
     {refreshError && <p role="alert" className="error">{t('刷新失败，请重试。')}</p>}
     {query && <div className="public-catalog-count"><span>{t('“{0}”的搜索结果', query)} · {total}</span><Link href="/skills">{t('清除搜索')}</Link></div>}
     {skills.length ? <div className="workflow-grid">{skills.map(skill => <article className="workflow-card" key={skill.id}>
-      <div className="card-top"><span className="workflow-icon"><FileText size={20} /></span><div className="card-title"><h2><Link href={skillPath(skill.id)}>{skillText(skill.displayName)}</Link></h2><WorkflowAuthor name={skill.creator?.nickname} /></div><FavoriteButton skill={skill} /></div>
+      <div className="card-top"><span className="workflow-icon"><FileText size={20} /></span><div className="card-title"><h3><Link href={skillPath(skill.id)}>{skillText(skill.displayName)}</Link></h3><WorkflowAuthor name={skill.creator?.nickname} /></div><FavoriteButton skill={skill} /></div>
       <p>{skillText(skill.description)}</p>
       <div className="card-model-tags"><span className={`model-tag${skill.model ? ' disclosed' : ''}`}><Sparkles size={11} />{skillText(skill.model) || t('暂无模型信息')}</span></div>
       <div className="card-bottom"><div><strong>{price(skill)}</strong>{!skill.officialTemplateId && skill.taskFixedFeeT != null && <CreatorFeeLabel />}</div><Link className="card-use" href={skillPath(skill.id)} aria-label={t('使用 {0}', skillText(skill.displayName))}>{t('使用')}<ArrowRight size={15} /></Link></div>

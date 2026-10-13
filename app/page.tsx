@@ -4,7 +4,7 @@ import { featuredWorkflows } from '@/lib/featured';
 import { getPublicSkill, getPublicSkills } from '@/lib/public-skills';
 import type { HomeSkill } from '@/components/home-showcase';
 import { pageMetadata } from '@/lib/seo';
-export const metadata = pageMetadata('LoomSkill · AI 批量生成，从一张表开始', '浏览 AI Skill，批量生成商品图片、营销文案和视觉素材。查看真实案例，填写任务表，确认费用后执行，统一查看与下载结果。', '/');
+export const metadata = pageMetadata('AI 批量生图与 Skill 批处理平台 | LoomSkill', '用 LoomSkill 批量生成商品图、插画与营销文案。选择 AI Skill，在线填表或导入 Excel / CSV，确认预估费用后批量执行，统一查看和下载结果。', '/');
 export default async function Page({ searchParams }: { searchParams: Promise<{ demo?: string }> }) {
   if ((await searchParams).demo === '1') redirect('/app?demo=1');
   const [featured, catalog] = await Promise.all([

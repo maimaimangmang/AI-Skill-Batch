@@ -11,7 +11,7 @@ export async function generateMetadata({ searchParams }: Params) {
   const { q, page } = await searchParams;
   const n = Number(page || 1);
   const suffix = n > 1 && Number.isSafeInteger(n) ? ` · 第 ${n} 页` : '';
-  return { ...pageMetadata(`AI Skill 工作流目录${suffix} · LoomSkill`, `探索图片生成、文案创作等 AI 工作流。免登录查看每个 Skill 的用途、输入要求、示例和费用说明${suffix}。`, '/skills' + (suffix ? `?page=${n}` : '')), ...(q ? { robots: { index: false, follow: true } } : {}) };
+  return { ...pageMetadata(`AI Skill 工作流目录${suffix} · LoomSkill`, `探索批量生图、商品图制作、文案创作等 AI Skill。免登录查看用途、输入要求、公开示例和费用说明，选择工作流开始批量处理${suffix}。`, '/skills' + (suffix ? `?page=${n}` : '')), ...(q ? { robots: { index: false, follow: true } } : {}) };
 }
 export default async function SkillsPage({ searchParams }: Params) {
   const params = await searchParams;
