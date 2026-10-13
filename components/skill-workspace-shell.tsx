@@ -13,6 +13,7 @@ export function WorkspaceNavigation({ activePage, ...account }: NavigationProps)
     <a href="/skills" aria-current={activePage === 'skills' ? 'page' : undefined}>{t('探索 Skill')}</a>
     <a href="/favorites" aria-current={activePage === 'favorites' ? 'page' : undefined}>{t('我的收藏')}</a>
     <a href="/tasks" aria-current={activePage === 'tasks' ? 'page' : undefined}>{t('我的任务')}</a>
+    <a href="https://www.shengsuanyun.com/zh/loomloom/?from=Zoey" target="_blank" rel="noopener noreferrer">{t('上传 Skill')}<ArrowUpRight size={13} aria-hidden="true" /></a>
     <LanguageSwitcher />
     <AccountMenu {...account} />
   </nav>;
