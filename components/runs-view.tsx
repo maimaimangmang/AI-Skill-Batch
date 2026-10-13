@@ -1,7 +1,7 @@
 'use client';
 import { useI18n } from './language-provider';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { ArrowRight, ListChecks, LoaderCircle, Play, RefreshCw, Search } from 'lucide-react';
+import { ArrowRight, ListChecks, LoaderCircle, RefreshCw, Search } from 'lucide-react';
 import { createCursorPager, createOffsetPager } from '@/lib/pagination';
 import { marketPageNumbers } from '@/lib/market';
 import { RUNS_PAGE_SIZE, RUN_STATUS_OPTIONS, localDateBounds, localDateString as dateString, relativeRunQuery, type RunsPage } from '@/lib/runs';
@@ -86,9 +86,9 @@ export default function RunsView({ active, api, refreshKey, onNew, onResult }: P
   const current = pages[page], runs = current?.items || [];
   const filtered = !!filterQuery;
   return <>
-    <div className="page-heading"><div><div className="eyebrow">MY RUNS</div><h1>{t("我的任务")}</h1><p>{t("按提交时间从新到旧排列，最新任务在首页。")}</p></div><button className="button" disabled={loading} onClick={() => apply()}><RefreshCw size={16} />{t("刷新任务")}</button></div>
+    <div className="page-heading"><div><div className="eyebrow">MY RUNS</div><h1>{t("我的任务")}</h1></div></div>
     <section className="editor-card runs-panel" id="runs-panel">
-      <div className="table-toolbar"><div><ListChecks size={20} /><strong>{t("运行记录")}</strong></div><button className="button small primary" onClick={onNew}><Play size={14} />{t("新建任务")}</button></div>
+      <div className="table-toolbar"><div><ListChecks size={20} /><strong>{t("运行记录")}</strong></div><button type="button" className="button small" disabled={loading} onClick={() => apply()}><RefreshCw size={16} />{t("刷新任务")}</button></div>
       <form className="runs-filters" onSubmit={e => { e.preventDefault(); apply(); }}>
         <label className="runs-search"><Search size={16} /><input aria-label={t("搜索任务名称或编号")} maxLength={200} value={keyword} onChange={e => setKeyword(e.target.value)} placeholder={t("搜索工作流名称或任务编号…")} /></label>
         <select aria-label={t("任务状态")} value={status} onChange={e => { setStatus(e.target.value); apply(e.target.value); }}>{RUN_STATUS_OPTIONS.map(([value, label]) => <option key={value} value={value}>{t(label)}</option>)}</select>
