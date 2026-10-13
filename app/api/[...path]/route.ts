@@ -51,8 +51,10 @@ async function handle(request: NextRequest, context: { params: Promise<{ path: s
       const body = await jsonBody(request, 8192); const apiKey = typeof body.apiKey === 'string' ? body.apiKey.trim() : '';
       if (!apiKey || apiKey.length > 2048 || /\s/.test(apiKey)) throw new ApiError('请输入完整、有效的 API Key。');
       const balance = await upstream('users/me/balance', apiKey);
+      // Validate and create the replacement before invalidating the current connection.
+      const token = createSession(apiKey);
       try { destroySession(sessionFromToken(request.cookies.get(cookie)?.value).id); } catch {}
-      const token = createSession(apiKey); const response = json({ connected: true, balance });
+      const response = json({ connected: true, balance });
       response.cookies.set(cookie, token, { httpOnly: true, sameSite: 'strict', secure: process.env.COOKIE_SECURE === 'true' || (process.env.NODE_ENV === 'production' && process.env.COOKIE_SECURE !== 'false'), path: '/', maxAge: 12 * 3600 });
       return response;
     }

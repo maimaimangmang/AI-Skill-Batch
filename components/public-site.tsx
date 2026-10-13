@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { ArrowRight, ArrowUpRight, Check, Copy, Layers, Search, Table2, Sparkles } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
 import PublicConnectionDialog from './public-connection-dialog';
+import { HomeCommunity } from './sidebar-community';
 import { WorkspaceNavigation } from './skill-workspace-shell';
 import { request } from '@/lib/client';
 import { useI18n } from './language-provider';
@@ -64,7 +65,7 @@ export function PublicHome({ skills, discovery, total }: { skills: HomeSkill[]; 
     { Icon: Search, title: '选择 Skill', text: '浏览用途、输入说明和公开示例，找到适合当前任务的工作流。' },
     { Icon: Table2, title: '填写任务表', text: '连接胜算云 API Key，直接填表或导入 Excel / CSV，每行对应一项任务。' },
     { Icon: Sparkles, title: '确认费用，批量生成', text: '检查预估金额后执行，在我的任务中查看进度、结果和下载文件。' },
-  ].map(({ Icon, title, text }, i) => <article key={title} data-home-motion><span className="step-number">0{i + 1}</span><Icon size={25} /><h3>{t(title)}</h3><p>{t(text)}</p></article>)}</div></section><section className="public-end"><h2>{t('把下一批任务，放进一张表')}</h2><p>{t('云端运行 Skill，批量生产')}</p><Link className="public-button primary" href="/skills">{t('立刻体验')}<ArrowRight size={18} /></Link></section></main></PublicShell>;
+  ].map(({ Icon, title, text }, i) => <article key={title} data-home-motion><span className="step-number">0{i + 1}</span><Icon size={25} /><h3>{t(title)}</h3><p>{t(text)}</p></article>)}</div></section><section className="public-end"><h2>{t('把下一批任务，放进一张表')}</h2><p>{t('云端运行 Skill，批量生产')}</p><Link className="public-button primary" href="/skills">{t('立刻体验')}<ArrowRight size={18} /></Link></section><HomeCommunity /></main></PublicShell>;
 }
 export function PublicSkillDetail({ skill, schema, examples, model, related }: { skill: PublicSkill; schema: Schema | null; examples: WorkflowExample[]; model: string; related: CardSkill[] }) {
   const { t, skillText } = useI18n(); const [copied, setCopied] = useState(false); const [copyFailed, setCopyFailed] = useState(false);

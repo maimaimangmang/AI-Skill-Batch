@@ -5,7 +5,6 @@ import { ChevronDown, KeyRound, LoaderCircle, LogOut, RefreshCw, UserRound } fro
 import { request, RequestError, type ApiRequestOptions } from '@/lib/client';
 import type { Balance } from '@/lib/types';
 import { money } from '@/lib/domain';
-import { taskConnectionPath } from '@/lib/skill-links';
 import { useI18n } from './language-provider';
 import PublicConnectionDialog from './public-connection-dialog';
 
@@ -27,6 +26,7 @@ export default function AccountMenu({ connected, ready = true, busy = false, onC
   const [open, setOpen] = useState(false);
   const [settings, setSettings] = useState(false);
   const [connectionOpen, setConnectionOpen] = useState(false);
+  const [replacing, setReplacing] = useState(false);
   const [balance, setBalance] = useState<Balance | null>(null);
   const [loading, setLoading] = useState(false);
   const [ending, setEnding] = useState(false);
@@ -89,13 +89,13 @@ export default function AccountMenu({ connected, ready = true, busy = false, onC
     return () => { document.removeEventListener('pointerdown', outside); document.removeEventListener('keydown', escape); };
   }, [open, ending]);
 
-  async function disconnect(reconnect: boolean) {
+  async function disconnect() {
     if (ending || busy) return;
     setEnding(true); setError('');
     try {
       await request('/session', { method: 'DELETE' });
       // A full navigation discards the previous account's loaded task data and files.
-      window.location.assign(reconnect ? taskConnectionPath('/tasks') : '/');
+      window.location.assign('/');
     } catch (e) { setError((e as Error).message); setEnding(false); }
   }
   function connect() {
@@ -115,9 +115,10 @@ export default function AccountMenu({ connected, ready = true, busy = false, onC
       <div className="account-panel-heading"><strong>{t('账户')}</strong><span><i />{t('API Key 已连接')}</span></div>
       <div className="account-panel-balance"><span>{t('可用余额')}</span><strong>{loading ? t('读取中…') : balance ? t(money(balance.availableBalanceT, balance.currency)) : '—'}</strong><small>{t('费用由')}<a href="https://www.shengsuanyun.com/?from=Zoey" target="_blank" rel="noopener noreferrer">{t('胜算云')}</a>{t('直接结算')}</small></div>
       {error && <div className="account-panel-error" role="alert"><p>{t(error)}</p>{!ending && <button type="button" onClick={() => setRefresh(value => value + 1)}><RefreshCw size={13} />{t('重新读取余额')}</button>}</div>}
-      <details className="account-settings" open={settings} onToggle={event => setSettings(event.currentTarget.open)}><summary>{t('连接设置')}</summary><dl><div><dt>{t('接入方式')}</dt><dd>{t('个人 API Key')}</dd></div><div><dt>{t('会话有效期')}</dt><dd>{t('12 小时')}</dd></div></dl><p>{t('Key 加密保存在服务器会话中，12 小时后过期；不会写入浏览器本地存储。')}</p></details>
-      <div className="account-panel-actions"><button type="button" disabled={busy || ending} onClick={() => void disconnect(true)}><KeyRound size={15} />{t('更换 API Key')}</button><button type="button" disabled={busy || ending} onClick={() => void disconnect(false)}>{ending ? <LoaderCircle size={15} className="spin" /> : <LogOut size={15} />}{t('退出连接')}</button></div>
+      <details className="account-settings" open={settings} onToggle={event => setSettings(event.currentTarget.open)}><summary>{t('连接信息')}</summary><dl><div><dt>{t('接入方式')}</dt><dd>{t('个人 API Key')}</dd></div><div><dt>{t('会话有效期')}</dt><dd>{t('12 小时')}</dd></div></dl><p>{t('Key 加密保存在服务器会话中，12 小时后过期；不会写入浏览器本地存储。')}</p></details>
+      <div className="account-panel-actions"><button type="button" disabled={busy || ending} onClick={() => { setOpen(false); setReplacing(true); }}><KeyRound size={15} />{t('更换 API Key')}</button><button type="button" disabled={busy || ending} onClick={() => void disconnect()}>{ending ? <LoaderCircle size={15} className="spin" /> : <LogOut size={15} />}{t('退出连接')}</button></div>
     </div>}
+    {replacing && <PublicConnectionDialog title="更换 API Key" intro="新 Key 验证成功后才会切换账户，取消或验证失败不会影响当前连接。" submitLabel="确认更换" cancelLabel="取消" onClose={() => { setReplacing(false); trigger.current?.focus(); }} onConnected={() => { window.location.assign('/tasks'); }} />}
     {connectionOpen && <PublicConnectionDialog intro="连接后可查看余额，并管理你的任务与收藏。" submitLabel="连接并继续" onClose={() => setConnectionOpen(false)} onConnected={() => { setConnectionOpen(false); setOpen(true); }} />}
   </div>;
 }

@@ -6,7 +6,7 @@ import { useI18n } from './language-provider';
 import { workspaceDestination } from '@/lib/skill-links';
 import { post, request } from '@/lib/client';
 
-export default function PublicConnectionDialog({ onClose, onConnected, destination, intro, submitLabel }: { intro?: string; submitLabel?: string; onClose: () => void; onConnected?: () => void; destination?: string }) {
+export default function PublicConnectionDialog({ onClose, onConnected, destination, intro, submitLabel, title, cancelLabel }: { title?: string; cancelLabel?: string; intro?: string; submitLabel?: string; onClose: () => void; onConnected?: () => void; destination?: string }) {
   const { t } = useI18n();
   const [key, setKey] = useState('');
   const [busy, setBusy] = useState(false);
@@ -24,7 +24,7 @@ export default function PublicConnectionDialog({ onClose, onConnected, destinati
       setBusy(false);
     }
   }
-  return <Modal title={t('连接你的工作空间')} onClose={onClose} locked={busy}>
+  return <Modal title={t(title || '连接你的工作空间')} onClose={onClose} locked={busy}>
     <form className="public-connection-form" onSubmit={connect}>
       <div className="modal-body">
         <p className="connection-intro">{t(intro || (onConnected ? '连接后同步你的 Skill 收藏。' : '连接胜算云 API Key 后查看你的任务和结果。'))}</p>
@@ -33,7 +33,7 @@ export default function PublicConnectionDialog({ onClose, onConnected, destinati
         {error && <p className="error" role="alert">{t(error)}</p>}
         <p className="privacy-note"><ShieldCheck size={16} />{t('Key 加密保存在服务器会话中，12 小时后过期；不会写入浏览器本地存储。')}</p>
       </div>
-      <div className="modal-foot"><button type="button" className="button" disabled={busy} onClick={onClose}>{t('继续浏览')}</button><button type="submit" className="button primary" disabled={busy || !key.trim()}>{busy ? <LoaderCircle size={17} className="spin" /> : <ArrowRight size={17} />}{t(submitLabel || (onConnected ? '连接并同步' : '连接并继续'))}</button></div>
+      <div className="modal-foot"><button type="button" className="button" disabled={busy} onClick={onClose}>{t(cancelLabel || '继续浏览')}</button><button type="submit" className="button primary" disabled={busy || !key.trim()}>{busy ? <LoaderCircle size={17} className="spin" /> : <ArrowRight size={17} />}{t(submitLabel || (onConnected ? '连接并同步' : '连接并继续'))}</button></div>
     </form>
   </Modal>;
 }

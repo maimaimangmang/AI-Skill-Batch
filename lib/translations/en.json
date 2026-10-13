@@ -652,5 +652,11 @@
   "{0} · AI 批量工作流 | LoomSkill": "{0} · AI Batch Workflow | LoomSkill",
   "链接工作台": "Connect workspace",
   "连接胜算云 API Key 后查看你的任务和结果。": "Connect your Shengsuanyun API Key to view your tasks and results.",
-  "任务输入恢复失败，请重新填写。": "Unable to restore task inputs. Please fill them in again."
+  "任务输入恢复失败，请重新填写。": "Unable to restore task inputs. Please fill them in again.",
+  "连接信息": "Connection information",
+  "新 Key 验证成功后才会切换账户，取消或验证失败不会影响当前连接。": "Your account switches only after the new key is verified. Cancelling or a failed verification keeps your current connection.",
+  "确认更换": "Confirm change",
+  "联系作者": "Contact the creator",
+  "遇到问题、有想用的 Skill，或者想交流 AI 电商经验，都可以来聊聊。": "Have a question, a Skill request, or an AI commerce experience to share? Let’s talk.",
+  "扫码联系作者，加入 AI 电商交流群": "Scan to contact the creator and join the AI commerce community"
 }

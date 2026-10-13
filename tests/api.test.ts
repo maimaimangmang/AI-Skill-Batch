@@ -118,6 +118,24 @@ test('API：无效 Key 不创建会话；跨源请求在登录前被拒绝', asy
   assert.equal((await call('session', { apiKey: 'invalid-key' })).response.status, 401);
   assert.equal((await call('session', { apiKey: 'test-a' }, undefined, 'https://evil.example')).response.status, 403);
 });
+test('API：更换 Key 失败保留原会话，成功后才替换并隔离旧数据', async () => {
+  const original = await login('replacement-original');
+  const quote = await call('quote', { listingId: listing.id, rows: [{ subject: 'original account' }] }, original);
+  assert.equal(quote.response.status, 200);
+  const invalid = await call('session', { apiKey: 'invalid-key' }, original);
+  assert.equal(invalid.response.status, 401);
+  assert.equal(invalid.response.headers.get('set-cookie'), null);
+  assert.equal((await call('session', undefined, original)).body.connected, true);
+  assert.equal((await call('balance', undefined, original)).response.status, 200);
+  const replacement = await call('session', { apiKey: 'replacement-new' }, original);
+  assert.equal(replacement.response.status, 200);
+  const next = replacement.response.headers.get('set-cookie')!.split(';')[0];
+  assert.notEqual(next, original);
+  assert.equal((await call('session', undefined, original)).body.connected, false);
+  assert.equal((await call('session', undefined, next)).body.connected, true);
+  assert.equal((await call('balance', undefined, next)).response.status, 200);
+  assert.notEqual((await call('execute', { ticket: quote.body.ticket, confirm: true }, next)).response.status, 200);
+});
 test('API：Key AES-GCM 加密落库、随机 cookie、退出销毁', async () => {
   const cookie = await login('test-key-encryption');
   assert.ok(!cookie.includes('test-key-encryption'));

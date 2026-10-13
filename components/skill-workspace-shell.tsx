@@ -2,7 +2,6 @@
 
 import { ArrowLeft, ArrowUpRight, CircleHelp } from 'lucide-react';
 import { LanguageSwitcher, useI18n } from './language-provider';
-import SidebarCommunity from './sidebar-community';
 import AccountMenu from './account-menu';
 
 type NavigationProps = React.ComponentProps<typeof AccountMenu> & { activePage?: 'skills' | 'favorites' | 'tasks' };
@@ -43,7 +42,6 @@ export function SkillWorkspaceFooter() {
         <a href="https://lean.shengsuanyun.com/apidocs/loomloom/guide/loomloom-guide" target="_blank" rel="noopener noreferrer"><CircleHelp size={15} aria-hidden="true" />{t('使用文档')}<ArrowUpRight size={13} aria-hidden="true" /></a>
         <a href="https://www.shengsuanyun.com/zh/loomloom/?from=Zoey" target="_blank" rel="noopener noreferrer">{t('上传 Skill')}<ArrowUpRight size={13} aria-hidden="true" /></a>
       </nav>
-      <SidebarCommunity />
     </div>
   </footer>;
 }
