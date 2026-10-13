@@ -4,6 +4,14 @@ const config: NextConfig = {
   turbopack: { root: process.cwd() },
   devIndicators: false,
   serverExternalPackages: ["exceljs"],
+  async redirects() {
+    return [{
+      source: '/:path*',
+      has: [{ type: 'host', value: 'www.loomskill.com' }],
+      destination: 'https://loomskill.com/:path*',
+      permanent: true,
+    }];
+  },
   async headers() {
     return [{ source: "/:path*", headers: [
       { key: "X-Content-Type-Options", value: "nosniff" },

@@ -1,6 +1,7 @@
 import { spawn } from 'node:child_process';
 import assert from 'node:assert/strict';
 import { once } from 'node:events';
+import { get } from 'node:http';
 
 // Validate routes in the actual container build environment before publishing.
 // No credentials, user data, or paid execution endpoints are used.
@@ -69,6 +70,30 @@ try {
   const taskDemo = await read('/tasks?demo=1');
   assert.equal(taskDemo.status, 307);
   assert.equal(taskDemo.headers.get('location'), '/?connect=1');
+  const firstPage = await read('/skills?page=1');
+  assert.equal(firstPage.status, 308);
+  assert.equal(firstPage.headers.get('location'), '/skills');
+  for (const path of ['/missing-page-check', '/skills/missing-skill-check', '/skills?page=99999']) {
+    const missing = await read(path);
+    assert.equal(missing.status, 404, path);
+    assert.equal(missing.headers.get('location'), null);
+    const html = await missing.text();
+    assert.match(html, /页面未找到 · LoomSkill/);
+    assert.match(html, /noindex/);
+  }
+  for (const path of ['/', '/skills/text-to-image?ref=www-check', '/skills?page=2&q=image', '/missing-page-check']) {
+    // Node fetch may normalize Host; send the real host header with node:http.
+    const www = await new Promise((resolve, reject) => {
+      const req = get({ hostname: '127.0.0.1', port, path, headers: { host: 'www.loomskill.com' } }, response => {
+        response.resume();
+        response.on('end', () => resolve({ status: response.statusCode, headers: new Headers(response.headers) }));
+      });
+      req.setTimeout(30000, () => req.destroy(new Error('Domain redirect check timed out')));
+      req.on('error', reject);
+    });
+    assert.equal(www.status, 308, path);
+    assert.equal(new URL(www.headers.get('location')).href, new URL('https://loomskill.com' + path).href);
+  }
   console.log('Container public Skill pages, canonical task routes, protected task APIs, and connection handoffs verified.');
 } finally {
   server.kill('SIGTERM');

@@ -1,3 +1,10 @@
-import Link from 'next/link';
-import { PublicShell } from '@/components/public-site';
-export default function NotFound() { return <PublicShell><main className="public-empty"><span className="public-eyebrow">404</span><h1>没有找到这个页面</h1><p>这个 Skill 可能已下架，或链接有误。</p><Link className="public-button primary" href="/skills">浏览可用 Skill</Link></main></PublicShell>; }
+import type { Metadata } from 'next';
+import { MissingPage } from '@/components/missing-page';
+
+export const metadata: Metadata = {
+  title: '页面未找到 · LoomSkill',
+  description: '这个页面不存在、已移除，或链接有误。返回 LoomSkill 首页，或浏览可用的 AI Skill。',
+  robots: { index: false, follow: true },
+};
+
+export default function NotFound() { return <MissingPage />; }
