@@ -7,7 +7,7 @@ import { assetValues } from '@/lib/asset-input';
 import { useEffect, useRef, useState } from 'react';
 import { ArrowLeft, ArrowRight, Check, ChevronDown, Copy, Download, FileSpreadsheet, Info, LoaderCircle, Plus, Trash2, Upload } from 'lucide-react';
 import Papa from 'papaparse';
-import type { InputRow, Listing, Schema } from '@/lib/types';
+import type { Balance, InputRow, Listing, Schema } from '@/lib/types';
 import { cellText, emptyRow, money, isBlankRow } from '@/lib/domain';
 import { base64, download, exportSheet, post, type ApiRequestOptions } from '@/lib/client';
 import WorkflowExamples from './workflow-examples';
@@ -16,8 +16,8 @@ import FavoriteButton from './favorite-button';
 import SkillGuide from './skill-guide';
 import { workflowPath } from '@/lib/official';
 import ImportDialog, { type ImportSheet } from './import-dialog';
-type Props = { listing: Listing; schema: Schema; rows: InputRow[]; setRows: (rows: InputRow[]) => void; demo: boolean; guest?: boolean; busy: boolean; errors: string[]; api: (path: string, options?: ApiRequestOptions) => Promise<any>; onBack: () => void; onQuote: () => void };
-export default function Editor({ listing, schema, rows, setRows, demo, guest = false, busy, errors, api, onBack, onQuote }: Props) {
+type Props = { showBackNavigation?: boolean; showBalance?: boolean; balance?: Balance | null; listing: Listing; schema: Schema; rows: InputRow[]; setRows: (rows: InputRow[]) => void; demo: boolean; guest?: boolean; busy: boolean; errors: string[]; api: (path: string, options?: ApiRequestOptions) => Promise<any>; onBack: () => void; onQuote: () => void };
+export default function Editor({ showBackNavigation = true, showBalance = false, balance, listing, schema, rows, setRows, demo, guest = false, busy, errors, api, onBack, onQuote }: Props) {
   const { t, skillText, locale } = useI18n();
   const [localError, setLocalError] = useState(''); const [uploading, setUploading] = useState(false);
   const [sheets, setSheets] = useState<ImportSheet[] | null>(null); const input = useRef<HTMLInputElement>(null);
@@ -105,7 +105,7 @@ export default function Editor({ listing, schema, rows, setRows, demo, guest = f
     setRows(next); setLocalError('');
   }
   return <>
-    <div className="editor-navigation"><button className="back-button" disabled={locked} onClick={onBack}><ArrowLeft size={16} />{t("返回 Skill 列表")}</button></div>
+    {showBackNavigation && <div className="editor-navigation"><button className="back-button" disabled={locked} onClick={onBack}><ArrowLeft size={16} />{t("返回 Skill 列表")}</button></div>}
     <div className="page-heading"><div><div className="eyebrow">BATCH WORKSPACE</div><h1>{skillText(listing.displayName)}</h1><WorkflowAuthor name={listing.creator?.nickname} /><p>{skillText(listing.description)}</p>{!demo && <FavoriteButton skill={listing} label />}</div><AgentInstall key={listing.id} listing={listing} demo={demo} /></div>
     <div className="steps"><span className="done"><Check size={15} />{t("选择工作流")}</span><i /><span className="active"><b>2</b>{t("填写任务表")}</span><i /><span><b>3</b>{t("确认并执行")}</span><i /><span><b>4</b>{t("收集结果")}</span></div>
     <WorkflowExamples key={listing.id} listing={listing} schema={schema} demo={demo} disabled={locked} onUse={row => {
@@ -123,7 +123,7 @@ export default function Editor({ listing, schema, rows, setRows, demo, guest = f
     </section>
     {uploading && !uploadController.current && <p className="notice"><LoaderCircle className="spin" size={16} />{t("正在处理文件…")}</p>}
     {(localError || errors.length > 0) && <div className="error-list" role="alert">{localError && <p>{t(localError)}</p>}{errors.map((e, i) => <p key={i}>{t(e)}</p>)}</div>}
-    <div className="execute-bar"><div><strong>{taskCount} {t(" 个已填任务，确认 Token 消耗费用后运行")}</strong><p>{t("先查看预计费用，确认后才会使用你的胜算云余额。")}</p></div><button className="button primary" disabled={locked} onClick={onQuote}>{busy ? <LoaderCircle className="spin" size={17} /> : null}{t("校验并预估费用")}<ArrowRight size={17} /></button></div>
+    <div className="execute-bar"><div><strong>{taskCount} {t(" 个已填任务，确认 Token 消耗费用后运行")}</strong><p>{t("先查看预计费用，确认后才会使用你的胜算云余额。")}</p>{showBalance && <div className="skill-execution-balance"><span>{t("可用余额")}</span><strong>{balance ? t(money(balance.availableBalanceT, balance.currency)) : t("读取中…")}</strong><span>{t("费用由")}<a href="https://www.shengsuanyun.com/?from=Zoey" target="_blank" rel="noopener noreferrer">{t("胜算云")}</a>{t("直接结算")}</span></div>}</div><button className="button primary" disabled={locked} onClick={onQuote}>{busy ? <LoaderCircle className="spin" size={17} /> : null}{t("校验并预估费用")}<ArrowRight size={17} /></button></div>
     {!demo && <SkillGuide listing={listing} schema={schema} />}
     {sheets && <ImportDialog sheets={sheets} fields={fields} onClose={() => setSheets(null)} onImport={imported => { setRows(imported); setSheets(null); setLocalError(''); }} />}
   </>;

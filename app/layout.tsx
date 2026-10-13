@@ -7,6 +7,7 @@ import "./plush.css";
 import { LanguageProvider } from '@/components/language-provider';
 import './language.css';
 import './favorites.css';
+import './skill-workspace.css';
 import { RetryDraftProvider } from '@/components/retry-draft-provider';
 import { FavoritesProvider } from '@/components/favorites-provider';
 import { FavoritesNotice } from '@/components/favorite-button';

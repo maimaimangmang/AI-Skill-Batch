@@ -1,6 +1,5 @@
 import { notFound, permanentRedirect } from 'next/navigation';
 import Workbench from '@/components/workbench';
-import { LanguageSwitcher } from '@/components/language-provider';
 import { PublicSkillDetail } from '@/components/public-site';
 import { getPublicSkill, skillId, skillPath, SITE_URL } from '@/lib/public-skills';
 import { schemaOf } from '@/lib/domain';
@@ -34,5 +33,5 @@ export default async function SkillPage({ params }: Params) {
 function SkillContent(props: React.ComponentProps<typeof PublicSkillDetail>) {
   const { skill, schema } = props;
   if (!schema || (skill.executionAvailabilityStatus && skill.executionAvailabilityStatus !== 'available')) return <PublicSkillDetail {...props} />;
-  return <><LanguageSwitcher corner /><Workbench initialSkill={skill.id} draftListing={skill} canonicalSkill /></>;
+  return <Workbench initialSkill={skill.id} draftListing={skill} canonicalSkill />;
 }

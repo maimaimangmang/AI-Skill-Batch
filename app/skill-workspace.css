@@ -1,0 +1,166 @@
+/* The canonical Skill editor has a full-width shell and shared page gutters. */
+.studio-skill-page .main-shell {
+  margin-left: 0;
+  padding-top: 0;
+}
+
+.studio-skill-page .main-content,
+.studio-skill-page .skill-workspace-header-inner,
+.studio-skill-page .skill-workspace-footer-inner {
+  width: 100%;
+  max-width: 1500px;
+  margin-inline: auto;
+  padding-inline: 32px;
+}
+
+.studio-skill-page .main-content { padding-top: 28px; }
+
+.skill-workspace-header {
+  flex-shrink: 0;
+  background: #fff;
+  border-bottom: 1px solid var(--line);
+}
+
+.skill-workspace-header-inner,
+.skill-workspace-location,
+.skill-workspace-nav {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.skill-workspace-header-inner {
+  justify-content: space-between;
+  gap: 12px 28px;
+  min-height: 84px;
+  padding-block: 16px;
+}
+
+.skill-workspace-location { gap: 18px 26px; min-width: 0; }
+
+.skill-workspace-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  min-height: 36px;
+  color: var(--ink);
+  font-size: 23px;
+  font-weight: 750;
+  letter-spacing: -.9px;
+  white-space: nowrap;
+}
+
+.skill-workspace-brand img { width: 32px; height: 32px; flex-shrink: 0; }
+
+.skill-workspace-back {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 36px;
+  padding: 6px 0;
+  color: #7180a1;
+  font-size: 12px;
+}
+
+.skill-workspace-back:hover:not(:disabled) { color: var(--blue); }
+.skill-workspace-nav { justify-content: flex-end; gap: 10px 24px; min-width: 0; }
+
+.skill-workspace-nav > a,
+.skill-workspace-resources a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 36px;
+  color: #677695;
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.skill-workspace-nav > a:hover,
+.skill-workspace-resources a:hover { color: var(--blue); }
+
+.skill-workspace-nav .skill-workspace-connection {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 36px;
+  padding: 7px 11px;
+  border: 1px solid #e8e2ff;
+  border-radius: 9px;
+  background: #f4f1ff;
+  color: var(--blue);
+  font-size: 12px;
+  line-height: 1.5;
+  white-space: nowrap;
+}
+
+.skill-workspace-nav .skill-workspace-connection:hover:not(:disabled) {
+  background: #eee8ff;
+  color: var(--blue-dark);
+}
+
+.skill-workspace-nav .skill-workspace-connection.is-connected {
+  color: #617593;
+  border-color: #e9edf5;
+  background: #f8faff;
+}
+
+.skill-workspace-connection-dot { width: 6px; height: 6px; border-radius: 50%; background: #39a681; flex-shrink: 0; }
+
+.skill-workspace-footer { border-top: 1px solid #e4e9f5; }
+.skill-workspace-footer-inner { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 24px 32px; padding-block: 26px; }
+.skill-workspace-footer-brand { min-width: 0; }
+.skill-workspace-footer-brand .skill-workspace-brand { gap: 7px; font-size: 18px; letter-spacing: -.5px; }
+.skill-workspace-footer-brand .skill-workspace-brand img { width: 26px; height: 26px; }
+.skill-workspace-footer-brand p { margin-top: 4px; color: #8793ad; font-size: 11px; }
+.skill-workspace-resources { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 24px; }
+.skill-workspace-resources a { font-size: 12px; }
+.skill-workspace-footer .sidebar-community { display: block; margin: 0; }
+.skill-workspace-footer .author-community { gap: 12px; padding: 0; text-align: left; }
+.skill-workspace-footer .author-qr-button { border-radius: 5px; overflow: hidden; }
+.skill-workspace-footer .author-qr-button img,
+.skill-workspace-footer .author-qr-placeholder { width: 64px; height: 64px; }
+.skill-workspace-footer .author-community-copy h2 { justify-content: flex-start; font-size: 12px; }
+.skill-workspace-footer .author-community-copy p { margin: 3px 0 0; font-size: 11px; }
+.skill-workspace-footer .author-community-copy small { margin-top: 4px; font-size: 10px; }
+
+.studio-skill-page .skill-execution-balance { display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px 8px; margin-top: 10px; color: #8290ac; font-size: 12px; line-height: 1.7; }
+.studio-skill-page .skill-execution-balance strong { color: #42557d; font-size: 13px; font-weight: 650; font-variant-numeric: tabular-nums; }
+.studio-skill-page .skill-execution-balance a { margin-inline: 3px; color: var(--blue); }
+.studio-skill-page .skill-execution-balance a:hover { color: var(--blue-dark); text-decoration: underline; }
+
+@media (max-width: 1150px) {
+  .studio-skill-page .main-content,
+  .studio-skill-page .skill-workspace-header-inner,
+  .studio-skill-page .skill-workspace-footer-inner { padding-inline: 26px; }
+  .skill-workspace-header-inner { gap: 12px 20px; }
+  .skill-workspace-location { gap: 18px; }
+  .skill-workspace-nav { column-gap: 18px; }
+  .skill-workspace-footer-inner { gap: 24px; }
+}
+
+@media (max-width: 760px) {
+  .studio-skill-page .main-content,
+  .studio-skill-page .skill-workspace-header-inner,
+  .studio-skill-page .skill-workspace-footer-inner { padding-inline: 18px; }
+  .studio-skill-page .main-content { padding-top: 24px; }
+  .skill-workspace-header-inner { align-items: flex-start; padding-block: 13px; gap: 10px; }
+  .skill-workspace-location { justify-content: space-between; width: 100%; gap: 8px 14px; }
+  .skill-workspace-brand { font-size: 21px; }
+  .skill-workspace-brand img { width: 29px; height: 29px; }
+  .skill-workspace-nav { width: 100%; justify-content: space-between; gap: 8px 10px; }
+  .skill-workspace-nav > a { font-size: 12px; }
+  .skill-workspace-nav .skill-workspace-connection { padding-inline: 8px; font-size: 11px; }
+  .skill-workspace-footer-inner { align-items: flex-start; gap: 18px 28px; padding-block: 22px; }
+  .skill-workspace-footer-brand { width: 100%; }
+  .skill-workspace-resources { gap: 2px 18px; }
+  .skill-workspace-footer .sidebar-community { margin-left: auto; }
+}
+
+@media (max-width: 440px) {
+  .skill-workspace-footer-inner { gap: 14px; }
+  .skill-workspace-footer .sidebar-community { width: 100%; margin-left: 0; }
+}

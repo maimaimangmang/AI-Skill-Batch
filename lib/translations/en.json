@@ -243,6 +243,8 @@
   "批量调用 Skill · 统一查看与下载结果": "Run Skills in batches · View and download results together",
   "LoomSkill · 电商 AI 批处理工作台": "LoomSkill · AI batch studio for commerce",
   "连接你的工作空间": "Connect your workspace",
+  "连接 API Key": "Connect API Key",
+  "连接后可查看余额，并继续填写和运行当前 Skill。": "Connect to view your balance and continue filling in and running this Skill.",
   "由胜算云提供多模型调用和结算服务。": "Model access and billing are provided by Shengsuanyun.",
   "胜算云 API Key": "Shengsuanyun API key",
   "输入你的 API Key": "Enter your API key",
