@@ -107,9 +107,9 @@ export default function AccountMenu({ connected, ready = true, busy = false, onC
     if (event.relatedTarget && !event.currentTarget.contains(event.relatedTarget as Node) && !ending) setOpen(false);
   }}>
     {isConnected ? <button ref={trigger} type="button" className={`account-trigger${open ? ' is-open' : ''}`} disabled={busy || ending} aria-haspopup="dialog" aria-expanded={open} aria-controls={id} onClick={() => setOpen(value => !value)}>
-      <UserRound size={16} aria-hidden="true" />{t('账户')}<ChevronDown size={14} aria-hidden="true" />
+      <UserRound size={16} aria-hidden="true" /><span className="account-trigger-label">{t('账户')}</span><ChevronDown className="account-trigger-chevron" size={14} aria-hidden="true" />
     </button> : <button type="button" className="account-trigger" disabled={!isReady || busy || ending} onClick={connect}>
-      {!isReady ? <LoaderCircle size={15} className="spin" /> : <KeyRound size={15} />}{t('连接 API Key')}
+      {!isReady ? <LoaderCircle size={15} className="spin" /> : <KeyRound size={15} />}<span className="account-trigger-label">{t('连接 API Key')}</span>
     </button>}
     {open && isConnected && <div ref={panel} id={id} className="account-panel" role="dialog" aria-label={t('账户')} tabIndex={-1}>
       <div className="account-panel-heading"><strong>{t('账户')}</strong><span><i />{t('API Key 已连接')}</span></div>

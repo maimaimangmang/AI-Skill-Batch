@@ -704,5 +704,7 @@
   "没有找到这个页面": "Page not found",
   "这个页面不存在、已移除，或链接有误。": "This page does not exist, has been removed, or the link is incorrect.",
   "返回首页": "Back to home",
-  "浏览可用 Skill": "Browse available Skills"
+  "浏览可用 Skill": "Browse available Skills",
+  "打开导航菜单": "Open navigation menu",
+  "关闭导航菜单": "Close navigation menu"
 }
