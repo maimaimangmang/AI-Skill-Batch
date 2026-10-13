@@ -38,7 +38,7 @@ export function PublicCatalog({ skills, featured, total, page, pages, query }: {
   }
   return <PublicShell catalog><main className="public-catalog studio-market">
     <header className="market-heading">
-      <h1>{t('找到工作流，')}{t('开始批量创作。')}</h1>
+      <h1>{t('找到工作流，')}{t('开始批量创作')}</h1>
       <p>{t('选择 Skill → 填写批量任务 → 确认费用 → 下载结果')}</p>
     </header>
     <section className="featured" aria-labelledby="featured-title">

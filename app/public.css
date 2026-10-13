@@ -74,7 +74,7 @@
 .public-connection-form .privacy-note svg { flex-shrink:0; margin-top:3px; }
 .public-site .public-connection-form .login-help a { color:#6546ed; line-height:1.8; }
 
-.public-header nav a[aria-current="page"] { color:var(--public-purple); font-weight:700; text-decoration:underline; text-decoration-thickness:2px; text-underline-offset:8px; }
+.public-header nav a[aria-current="page"], .public-footer a[aria-current="page"] { color:var(--public-purple); font-weight:700; text-decoration:underline; text-decoration-thickness:2px; text-underline-offset:8px; }
 
 /* Make featured workflow actions visibly interactive, including on touch screens. */
 .studio-market .featured-card-footer .featured-action { display:inline-flex; align-items:center; justify-content:center; min-height:36px; padding:7px 13px; gap:6px; border:1px solid #e5deff; border-radius:999px; background:#f2efff; font-size:12px; font-weight:600; line-height:1.5; cursor:pointer; transition:background .18s,color .18s,border-color .18s,box-shadow .18s,transform .18s; }
@@ -83,3 +83,6 @@
 .studio-market .featured-card-footer .featured-action:not(:disabled):active { transform:translateY(0); background:#4224d6; box-shadow:none; }
 .studio-market .featured-card-footer .featured-action:disabled { cursor:not-allowed; opacity:.5; }
 @media(prefers-reduced-motion:reduce) { .studio-market .featured-card-footer .featured-action { transition:none; } .studio-market .featured-card-footer .featured-action:not(:disabled):is(:hover,:focus-visible,:active) { transform:none; } }
+
+.public-footer>div { align-items:center; flex-wrap:wrap; gap:12px 24px; }
+.public-footer>div>a { display:inline-flex; align-items:center; gap:5px; white-space:nowrap; }
