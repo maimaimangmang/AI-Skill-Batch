@@ -26,3 +26,9 @@ export function loginPath(skill?: string) {
   const valid = requestedSkill(skill);
   return '/login' + (valid ? `?skill=${encodeURIComponent(valid)}` : '');
 }
+
+// Legacy Skill links continue into the public editor without an early login gate.
+export function connectionPath(skill?: string) {
+  const valid = requestedSkill(skill);
+  return valid ? skillPath(valid) : '/?connect=1';
+}

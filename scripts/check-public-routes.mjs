@@ -29,10 +29,22 @@ try {
     assert.equal(app.headers.get('location'), '/skills/text-to-image');
     const privateApp = await read('/app');
     assert.equal(privateApp.status, 307);
-    assert.equal(privateApp.headers.get('location'), '/login');
+    assert.equal(privateApp.headers.get('location'), '/?connect=1');
     const quote = await read('/api/balance');
     assert.equal(quote.status, 401);
   }
+  for (const [path, destination] of [
+    ['/login', '/?connect=1'],
+    ['/login?skill=text-image-v1', '/skills/text-to-image'],
+    ['/login?skill=https%3A%2F%2Fevil.test', '/?connect=1'],
+  ]) {
+    const response = await read(path);
+    assert.equal(response.status, 307);
+    assert.equal(response.headers.get('location'), destination);
+  }
+  const connectionHome = await read('/?connect=1');
+  assert.equal(connectionHome.status, 200);
+  assert.ok(!(await connectionHome.text()).includes('class="login-page"'));
   const detail = await read('/skills/text-to-image');
   assert.equal(detail.status, 200);
   const html = await detail.text();

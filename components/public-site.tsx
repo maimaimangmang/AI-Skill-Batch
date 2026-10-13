@@ -21,6 +21,14 @@ export function PublicShell({ children, catalog = false, activePage }: { childre
   const [connectionOpen, setConnectionOpen] = useState(false);
   const [checking, setChecking] = useState(false);
   const sessionCheck = useRef<AbortController | null>(null);
+  useEffect(() => {
+    const url = new URL(window.location.href);
+    if (url.pathname !== '/' || url.searchParams.get('connect') !== '1') return;
+    setConnectionOpen(true);
+    // Consume this one-time entry so closing or refreshing stays on the home page.
+    url.searchParams.delete('connect');
+    window.history.replaceState(window.history.state, '', url.pathname + url.search + url.hash);
+  }, []);
   useEffect(() => () => { sessionCheck.current?.abort(); sessionCheck.current = null; }, []);
   async function enterWorkspace() {
     if (sessionCheck.current) return;

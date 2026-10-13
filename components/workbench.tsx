@@ -9,7 +9,7 @@ import { resolveDraftAssets, stageDraftAsset, type DraftAssets } from '@/lib/dra
 import { demoRequest } from '@/lib/demo';
 import { listingModelLabel, MARKET_PAGE_SIZE, marketPageNumbers, createMarketPager, type MarketPage } from '@/lib/market';
 import { workflowPath, isOfficialTemplate } from '@/lib/official';
-import { appPath, loginPath, skillPath } from '@/lib/skill-links';
+import { appPath, connectionPath, skillPath } from '@/lib/skill-links';
 import { createMarketAuthorLoader } from '@/lib/market-authors';
 import RunsView from './runs-view';
 import Editor from './editor';
@@ -94,8 +94,9 @@ export default function Workbench({ initialSkill, draftListing, canonicalSkill =
   }, []);
   useEffect(() => {
     if (!ready) return;
+    if (!connected && !draftAccess) { window.location.replace(connectionPath(targetSkill)); return; }
     const publicEditor = canonicalSkill && view === 'editor' && targetSkill === initialSkill;
-    const target = publicEditor ? skillPath(initialSkill!) : !connected && !draftAccess ? loginPath(targetSkill) : appPath(targetSkill, demo);
+    const target = publicEditor ? skillPath(initialSkill!) : appPath(targetSkill, demo);
     if (window.location.pathname + window.location.search !== target) {
       window.history.replaceState(null, '', target);
     }
@@ -148,7 +149,6 @@ export default function Workbench({ initialSkill, draftListing, canonicalSkill =
     try { const data = await request('/session', post({ apiKey: key })); setKey(''); setDemo(false); setConnected(true); setBalance(data.balance); setConnectionOpen(false); for (const asset of draftAssets.current.values()) delete asset.uploadedId; if (!draftAccess) setView('market'); setRefresh(r => r + 1); if (resumeQuote.current) { resumeQuote.current = false; await quote(true); } }
     catch (e) { setLoginError((e as Error).message); } finally { setLoginBusy(false); }
   }
-  function enterDemo() { setTargetSkill(undefined); setDemo(true); setConnected(true); setView('market'); setKey(''); setError(''); }
   async function logout() {
     setError('');
     if (!demo) { try { await request('/session', { method: 'DELETE' }); } catch (e) { setError((e as Error).message); return; } }
@@ -193,8 +193,7 @@ export default function Workbench({ initialSkill, draftListing, canonicalSkill =
     scrollMarketAfterLoad.current = true;
     setMarketPage(page);
   }
-  if (!ready && !draftListing) return <main className="boot"><img src="/loomdesk-mark.svg" alt="" /><LoaderCircle className="spin" /><p>{t("正在打开 LoomSkill…")}</p></main>;
-  if (!connected && !draftAccess) return <main className="login-page"><div className="login-story"><a className="brand" href="/"><img src="/loomdesk-mark-light.svg" alt="" />LoomSkill<span>WORKSPACE</span></a><div className="login-brand-tagline">{t("全国首创，Skill 并行批处理")}</div><div className="login-story-content"><div className="eyebrow">{t("AI BATCH STUDIO · 电商批处理")}</div><h1>{t("AI批量生成，")}<br />{t("从一张表开始")}</h1><p>{t("主图、详情图、营销文案，选好 Skill，填表批量生成。")}<br />{t("多任务并行，减少逐张等待。")}</p><div className="login-grid" aria-hidden="true">{Array.from({ length: 10 }, (_, i) => <div key={i}><span>{String(i + 1).padStart(2, '0')}</span><i /><Check size={17} /></div>)}</div><div className="login-caption"><Table2 size={17} />{t("批量调用 Skill · 统一查看与下载结果")}</div></div><span className="login-footer">{t("LoomSkill · 电商 AI 批处理工作台")}</span></div><div className="login-form-side"><form className="login-form" onSubmit={login}><h2>{t("连接你的工作空间")}</h2><p>{t("由胜算云提供多模型调用和结算服务。")}</p>{targetSkill && <p className="login-skill-handoff">{t("登录后将继续使用所选 Skill。")} <a href={skillPath(targetSkill)}>{t("查看详情")}</a></p>}<label className="field-label">{t("胜算云 API Key")}<input required type="password" autoComplete="off" spellCheck={false} value={key} placeholder={t("输入你的 API Key")} onChange={e => setKey(e.target.value)} /></label><div className="login-help"><div><span>{t("还没有 API Key？")}</span><a href="https://www.shengsuanyun.com/?from=Zoey" target="_blank" rel="noopener noreferrer">{t("注册领取体验额度")}<ArrowRight size={13} /></a></div><p>{t("通过此链接注册，可领取 ")}<strong>{t("10 元")}</strong>{t("体验额度。")}</p></div>{loginError && <p className="error" role="alert">{t(loginError)}</p>}<button className="button primary full" disabled={loginBusy || !key.trim()}>{loginBusy ? <LoaderCircle className="spin" size={18} /> : <ArrowRight size={18} />}{t("连接工作台")}</button><p className="privacy-note"><ShieldCheck size={16} />{t("Key 加密保存在服务器会话中，12 小时后过期；不会写入浏览器本地存储。")}</p><div className="or"><span />{t("或者")}<span /></div><button className="button full" type="button" onClick={enterDemo}><FlaskConical size={17} />{t("先体验演示")}</button><small className="demo-explainer">{t("使用示例数据，不提交真实任务、不产生费用。")}</small></form></div></main>;
+  if ((!ready && !draftListing) || (!connected && !draftAccess)) return <main className="boot"><img src="/loomdesk-mark.svg" alt="" /><LoaderCircle className="spin" /><p>{t("正在打开 LoomSkill…")}</p></main>;
   const current = view === 'editor' ? 'market' : view === 'detail' ? 'runs' : view;
   return <div className={`app-shell studio-app${view === 'market' ? ' studio-market' : ' studio-workspace'}`}>
     {mobileNav && <button aria-label={t("关闭导航")} className="nav-scrim" onClick={() => setMobileNav(false)} />}

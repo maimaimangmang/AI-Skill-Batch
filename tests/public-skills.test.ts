@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { requestedSkill, appPath, loginPath, skillId, skillPath, hiddenSkillIds } from '../lib/skill-links';
+import { requestedSkill, appPath, loginPath, connectionPath, skillId, skillPath, hiddenSkillIds } from '../lib/skill-links';
 import { isPublicSkill, publicFields } from '../lib/public-skills';
 import { jsonLd } from '../lib/seo';
 test('Skill handoff carries only identifiers, never a redirect URL', () => {
@@ -44,4 +44,12 @@ test('Public reads are anonymous and do not confuse outage with missing Skill', 
     await assert.rejects(getPublicSkill('outage'), /暂时不可用/);
     assert.equal(await getPublicSkill([...hiddenSkillIds][0]), null);
   } finally { globalThis.fetch = native; }
+});
+
+test('connection entry preserves only validated Skill destinations', () => {
+  assert.equal(connectionPath(), '/?connect=1');
+  assert.equal(connectionPath('text-image-v1'), '/skills/text-to-image');
+  for (const value of ['https://evil.test', '//evil.test', 'abc&connect=1', ...hiddenSkillIds]) {
+    assert.equal(connectionPath(value), '/?connect=1');
+  }
 });
