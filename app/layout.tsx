@@ -7,6 +7,7 @@ import "./plush.css";
 import { LanguageProvider } from '@/components/language-provider';
 import './language.css';
 import './favorites.css';
+import { RetryDraftProvider } from '@/components/retry-draft-provider';
 import { FavoritesProvider } from '@/components/favorites-provider';
 import { FavoritesNotice } from '@/components/favorite-button';
 export const metadata: Metadata = {
@@ -16,5 +17,5 @@ export const metadata: Metadata = {
   icons: { icon: "/loomdesk-mark.svg" }
 };
 export default function RootLayout({ children }: { children: React.ReactNode }) {
-  return <html lang="zh-CN"><body><LanguageProvider><FavoritesProvider>{children}<FavoritesNotice /></FavoritesProvider></LanguageProvider></body></html>;
+  return <html lang="zh-CN"><body><LanguageProvider><FavoritesProvider><RetryDraftProvider>{children}</RetryDraftProvider><FavoritesNotice /></FavoritesProvider></LanguageProvider></body></html>;
 }

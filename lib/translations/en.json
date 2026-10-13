@@ -58,7 +58,7 @@
   "上传未返回有效附件，请重试。": "The upload did not return a valid attachment. Please retry.",
   "已取消上传，可重新选择文件。": "Upload cancelled. You can choose another file.",
   "粘贴格式有误或超出现有字段列数，请调整后重试。": "Invalid paste format or too many columns. Adjust the data and try again.",
-  "返回工作流市场": "Back to workflows",
+  "返回 Skill 列表": "Back to Skills",
   "选择工作流": "Choose workflow",
   "填写任务表": "Fill in a task table",
   "确认并执行": "Confirm and run",
@@ -646,5 +646,7 @@
   "收藏保存失败，请再次点击五角星重试。": "Could not save your favorite. Click the star again to retry.",
   "LoomLoom 官方": "LoomLoom Official",
   "{0} · AI 批量工作流 | LoomSkill": "{0} · AI Batch Workflow | LoomSkill",
-  "链接工作台": "Connect workspace"
+  "链接工作台": "Connect workspace",
+  "连接胜算云 API Key 后查看你的任务和结果。": "Connect your Shengsuanyun API Key to view your tasks and results.",
+  "任务输入恢复失败，请重新填写。": "Unable to restore task inputs. Please fill them in again."
 }

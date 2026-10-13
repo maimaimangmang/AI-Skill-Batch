@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { ArrowLeft, CheckCircle2, Download, LoaderCircle, RefreshCw, RotateCcw } from 'lucide-react';
 import type { Field, ResultRow, RunDetail } from '@/lib/types';
 import { failed, schemaOf, statusLabel, terminal } from '@/lib/domain';
-import { download, exportSheet } from '@/lib/client';
+import { download, exportSheet, RequestError } from '@/lib/client';
 import { isOfficialTemplate } from '@/lib/official';
 import { marketSettlementPending, runCost, shouldPollRun } from '@/lib/run-cost';
 import { runName } from '@/lib/run-name';
@@ -27,7 +27,7 @@ export default function Results({ runId, demo, api, onBack, onRetry }: { runId: 
         resultsComplete = observedCompletion && terminal(d.run.status);
         observedCompletion = terminal(d.run.status);
         if (shouldPollRun(d.run, d.market || d.run.market) || !resultsComplete) timeout = setTimeout(update, 8000);
-      } catch (e) { if (active) { setError((e as Error).message); timeout = setTimeout(update, 15000); } }
+      } catch (e) { if (active) { setError((e as Error).message); if (e instanceof RequestError && [401, 403, 404].includes(e.status)) { setDetail(null); setRows([]); setPageToken(''); } else timeout = setTimeout(update, 15000); } }
       finally { if (active) setLoading(false); }
     }
     update(); return () => { active = false; clearTimeout(timeout); };

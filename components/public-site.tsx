@@ -7,7 +7,7 @@ import { useState, useEffect, useRef } from 'react';
 import PublicConnectionDialog from './public-connection-dialog';
 import { request } from '@/lib/client';
 import { useI18n, LanguageSwitcher } from './language-provider';
-import { skillPath, appPath } from '@/lib/skill-links';
+import { skillPath, appPath, tasksPath, workspaceDestination } from '@/lib/skill-links';
 import { money, cellText } from '@/lib/domain';
 import type { PublicSkill } from '@/lib/public-skills';
 import type { Schema } from '@/lib/types';
@@ -19,14 +19,17 @@ type CardSkill = Pick<PublicSkill, 'id' | 'displayName' | 'description' | 'creat
 export function PublicShell({ children, catalog = false, activePage }: { children: React.ReactNode; catalog?: boolean; activePage?: 'favorites' }) {
   const { t, skillText } = useI18n();
   const [connectionOpen, setConnectionOpen] = useState(false);
+  const [connectionDestination, setConnectionDestination] = useState(tasksPath());
   const [checking, setChecking] = useState(false);
   const sessionCheck = useRef<AbortController | null>(null);
   useEffect(() => {
     const url = new URL(window.location.href);
     if (url.pathname !== '/' || url.searchParams.get('connect') !== '1') return;
+    setConnectionDestination(workspaceDestination(url.searchParams.get('next')));
     setConnectionOpen(true);
     // Consume this one-time entry so closing or refreshing stays on the home page.
     url.searchParams.delete('connect');
+    url.searchParams.delete('next');
     window.history.replaceState(window.history.state, '', url.pathname + url.search + url.hash);
   }, []);
   useEffect(() => () => { sessionCheck.current?.abort(); sessionCheck.current = null; }, []);
@@ -37,7 +40,7 @@ export function PublicShell({ children, catalog = false, activePage }: { childre
     setChecking(true);
     try {
       const session = await request('/session', { signal: controller.signal });
-      if (session.connected) { window.location.assign('/app'); return; }
+      if (session.connected) { window.location.assign(tasksPath()); return; }
       setConnectionOpen(true);
     } catch {
       // An unavailable session check must not strand the visitor on this page.
@@ -47,7 +50,7 @@ export function PublicShell({ children, catalog = false, activePage }: { childre
       if (sessionCheck.current === controller) { sessionCheck.current = null; setChecking(false); }
     }
   }
-  return <div className="public-site"><header className="public-header"><Link className="public-brand" href="/"><img src="/loomdesk-mark.svg" alt="" />LoomSkill</Link><nav aria-label={t('网站导航')}><Link href="/favorites" aria-current={activePage === 'favorites' ? 'page' : undefined}>{t('我的收藏')}</Link>{!catalog && <Link href="/skills">{t('探索 Skill')}</Link>}<a href="https://www.shengsuanyun.com/zh/loomloom/?from=Zoey" target="_blank" rel="noopener noreferrer">{t('上传 Skill')}<ArrowUpRight size={14} /></a><button type="button" className="public-login public-nav-button" disabled={checking} aria-busy={checking} onClick={enterWorkspace}>{t('链接工作台')}{checking ? <LoaderCircle className="spin" size={15} /> : <ArrowUpRight size={15} />}</button><LanguageSwitcher /></nav></header>{children}<footer className="public-footer"><Link className="public-brand" href="/">LoomSkill</Link><p>{t('AI批量生成，从一张表开始')}</p><div role="navigation" aria-label={t('网站导航')}><Link href="/favorites" aria-current={activePage === 'favorites' ? 'page' : undefined}>{t('我的收藏')}</Link><Link href="/skills" aria-current={catalog ? 'page' : undefined}>{t('探索 Skill')}</Link><a href="https://www.shengsuanyun.com/zh/loomloom/?from=Zoey" target="_blank" rel="noopener noreferrer">{t('上传 Skill')}<ArrowUpRight size={14} /></a><button type="button" className="public-nav-button" disabled={checking} aria-busy={checking} onClick={enterWorkspace}>{t('链接工作台')}</button></div></footer>{connectionOpen && <PublicConnectionDialog onClose={() => setConnectionOpen(false)} />}</div>;
+  return <div className="public-site"><header className="public-header"><Link className="public-brand" href="/"><img src="/loomdesk-mark.svg" alt="" />LoomSkill</Link><nav aria-label={t('网站导航')}><Link href="/favorites" aria-current={activePage === 'favorites' ? 'page' : undefined}>{t('我的收藏')}</Link>{!catalog && <Link href="/skills">{t('探索 Skill')}</Link>}<a href="https://www.shengsuanyun.com/zh/loomloom/?from=Zoey" target="_blank" rel="noopener noreferrer">{t('上传 Skill')}<ArrowUpRight size={14} /></a><button type="button" className="public-login public-nav-button" disabled={checking} aria-busy={checking} onClick={enterWorkspace}>{t('我的任务')}{checking ? <LoaderCircle className="spin" size={15} /> : <ArrowUpRight size={15} />}</button><LanguageSwitcher /></nav></header>{children}<footer className="public-footer"><Link className="public-brand" href="/">LoomSkill</Link><p>{t('AI批量生成，从一张表开始')}</p><div role="navigation" aria-label={t('网站导航')}><Link href="/favorites" aria-current={activePage === 'favorites' ? 'page' : undefined}>{t('我的收藏')}</Link><Link href="/skills" aria-current={catalog ? 'page' : undefined}>{t('探索 Skill')}</Link><a href="https://www.shengsuanyun.com/zh/loomloom/?from=Zoey" target="_blank" rel="noopener noreferrer">{t('上传 Skill')}<ArrowUpRight size={14} /></a><button type="button" className="public-nav-button" disabled={checking} aria-busy={checking} onClick={enterWorkspace}>{t('我的任务')}</button></div></footer>{connectionOpen && <PublicConnectionDialog destination={connectionDestination} onClose={() => { setConnectionOpen(false); setConnectionDestination(tasksPath()); }} />}</div>;
 }
 export function SkillCards({ skills }: { skills: CardSkill[] }) {
   const { t, skillText } = useI18n();

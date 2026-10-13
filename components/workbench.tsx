@@ -1,5 +1,7 @@
 'use client';
 import { useI18n } from './language-provider';
+import { useRouter } from 'next/navigation';
+import { useRetryDraft } from './retry-draft-provider';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ArrowRight, Check, ChevronRight, CircleHelp, FileText, FlaskConical, Grid2X2, KeyRound, Image as ImageIcon, Languages, ScanSearch, ListChecks, LoaderCircle, LogOut, Menu, PanelLeftClose, Play, RefreshCw, Search, Settings2, ShieldCheck, Sparkles, Star, Table2, Wallet, X } from 'lucide-react';
 import type { Balance, InputRow, Listing, Quote, ResultRow, Schema } from '@/lib/types';
@@ -9,7 +11,7 @@ import { resolveDraftAssets, stageDraftAsset, type DraftAssets } from '@/lib/dra
 import { demoRequest } from '@/lib/demo';
 import { listingModelLabel, MARKET_PAGE_SIZE, marketPageNumbers, createMarketPager, type MarketPage } from '@/lib/market';
 import { workflowPath, isOfficialTemplate } from '@/lib/official';
-import { appPath, connectionPath, skillPath } from '@/lib/skill-links';
+import { appPath, connectionPath, skillPath, tasksPath, taskConnectionPath } from '@/lib/skill-links';
 import { createMarketAuthorLoader } from '@/lib/market-authors';
 import RunsView from './runs-view';
 import Editor from './editor';
@@ -31,7 +33,9 @@ function workflowIcon(title: string) {
   return { Icon: FileText, tone: 'text' };
 }
 
-export default function Workbench({ initialSkill, draftListing, canonicalSkill = false }: { initialSkill?: string; draftListing?: Listing; canonicalSkill?: boolean }) {
+export default function Workbench({ initialSkill, draftListing, canonicalSkill = false, initialView = 'market', initialRunId = '' }: { initialSkill?: string; draftListing?: Listing; canonicalSkill?: boolean; initialView?: 'market' | 'runs' | 'detail' | 'settings'; initialRunId?: string }) {
+  const router = useRouter();
+  const { stage: stageRetry, take: takeRetry, clear: clearRetry } = useRetryDraft();
   const [draftAccess, setDraftAccess] = useState(!!draftListing);
   const [connectionOpen, setConnectionOpen] = useState(false);
   const resumeQuote = useRef(false);
@@ -41,7 +45,7 @@ export default function Workbench({ initialSkill, draftListing, canonicalSkill =
   const { t, skillText } = useI18n();
   const [ready, setReady] = useState(false); const [connected, setConnected] = useState(false); const [demo, setDemo] = useState(false);
   const [key, setKey] = useState(''); const [loginBusy, setLoginBusy] = useState(false); const [loginError, setLoginError] = useState('');
-  const [view, setView] = useState<View>(draftListing ? 'editor' : 'market'); const [mobileNav, setMobileNav] = useState(false);
+  const [view, setView] = useState<View>(draftListing ? 'editor' : initialView); const [mobileNav, setMobileNav] = useState(false);
   const [balance, setBalance] = useState<Balance | null>(null); const [marketPages, setMarketPages] = useState<MarketPage[]>([]);
   const [loading, setLoading] = useState(false); const [error, setError] = useState(''); const [search, setSearch] = useState(''); const [query, setQuery] = useState('');
   const [marketPage, setMarketPage] = useState(0);
@@ -55,14 +59,14 @@ export default function Workbench({ initialSkill, draftListing, canonicalSkill =
   const [refresh, setRefresh] = useState(0);
   const [listing, setListing] = useState<Listing | null>(draftListing || null); const [schema, setSchema] = useState<Schema | null>(draftListing ? schemaOf(draftListing) : null); const [rows, setRows] = useState<InputRow[]>(draftListing ? Array.from({ length: 3 }, () => emptyRow(schemaOf(draftListing).fields)) : []);
   const [validation, setValidation] = useState<string[]>([]); const [busy, setBusy] = useState(false); const [confirmation, setConfirmation] = useState<Confirmation | null>(null); const [quoteError, setQuoteError] = useState('');
-  const [runId, setRunId] = useState(''); const [pending, setPending] = useState<Confirmation[]>([]);
+  const [runId, setRunId] = useState(initialRunId); const [pending, setPending] = useState<Confirmation[]>([]);
   const api = useCallback(async (path: string, options?: ApiRequestOptions) => {
     if (demo) return demoRequest(path, options);
     try { return await request(path, options); } catch (e) {
-      if (e instanceof RequestError && e.status === 401) { setConnected(false); setKey(''); setMarketPages([]); setMarketPage(0); setConfirmation(null); setBalance(null); setPending([]); setConnectionOpen(true); if (path === '/assets' || path === '/quote') resumeQuote.current = true; setLoginError(e.message); }
+      if (e instanceof RequestError && e.status === 401) { clearRetry(); setConnected(false); setKey(''); setMarketPages([]); setMarketPage(0); setConfirmation(null); setBalance(null); setPending([]); setConnectionOpen(true); if (path === '/assets' || path === '/quote') resumeQuote.current = true; setLoginError(e.message); }
       throw e;
     }
-  }, [demo]);
+  }, [demo, clearRetry]);
   const editorApi = async (path: string, options?: ApiRequestOptions) => {
     if (!connected && path === '/assets' && options?.body instanceof File) {
       options.signal?.throwIfAborted();
@@ -94,14 +98,37 @@ export default function Workbench({ initialSkill, draftListing, canonicalSkill =
   }, []);
   useEffect(() => {
     if (!ready) return;
-    if (!connected && !draftAccess) { window.location.replace(connectionPath(targetSkill)); return; }
-    const publicEditor = canonicalSkill && view === 'editor' && targetSkill === initialSkill;
-    const target = publicEditor ? skillPath(initialSkill!) : appPath(targetSkill, demo);
-    if (window.location.pathname + window.location.search !== target) {
-      window.history.replaceState(null, '', target);
+    if (!connected) {
+      clearRetry();
+      if (!draftAccess) {
+        const destination = initialView === 'settings' ? '/settings' : tasksPath(initialRunId);
+        window.location.replace(taskConnectionPath(destination));
+        return;
+      }
     }
-    document.title = publicEditor ? t('{0} · AI 批量工作流 | LoomSkill', skillText(draftListing!.displayName)) : connected || draftAccess ? t("LoomSkill · AI 批处理工作台") : t("登录 · LoomSkill");
-  }, [ready, connected, draftAccess, demo, t, skillText, targetSkill, canonicalSkill, initialSkill, draftListing, view]);
+    // Only the isolated legacy demo switches views in memory. Real pages keep
+    // their own route so refresh and browser history return to the same screen.
+    if (demo) {
+      const target = appPath(targetSkill, true);
+      if (window.location.pathname + window.location.search !== target) window.history.replaceState(window.history.state, '', target);
+    }
+    const title = canonicalSkill && draftListing ? t('{0} · AI 批量工作流 | LoomSkill', skillText(draftListing.displayName))
+      : `${t(view === 'detail' ? '任务结果' : view === 'settings' ? '连接设置' : view === 'runs' ? '我的任务' : '工作流市场')} · LoomSkill`;
+    document.title = title;
+  }, [ready, connected, draftAccess, demo, t, skillText, targetSkill, canonicalSkill, draftListing, view, initialView, initialRunId, clearRetry]);
+  useEffect(() => {
+    if (!ready || !connected || !canonicalSkill || !draftListing) return;
+    const retryRows = takeRetry(draftListing.id);
+    if (!retryRows) return;
+    try {
+      const shape = schemaOf(draftListing);
+      setRows(retryRows.map(row => {
+        const raw = JSON.parse(row.inputJson);
+        return Object.fromEntries(shape.fields.map(field => [field.key, (raw.values || raw)[field.key] ?? field.default_value ?? '']));
+      }));
+      setValidation([]); setConfirmation(null);
+    } catch { setError(t('任务输入恢复失败，请重新填写。')); }
+  }, [ready, connected, canonicalSkill, draftListing, takeRetry, t]);
   useEffect(() => {
     if (!connected) { attemptedSkill.current = ''; return; }
     if (!ready || !targetSkill || (listing?.id === targetSkill && schema)) return;
@@ -146,17 +173,29 @@ export default function Workbench({ initialSkill, draftListing, canonicalSkill =
   }, [view, loading, listings]);
   async function login(e: React.FormEvent) {
     e.preventDefault(); setLoginBusy(true); setLoginError('');
-    try { const data = await request('/session', post({ apiKey: key })); setKey(''); setDemo(false); setConnected(true); setBalance(data.balance); setConnectionOpen(false); for (const asset of draftAssets.current.values()) delete asset.uploadedId; if (!draftAccess) setView('market'); setRefresh(r => r + 1); if (resumeQuote.current) { resumeQuote.current = false; await quote(true); } }
+    try { const data = await request('/session', post({ apiKey: key })); setKey(''); setDemo(false); setConnected(true); setBalance(data.balance); setConnectionOpen(false); for (const asset of draftAssets.current.values()) delete asset.uploadedId; setRefresh(r => r + 1); if (resumeQuote.current) { resumeQuote.current = false; await quote(true); } }
     catch (e) { setLoginError((e as Error).message); } finally { setLoginBusy(false); }
   }
   async function logout() {
     setError('');
     if (!demo) { try { await request('/session', { method: 'DELETE' }); } catch (e) { setError((e as Error).message); return; } }
+    clearRetry(); window.location.assign(connectionPath());
     setDraftAccess(false); setConnectionOpen(false); resumeQuote.current = false; draftAssets.current.clear(); setTargetSkill(undefined); setConnected(false); setDemo(false); setKey(''); setMarketPages([]); setMarketPage(0); setRows([]); setListing(null); setBalance(null); setConfirmation(null); setPending([]); setView('market'); setError(''); setLoginError('');
   }
-  function navigate(next: View) { if (!connected) { if (next === 'market') window.location.assign('/skills'); else { resumeQuote.current = false; setConnectionOpen(true); } return; } setTargetSkill(undefined); attemptedSkill.current = ''; setView(next); setMobileNav(false); setError(''); }
+  function navigate(next: View) {
+    if (!demo) { window.location.assign(next === 'market' ? '/skills' : next === 'settings' ? '/settings' : tasksPath()); return; }
+    setTargetSkill(undefined); attemptedSkill.current = ''; setView(next); setMobileNav(false); setError('');
+  }
+  function openResult(id: string) {
+    if (!demo) { window.location.assign(tasksPath(id)); return; }
+    setRunId(id); setView('detail'); setMobileNav(false); setError('');
+  }
   async function choose(item: Listing, retryRows?: ResultRow[]) {
-    if (!demo && !retryRows) { window.location.assign(skillPath(item.id)); return; }
+    if (!demo) {
+      if (retryRows) { stageRetry(item.officialTemplateId || item.id, retryRows); router.push(skillPath(item.officialTemplateId || item.id)); }
+      else window.location.assign(skillPath(item.id));
+      return;
+    }
     setLoading(true); setError('');
     try {
       const fresh: Listing = await api(workflowPath(item)); const shape = schemaOf(fresh);
@@ -179,7 +218,7 @@ export default function Workbench({ initialSkill, draftListing, canonicalSkill =
   }
   async function execute() {
     if (!confirmation) return; setBusy(true); setQuoteError(''); setConfirmation({ ...confirmation, attempted: true });
-    try { const result = await api('/execute', post({ ticket: confirmation.ticket, confirm: true })); setRunId(result.runId); setView('detail'); setConfirmation(null); setPending(p => p.filter(x => x.ticket !== confirmation.ticket)); setRefresh(r => r + 1); }
+    try { const result = await api('/execute', post({ ticket: confirmation.ticket, confirm: true })); openResult(result.runId); setConfirmation(null); setPending(p => p.filter(x => x.ticket !== confirmation.ticket)); setRefresh(r => r + 1); }
     catch (e) { setQuoteError((e as Error).message); }
     finally { setBusy(false); }
   }
@@ -197,7 +236,7 @@ export default function Workbench({ initialSkill, draftListing, canonicalSkill =
   const current = view === 'editor' ? 'market' : view === 'detail' ? 'runs' : view;
   return <div className={`app-shell studio-app${view === 'market' ? ' studio-market' : ' studio-workspace'}`}>
     {mobileNav && <button aria-label={t("关闭导航")} className="nav-scrim" onClick={() => setMobileNav(false)} />}
-    <aside className={`sidebar ${mobileNav ? 'open' : ''}`}><a className="brand" href="/"><img src="/loomdesk-mark.svg" alt="" />LoomSkill</a><button className="mobile-close icon-button" aria-label={t("收起导航")} onClick={() => setMobileNav(false)}><PanelLeftClose size={18} /></button><nav>{([{ id: 'market', name: t("工作流市场"), Icon: Grid2X2 }, { id: 'runs', name: t("我的任务"), Icon: ListChecks }, { id: 'settings', name: t("连接设置"), Icon: Settings2 }] as const).map(({ id, name, Icon }) => <button key={id} className={current === id ? 'active' : ''} onClick={() => navigate(id)}><Icon size={19} />{name}{current === id && <ChevronRight size={15} />}</button>)}<a className="sidebar-favorites" href="/favorites"><Star size={19} />{t("我的收藏")}</a></nav><div className="sidebar-bottom"><SidebarResources /><div className="sidebar-session"><div className="balance-card"><span><Wallet size={15} />{demo ? t("演示余额") : t("可用余额")}</span><strong>{!connected ? t("执行前连接") : balance ? t(money(balance.availableBalanceT, balance.currency)) : t("读取中…")}</strong><small>{demo ? t("仅供演示，不产生费用") : <>{t("费用由")}<a className="billing-provider-link" href="https://www.shengsuanyun.com/?from=Zoey" target="_blank" rel="noopener noreferrer" title={t("打开胜算云（新窗口）")}>{t("胜算云")}</a>{t("直接结算")}</>}</small></div>{connected && <div className="account"><span className={`account-dot${demo ? ' demo' : ''}`} aria-hidden="true" /><div><strong>{demo ? t("演示空间") : t("API Key 已连接")}</strong><small>{demo ? t("示例数据") : t("独立会话 · 安全连接")}</small></div>{connected && <button className="icon-button" aria-label={demo ? t("退出演示") : t("退出连接")} onClick={logout}><LogOut size={17} /></button>}</div>}</div><SidebarCommunity /></div></aside>
+    <aside className={`sidebar ${mobileNav ? 'open' : ''}`}><a className="brand" href="/"><img src="/loomdesk-mark.svg" alt="" />LoomSkill</a><button className="mobile-close icon-button" aria-label={t("收起导航")} onClick={() => setMobileNav(false)}><PanelLeftClose size={18} /></button><nav>{([{ id: 'market', name: t("探索 Skill"), Icon: Grid2X2 }, { id: 'runs', name: t("我的任务"), Icon: ListChecks }, { id: 'settings', name: t("连接设置"), Icon: Settings2 }] as const).map(({ id, name, Icon }) => <button key={id} className={current === id ? 'active' : ''} onClick={() => navigate(id)}><Icon size={19} />{name}{current === id && <ChevronRight size={15} />}</button>)}<a className="sidebar-favorites" href="/favorites"><Star size={19} />{t("我的收藏")}</a></nav><div className="sidebar-bottom"><SidebarResources /><div className="sidebar-session"><div className="balance-card"><span><Wallet size={15} />{demo ? t("演示余额") : t("可用余额")}</span><strong>{!connected ? t("执行前连接") : balance ? t(money(balance.availableBalanceT, balance.currency)) : t("读取中…")}</strong><small>{demo ? t("仅供演示，不产生费用") : <>{t("费用由")}<a className="billing-provider-link" href="https://www.shengsuanyun.com/?from=Zoey" target="_blank" rel="noopener noreferrer" title={t("打开胜算云（新窗口）")}>{t("胜算云")}</a>{t("直接结算")}</>}</small></div>{connected && <div className="account"><span className={`account-dot${demo ? ' demo' : ''}`} aria-hidden="true" /><div><strong>{demo ? t("演示空间") : t("API Key 已连接")}</strong><small>{demo ? t("示例数据") : t("独立会话 · 安全连接")}</small></div>{connected && <button className="icon-button" aria-label={demo ? t("退出演示") : t("退出连接")} onClick={logout}><LogOut size={17} /></button>}</div>}</div><SidebarCommunity /></div></aside>
     <div className="main-shell"><div className="mobile-navigation"><button className="icon-button" aria-label={t("展开导航")} aria-expanded={mobileNav} onClick={() => setMobileNav(true)}><Menu size={20} />{t("菜单")}</button></div>
     {demo && <div className="demo-banner"><span><FlaskConical size={16} /><strong>{t("演示模式")}</strong> {t(" 当前内容为示例数据，运行不会调用真实 AI。")}</span><button onClick={logout}>{t("连接真实账号")}<ArrowRight size={14} /></button></div>}
     <main className="main-content">
@@ -220,7 +259,7 @@ export default function Workbench({ initialSkill, draftListing, canonicalSkill =
         <div className="market-foot"><ShieldCheck size={14} />{t("提交前展示预估费用，确认后才执行。调用费之外的模型费用以实际用量为准。")}</div>
       </>}
       {view === 'editor' && listing && schema && <Editor listing={listing} schema={schema} rows={rows} setRows={next => { setRows(next); setValidation([]); setConfirmation(null); }} demo={demo} guest={!connected} api={editorApi} busy={busy || !ready} errors={validation} onBack={() => navigate('market')} onQuote={() => void quote()} />}
-      <RunsView active={view === 'runs'} api={api} refreshKey={refresh} onNew={() => navigate('market')} onResult={id => { setRunId(id); navigate('detail'); }} />
+      <RunsView active={view === 'runs'} api={api} refreshKey={refresh} onNew={() => navigate('market')} onResult={openResult} />
       {view === 'detail' && <Results key={runId} runId={runId} demo={demo} api={api} onBack={() => navigate('runs')} onRetry={async (listingId, failedRows, officialTemplateId) => { await choose({ id: listingId, officialTemplateId } as Listing, failedRows); }} />}
       {view === 'settings' && <><div className="page-heading"><div><div className="eyebrow">CONNECTION</div><h1>{t("连接设置")}</h1><p>{t("管理你的胜算云连接与工作空间。")}</p></div></div><section className="settings-card"><span className="settings-icon"><KeyRound size={25} /></span><h2>{demo ? t("当前为演示模式") : t("胜算云已连接")}</h2><p>{demo ? t("连接自己的 API Key，即可浏览真实市场并提交任务。") : t("你的 Key 仅用于调用胜算云 LoomLoom 服务。退出后会立即删除当前服务端会话。")}</p><div className="settings-rows"><div><span>{t("接入方式")}</span><strong>{demo ? t("演示数据") : t("个人 API Key")}</strong></div><div><span>{t("任务行数")}</span><strong>{t("按实际填写行数")}</strong></div><div><span>{t("会话有效期")}</span><strong>{t("12 小时")}</strong></div><div><span>{t("数据与结果")}</span><strong>{t("由胜算云账号隔离")}</strong></div><div><span>{t("可用余额")}</span><strong>{balance ? t(money(balance.availableBalanceT, balance.currency)) : t("暂未返回")}</strong></div></div><button className="button primary" onClick={logout}>{demo ? t("连接真实账号") : t("退出并更换 API Key")}<ArrowRight size={16} /></button><p className="subtle">{t("LoomSkill v0.1 · MIT · 独立开源客户端")}</p></section></>}
     </main><footer className="app-footer"><span>LoomSkill</span><span>{t("让重复的工作，有更简单的做法。")}</span><span>{t("独立开发 · 非胜算云官方产品")}</span></footer></div>

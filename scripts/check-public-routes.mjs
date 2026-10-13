@@ -28,8 +28,8 @@ try {
     assert.equal(app.status, 308);
     assert.equal(app.headers.get('location'), '/skills/text-to-image');
     const privateApp = await read('/app');
-    assert.equal(privateApp.status, 307);
-    assert.equal(privateApp.headers.get('location'), '/?connect=1');
+    assert.equal(privateApp.status, 308);
+    assert.equal(privateApp.headers.get('location'), '/tasks');
     const quote = await read('/api/balance');
     assert.equal(quote.status, 401);
   }
@@ -37,10 +37,22 @@ try {
     ['/login', '/?connect=1'],
     ['/login?skill=text-image-v1', '/skills/text-to-image'],
     ['/login?skill=https%3A%2F%2Fevil.test', '/?connect=1'],
+    ['/tasks', '/?connect=1'],
+    ['/tasks/run_ABC-123', '/?connect=1&next=%2Ftasks%2Frun_ABC-123'],
+    ['/settings', '/?connect=1&next=%2Fsettings'],
   ]) {
     const response = await read(path);
-    assert.equal(response.status, 307);
-    assert.equal(response.headers.get('location'), destination);
+    assert.equal(response.status, 307, `Unexpected status for ${path}`);
+    assert.equal(response.headers.get('location'), destination, `Connection must preserve only the intended destination for ${path}`);
+  }
+  for (const path of ['/tasks/invalid%20id', '/tasks/run%3Fdemo%3D1', `/tasks/${'a'.repeat(181)}`]) {
+    assert.equal((await read(path)).status, 404, `Invalid task identifier should be rejected before connection: ${path}`);
+  }
+  for (const path of ['/api/runs', '/api/runs/run_ABC-123', '/api/runs/run_ABC-123/results', '/api/runs/run_ABC-123/workbook']) {
+    const response = await read(path);
+    assert.equal(response.status, 401, `Task data must require a session: ${path}`);
+    assert.equal(response.headers.get('cache-control'), 'no-store');
+    assert.equal(typeof (await response.json()).error, 'string');
   }
   const connectionHome = await read('/?connect=1');
   assert.equal(connectionHome.status, 200);
@@ -54,7 +66,7 @@ try {
   assert.equal(alias.status, 308);
   assert.equal(alias.headers.get('location'), '/skills/text-to-image');
   assert.equal((await read('/app?demo=1')).status, 200);
-  console.log('Container public home, Skill detail, and authentication routes verified.');
+  console.log('Container public Skill pages, canonical task routes, protected task APIs, and connection handoffs verified.');
 } finally {
   server.kill('SIGTERM');
   await Promise.race([once(server, 'exit'), new Promise(resolve => setTimeout(resolve, 3000))]);
