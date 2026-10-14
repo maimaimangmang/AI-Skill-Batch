@@ -60,3 +60,14 @@
  .workspace-nav-links .language-switcher button { min-width:44px; min-height:44px; font-size:14px; }
  .account-panel { right:-52px; max-width:calc(100vw - 36px); max-height:calc(100dvh - 90px); padding:18px; }
 }
+
+.public-header.has-home-back { gap:12px; }
+.public-header.has-home-back>.public-brand { margin-right:auto; }
+.public-site .public-home-back { display:inline-flex; align-items:center; justify-content:center; flex-shrink:0; gap:6px; min-height:44px; padding:8px 10px; border:1px solid #e3e6f3; border-radius:10px; background:#fff; color:#526183; font-size:12px; line-height:1.4; white-space:nowrap; }
+.public-site .public-home-back:hover { color:#5433ff; background:#f3f0ff; }
+@media(max-width:1050px) {
+ .public-header.has-home-back { gap:8px; padding-inline:18px; }
+ .public-header.has-home-back>.public-brand { font-size:20px; }
+ .public-home-back span { display:none; }
+ .public-site .public-home-back { width:40px; padding:0; }
+}

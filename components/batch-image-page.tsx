@@ -25,7 +25,7 @@ const questions = [
 
 export function BatchImagePage() {
   const { t } = useI18n();
-  return <PublicShell><main className="batch-image-page">
+  return <PublicShell showHomeBack><main className="batch-image-page">
     <section className="public-section" id="image-workflows">
       <div className="public-section-heading"><div><h1>{t('选择适合你的批量生图场景')}</h1><p>{t('同一张任务表，按行准备输入；不同图片需求，选择对应 Skill。')}</p></div></div>
       <div className="public-cards">{workflows.map(item => <article className="public-card" key={item.href}><h2><Link href={item.href}>{t(item.title)}</Link></h2><p>{t(item.description)}</p><div className="public-card-bottom"><Link href={item.href}>{t(item.link)}<ArrowRight size={16} /></Link></div></article>)}</div>

@@ -2,7 +2,7 @@
 import Link from 'next/link';
 import FavoriteButton from './favorite-button';
 import Image from 'next/image';
-import { ArrowRight, ArrowUpRight, Check, Copy, Layers, Search, Table2, Sparkles } from 'lucide-react';
+import { ArrowLeft, ArrowRight, ArrowUpRight, Check, Copy, Layers, Search, Table2, Sparkles } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
 import PublicConnectionDialog from './public-connection-dialog';
 import { HomeCommunity } from './sidebar-community';
@@ -18,7 +18,7 @@ import { PlushMascot } from './plush-hero';
 import type { WorkflowExample } from '@/lib/workflow-examples';
 
 type CardSkill = Pick<PublicSkill, 'id' | 'displayName' | 'description' | 'creator' | 'officialTemplateId' | 'taskFixedFeeT' | 'currency'>;
-export function PublicShell({ children, catalog = false, activePage }: { children: React.ReactNode; catalog?: boolean; activePage?: 'favorites' }) {
+export function PublicShell({ children, catalog = false, activePage, showHomeBack = false }: { children: React.ReactNode; catalog?: boolean; showHomeBack?: boolean; activePage?: 'favorites' }) {
   const { t, skillText } = useI18n();
   const [connectionOpen, setConnectionOpen] = useState(false);
   const [connectionDestination, setConnectionDestination] = useState(tasksPath());
@@ -52,7 +52,7 @@ export function PublicShell({ children, catalog = false, activePage }: { childre
       if (sessionCheck.current === controller) { sessionCheck.current = null; setChecking(false); }
     }
   }
-  return <div className="public-site"><header className="public-header"><Link className="public-brand" href="/"><img src="/loomdesk-mark.svg" alt="" />LoomSkill</Link><WorkspaceNavigation activePage={catalog ? 'skills' : activePage} /></header>{children}<footer className="public-footer"><Link className="public-brand" href="/">LoomSkill</Link><p>{t('AI批量生成，从一张表开始')}</p><div role="navigation" aria-label={t('网站导航')}><Link href="/favorites" aria-current={activePage === 'favorites' ? 'page' : undefined}>{t('我的收藏')}</Link><Link href="/batch-image-generation">{t('AI 批量生图')}</Link><Link href="/skills" aria-current={catalog ? 'page' : undefined}>{t('探索 Skill')}</Link><a href="https://www.shengsuanyun.com/zh/loomloom/?from=Zoey" target="_blank" rel="noopener noreferrer">{t('上传 Skill')}<ArrowUpRight size={14} /></a><button type="button" className="public-nav-button" disabled={checking} aria-busy={checking} onClick={enterWorkspace}>{t('我的任务')}</button></div></footer>{connectionOpen && <PublicConnectionDialog destination={connectionDestination} onClose={() => { setConnectionOpen(false); setConnectionDestination(tasksPath()); }} />}</div>;
+  return <div className="public-site"><header className={`public-header${showHomeBack ? ' has-home-back' : ''}`}>{showHomeBack && <Link className="public-home-back" href="/" aria-label={t('返回首页')} title={t('返回首页')}><ArrowLeft size={18} aria-hidden="true" /><span>{t('返回首页')}</span></Link>}<Link className="public-brand" href="/"><img src="/loomdesk-mark.svg" alt="" />LoomSkill</Link><WorkspaceNavigation activePage={catalog ? 'skills' : activePage} /></header>{children}<footer className="public-footer"><Link className="public-brand" href="/">LoomSkill</Link><p>{t('AI批量生成，从一张表开始')}</p><div role="navigation" aria-label={t('网站导航')}><Link href="/favorites" aria-current={activePage === 'favorites' ? 'page' : undefined}>{t('我的收藏')}</Link><Link href="/batch-image-generation">{t('AI 批量生图')}</Link><Link href="/skills" aria-current={catalog ? 'page' : undefined}>{t('探索 Skill')}</Link><a href="https://www.shengsuanyun.com/zh/loomloom/?from=Zoey" target="_blank" rel="noopener noreferrer">{t('上传 Skill')}<ArrowUpRight size={14} /></a><button type="button" className="public-nav-button" disabled={checking} aria-busy={checking} onClick={enterWorkspace}>{t('我的任务')}</button></div></footer>{connectionOpen && <PublicConnectionDialog destination={connectionDestination} onClose={() => { setConnectionOpen(false); setConnectionDestination(tasksPath()); }} />}</div>;
 }
 export function SkillCards({ skills }: { skills: CardSkill[] }) {
   const { t, skillText } = useI18n();
