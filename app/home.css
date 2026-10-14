@@ -7,6 +7,8 @@
 .public-home .public-hero-preview{transform:perspective(1100px) rotateX(var(--tilt-x,0deg)) rotateY(var(--tilt-y,0deg)) rotate(1.5deg)}
 .public-home .public-hero-preview[data-pointer-active]{box-shadow:0 24px 65px #67559822}
 .public-home .public-button{transition:transform .2s,box-shadow .2s}
+.public-home .public-hero .public-actions{align-items:center}
+.public-home .public-hero .public-button[href="/batch-image-generation"]{min-height:40px;padding:9px 14px;font-size:13px;font-weight:500}
 .public-home .home-skill-layout{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:32px}
 .public-home .home-curated-list{display:grid;gap:12px}
 .public-home .home-featured-card{display:flex;gap:14px;padding:20px;background:#fff;border:1px solid #e5e3f1;border-radius:16px;min-height:136px;min-width:0;transform:perspective(1000px) rotateX(var(--tilt-x,0deg)) rotateY(var(--tilt-y,0deg))}
