@@ -26,21 +26,9 @@ const questions = [
 export function BatchImagePage() {
   const { t } = useI18n();
   return <PublicShell><main className="batch-image-page">
-    <section className="public-hero">
-      <div className="public-hero-copy">
-        <span className="public-eyebrow">BATCH IMAGE GENERATION</span>
-        <h1>{t('AI 批量生图，')}<br /><em>{t('从一张表开始')}</em></h1>
-        <p>{t('把提示词、产品图与画面要求填进任务表，批量生成商品图、插画和视觉素材。支持在线填写与 Excel / CSV 导入。')}</p>
-        <div className="public-actions"><Link className="public-button primary" href="/skills/text-to-image">{t('开始批量生图')}<ArrowRight size={18} /></Link><Link className="public-button" href="#image-workflows">{t('选择生图场景')}</Link></div>
-      </div>
-      <figure className="public-hero-preview batch-example">
-        <Image src="/examples/ecommerce-image-remix/result.png" alt={t('AI 生成案例：暖光床头场景中的陶瓷杯')} width={1024} height={1024} priority />
-        <figcaption>{t('电商图复刻 · 作者真实试跑')}</figcaption>
-      </figure>
-    </section>
     <section className="public-section" id="image-workflows">
-      <div className="public-section-heading"><div><h2>{t('选择适合你的批量生图场景')}</h2><p>{t('同一张任务表，按行准备输入；不同图片需求，选择对应 Skill。')}</p></div></div>
-      <div className="public-cards">{workflows.map(item => <article className="public-card" key={item.href}><h3><Link href={item.href}>{t(item.title)}</Link></h3><p>{t(item.description)}</p><div className="public-card-bottom"><Link href={item.href}>{t(item.link)}<ArrowRight size={16} /></Link></div></article>)}</div>
+      <div className="public-section-heading"><div><h1>{t('选择适合你的批量生图场景')}</h1><p>{t('同一张任务表，按行准备输入；不同图片需求，选择对应 Skill。')}</p></div></div>
+      <div className="public-cards">{workflows.map(item => <article className="public-card" key={item.href}><h2><Link href={item.href}>{t(item.title)}</Link></h2><p>{t(item.description)}</p><div className="public-card-bottom"><Link href={item.href}>{t(item.link)}<ArrowRight size={16} /></Link></div></article>)}</div>
     </section>
     <section className="public-section public-how"><h2>{t('如何用 Excel / CSV 批量生成图片')}</h2><div className="public-steps">{steps.map((step, i) => <article key={step.title}><span className="step-number">0{i + 1}</span><h3>{t(step.title)}</h3><p>{t(step.text)}</p></article>)}</div></section>
     <section className="public-section batch-example-section"><h2>{t('商品图示例：参考图 + 产品原图 → 生图结果')}</h2><p>{t('这是作者使用电商图复刻 Skill 的真实试跑。生成效果会随输入和模型变化。')}</p><div className="batch-example-inputs">{[

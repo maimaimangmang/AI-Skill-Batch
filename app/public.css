@@ -91,10 +91,10 @@
 
 /* Batch image landing page shares the public site typography and spacing. */
 .public-actions{flex-wrap:wrap}.public-footer>div{flex-wrap:wrap}
-.batch-image-page .public-hero h1{font-size:clamp(34px,4.5vw,56px)}
-.batch-image-page .batch-example{margin:0;transform:none}
-.batch-example>img{width:100%;height:auto;display:block;border-radius:14px}
-.batch-example figcaption,.batch-example-inputs figcaption{font-size:12px;color:var(--public-muted);margin-top:12px}
+.batch-image-page #image-workflows{padding-top:40px}
+.batch-image-page .public-section-heading h1{font-size:29px;letter-spacing:-.8px;line-height:1.4;margin:0 0 10px}
+.batch-image-page .public-card h2{font-size:18px;letter-spacing:-.3px;line-height:1.5;margin:0 0 12px;overflow-wrap:anywhere}
+.batch-example-inputs figcaption{font-size:12px;color:var(--public-muted);margin-top:12px}
 .batch-image-page .public-card>p{display:block;overflow:visible}
 .batch-example-section>p{color:var(--public-muted)}
 .batch-example-inputs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px;margin:28px 0}
@@ -102,4 +102,4 @@
 .batch-example-inputs img{width:100%;height:auto;aspect-ratio:1;object-fit:contain;background:white;border-radius:12px}
 .batch-faq .public-detail-section{margin-top:24px;padding-top:20px}
 .batch-faq h3{font-size:17px;margin:0 0 10px}
-@media(max-width:760px){.batch-example-inputs{grid-template-columns:1fr 1fr;gap:16px}.batch-example-inputs figure:last-child{grid-column:1/-1}.batch-image-page .public-hero{padding-top:36px}}
+@media(max-width:760px){.batch-example-inputs{grid-template-columns:1fr 1fr;gap:16px}.batch-example-inputs figure:last-child{grid-column:1/-1}.batch-image-page #image-workflows{padding-top:30px}.batch-image-page .public-section-heading h1{font-size:25px}}
