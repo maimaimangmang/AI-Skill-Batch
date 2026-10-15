@@ -6,6 +6,8 @@
 
 [在线体验](https://loomskill.com/) · [探索 Skill](https://loomskill.com/skills) · [批量生图场景](https://loomskill.com/batch-image-generation) · [上传自己的 Skill](#上传自己的-skill再批量调用) · [自行部署](docs/SELF-HOSTING.md) · [反馈问题](https://github.com/maimaimangmang/AI-Skill-Batch/issues)
 
+> **新用户试用：通过 [LoomSkill 专属入口注册胜算云](https://www.shengsuanyun.com/?from=Zoey)，可领取 10 元 Token 代金券，用于模型 Token 消耗试用。** 注册后获取胜算云 API Key，回到 LoomSkill 连接即可使用。领取条件与抵扣范围以胜算云活动规则为准。
+
 ![LoomSkill 首页：AI 批量生成，从一张表开始](docs/images/homepage.png)
 
 ## 可以做什么
@@ -61,7 +63,7 @@
 
 1. 打开 [loomskill.com](https://loomskill.com/)，从「探索 Skill」选择一个场景。
 2. 查看填写说明，在网页中填写任务表，或下载模板、填写后导入。浏览和填写无需连接 Key。
-3. 点击「校验并预估费用」，按提示连接自己的胜算云 API Key，核对任务数量和预计费用。
+3. 点击「校验并预估费用」，按提示连接自己的胜算云 API Key，核对任务数量和预计费用。还没有账号，可以先通过 [LoomSkill 专属入口注册胜算云](https://www.shengsuanyun.com/?from=Zoey)，领取 10 元 Token 代金券用于 Token 消耗试用。
 4. 确认执行后，到「我的任务」查看进度和结果。
 
 **尚未提交的表格草稿只保存在当前页面，关闭或刷新前请另存。**
