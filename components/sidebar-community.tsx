@@ -1,4 +1,5 @@
 'use client';
+import { LocalizedAnchor } from './localized-link';
 import { useI18n } from './language-provider';
 import { useState } from 'react';
 import { ArrowUpRight, CircleHelp, MessageCircle, Upload } from 'lucide-react';
@@ -20,7 +21,7 @@ export default function SidebarCommunity() {
 
 export function SidebarResources() {
   const { t } = useI18n();
-  return <div className="sidebar-resource-links"><a className="creator-link" aria-label={t("免费上架我的自定义工作流")} href="https://www.shengsuanyun.com/zh/loomloom" target="_blank" rel="noopener noreferrer"><Upload size={16} /><span>{t("上架自定义工作流")}</span><small className="sidebar-free-tag">{t("免费")}</small><ArrowUpRight size={13} /></a><a className="help-link" href="https://lean.shengsuanyun.com/apidocs/loomloom/guide/loomloom-guide" target="_blank" rel="noopener noreferrer"><CircleHelp size={16} /><span>{t("使用文档")}</span><ArrowUpRight size={13} /></a></div>;
+  return <div className="sidebar-resource-links"><LocalizedAnchor className="creator-link" aria-label={t("免费上架我的自定义工作流")} href="https://www.shengsuanyun.com/zh/loomloom" target="_blank" rel="noopener noreferrer"><Upload size={16} /><span>{t("上架自定义工作流")}</span><small className="sidebar-free-tag">{t("免费")}</small><ArrowUpRight size={13} /></LocalizedAnchor><LocalizedAnchor className="help-link" href="https://lean.shengsuanyun.com/apidocs/loomloom/guide/loomloom-guide" target="_blank" rel="noopener noreferrer"><CircleHelp size={16} /><span>{t("使用文档")}</span><ArrowUpRight size={13} /></LocalizedAnchor></div>;
 }
 
 export function HomeCommunity() {

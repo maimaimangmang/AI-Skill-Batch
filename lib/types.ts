@@ -7,16 +7,26 @@ export type Field = {
 };
 export type Schema = { fields: Field[]; input_summary?: string; instructions?: string[]; sample_rows?: InputRow[] };
 export type Money = { amount: string; currency: string };
+export type SubscriptionTier = { tierType: string; price?: Money; enabled: boolean; durationDays?: number };
+export type SubscriptionOffer = { bundleId: string; bundleName: string; revision?: number; tiers: SubscriptionTier[]; items?: { listingId: string; listingName: string }[] };
+export type SkillPricing = {
+  creatorFee?: Money & { unit?: string }; payPerUseEnabled?: boolean;
+  subscriptionOffersStatus?: string; subscriptionOffers?: SubscriptionOffer[];
+  subscriptionPolicy?: { creatorFeeWaived?: boolean; modelFeeIncluded?: boolean; paymentTiming?: string };
+};
 export type Listing = {
   id: string; officialTemplateId?: string; displayName: string; description: string; currency?: string;
   taskFixedFeeT?: number; taskFixedFee?: Money; inputSchemaSnapshot: string | Schema;
   listingVersionId?: string; saleStatus?: string; executionAvailabilityStatus?: string;
   creator?: { nickname?: string };
+  category?: string; pricing?: SkillPricing;
 };
 export type Quote = {
   source?: 'official'; quoteId?: string; currency?: string; taskCount?: number; taskFixedFeeT?: number;
   estimatedExecutionCostT?: number; estimatedBuyerPayableT?: number;
   estimatedBuyerPayable?: Money; listingVersionId?: string; pricingRuleVersion?: string;
+  effectiveCreatorFee?: Money; effectivePaymentMode?: string; entitlementExpiresAt?: string;
+  requiresPaymentChoice?: boolean; purchaseOptions?: SubscriptionOffer[];
 };
 export type Balance = { availableBalanceT?: number; currency?: string; availableBalance?: Money };
 export type Artifact = { artifactId?: string; accessUrl?: string; inlineText?: string; mimeType?: string; portName?: string; stepId?: string; stepLabel?: string };

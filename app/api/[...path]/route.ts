@@ -1,3 +1,4 @@
+import { publicPricing, validMoney } from '@/lib/skill-commerce';
 import { parseRunFilters, readRunsPage } from '@/lib/runs';
 import { readFavorites, changeFavorites } from '@/lib/favorites-server';
 import { MARKET_PAGE_SIZE } from '@/lib/market';
@@ -33,8 +34,13 @@ async function precheckOfficial(template: string, rows: Record<string, unknown>[
   try { return officialQuote(precheck, rows.length, version); } catch (e) { throw new ApiError((e as Error).message, 502); }
 }
 function json(value: unknown, status = 200) { return NextResponse.json(value, { status, headers: { 'Cache-Control': 'no-store' } }); }
-function publicListing(value: Listing): Listing {
-  return { id: value.id, displayName: value.displayName, description: value.description, currency: value.currency, taskFixedFeeT: value.taskFixedFeeT, taskFixedFee: value.taskFixedFee, inputSchemaSnapshot: value.inputSchemaSnapshot, listingVersionId: value.listingVersionId, saleStatus: value.saleStatus, executionAvailabilityStatus: value.executionAvailabilityStatus, creator: value.creator };
+async function publicListing(value: Listing): Promise<Listing> {
+  let pricing;
+  try {
+    const detail = await upstream(`skillCatalog/market/${id(value.id)}`);
+    if (detail.source === 'market' && detail.resourceId === value.id) pricing = publicPricing(detail.pricing);
+  } catch { /* An unavailable price must remain unknown, never free. */ }
+  return { id: value.id, displayName: value.displayName, description: value.description, currency: value.currency, taskFixedFeeT: value.taskFixedFeeT, taskFixedFee: value.taskFixedFee, inputSchemaSnapshot: value.inputSchemaSnapshot, listingVersionId: value.listingVersionId, saleStatus: value.saleStatus, executionAvailabilityStatus: value.executionAvailabilityStatus, creator: value.creator, category: value.category, pricing };
 }
 function query(request: NextRequest, keys: string[], defaults: Record<string, string> = {}) {
   const params = new URLSearchParams(defaults);
@@ -91,7 +97,7 @@ async function handle(request: NextRequest, context: { params: Promise<{ path: s
           params.set('pageToken', marketOffsetToken(Number(page) * MARKET_PAGE_SIZE));
         }
         const data = await upstream(`marketListings?${params}`, key, undefined, false, request.signal);
-        return json({ items: data.items.map(publicListing), nextPageToken: data.nextPageToken, totalCount: data.totalCount });
+        return json({ items: await Promise.all(data.items.map(publicListing)), nextPageToken: data.nextPageToken, totalCount: data.totalCount });
       }
       if (route === 'market-count') {
         const keyword = request.nextUrl.searchParams.get('keyword') || '';
@@ -99,7 +105,7 @@ async function handle(request: NextRequest, context: { params: Promise<{ path: s
         const totalCount = await countMarketItems(params => upstream(`marketListings?${params}`, key, undefined, false, request.signal), keyword, request.signal);
         return json({ items: [], totalCount });
       }
-      if (path[0] === 'market' && path.length === 2) return json(publicListing(await upstream(`marketListings/${id(path[1])}`, key, undefined, false, request.signal)));
+      if (path[0] === 'market' && path.length === 2) return json(await publicListing(await upstream(`marketListings/${id(path[1])}`, key, undefined, false, request.signal)));
       if (path[0] === 'market' && path.length === 3 && path[2] === 'workbook') {
         const data = await upstream(`marketListings/${id(path[1])}/workbook`, key, undefined, true);
         return new Response(data, { headers: { 'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'Content-Disposition': 'attachment; filename="loomdesk-input.xlsx"', 'Cache-Control': 'no-store' } });
@@ -150,6 +156,7 @@ async function handle(request: NextRequest, context: { params: Promise<{ path: s
       const { rows, errors } = normalizeRows(body.rows, schemaOf(listing).fields);
       if (errors.length) throw new ApiError(errors.join('；'));
       const quote: Quote = await upstream(`marketListings/${listingId}:quote`, key, { inputRows: rows });
+      if (quote.requiresPaymentChoice === true) throw new ApiError('请先在胜算云选择订阅或按次付费，再重新预估。订阅方案可在本页收费说明中查看。', 409);
       if (quote.estimatedBuyerPayableT == null || !Number.isSafeInteger(quote.estimatedBuyerPayableT) || quote.estimatedBuyerPayableT < 0 || !quote.currency) throw new ApiError('服务未返回完整金额或币种，暂不能确认执行。', 502);
       if (quote.taskCount !== rows.length) throw new ApiError('报价任务数与表格不一致，请检查工作流输入。', 409);
       const balance = await upstream('users/me/balance', key);
@@ -164,13 +171,13 @@ async function handle(request: NextRequest, context: { params: Promise<{ path: s
         const latest: Quote = payload.officialTemplateId
           ? await precheckOfficial(payload.officialTemplateId, payload.rows, key, (await getOfficial(payload.officialTemplateId, key)).listingVersionId)
           : await upstream(`marketListings/${id(payload.listingId)}:quote`, key, { inputRows: payload.rows });
-        if (!quoteMatches(payload.quote, latest)) throw new ApiError('工作流版本或报价已变化，请返回表格重新预估并确认。', 409);
+        if (latest.requiresPaymentChoice === true || !quoteMatches(payload.quote, latest)) throw new ApiError('工作流版本或报价已变化，请返回表格重新预估并确认。', 409);
         db().prepare('UPDATE quotes SET started = 1 WHERE id = ? AND session = ?').run(body.ticket, session.id);
       }
       // Identical retries retain both original payload and idempotency key, including after timeouts/restarts.
       const result = payload.officialTemplateId
         ? await upstream(`officialTemplates/${officialId(payload.officialTemplateId)}:runRows`, key, { rows: officialRows(payload.rows), clientRequestId: payload.clientRequestId, expectedEstimatedCostT: payload.quote.estimatedBuyerPayableT, expectedPricingRevision: payload.quote.pricingRuleVersion })
-        : await upstream(`marketListings/${id(payload.listingId)}:execute`, key, { inputRows: payload.rows, clientRequestId: payload.clientRequestId, confirm: true });
+        : await upstream(`marketListings/${id(payload.listingId)}:execute`, key, { inputRows: payload.rows, clientRequestId: payload.clientRequestId, confirm: true, expectedListingVersionId: payload.quote.listingVersionId, expectedPaymentMode: payload.quote.effectivePaymentMode, ...(validMoney(payload.quote.effectiveCreatorFee) ? { maxCreatorFee: payload.quote.effectiveCreatorFee } : {}) });
       if (!result.runId) throw new ApiError('服务尚未返回任务编号，请使用原请求重试或前往历史任务核对。', 502);
       db().prepare('UPDATE quotes SET result = ? WHERE id = ? AND session = ?').run(JSON.stringify(result), body.ticket, session.id);
       return json(result);

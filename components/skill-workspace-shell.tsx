@@ -1,4 +1,5 @@
 'use client';
+import { LocalizedAnchor } from './localized-link';
 
 import { useEffect, useId, useRef, useState } from 'react';
 import { ArrowLeft, ArrowUpRight, CircleHelp, Menu, X } from 'lucide-react';
@@ -43,10 +44,10 @@ export function WorkspaceNavigation({ activePage, ...account }: NavigationProps)
     <div ref={panel} id={id} className={`workspace-nav-links${open ? ' is-open' : ''}`} onClick={event => {
       if ((event.target as HTMLElement).closest('a')) setOpen(false);
     }}>
-    <a href="/skills" aria-current={activePage === 'skills' ? 'page' : undefined}>{t('探索 Skill')}</a>
-    <a href="/favorites" aria-current={activePage === 'favorites' ? 'page' : undefined}>{t('我的收藏')}</a>
-    <a href="/tasks" aria-current={activePage === 'tasks' ? 'page' : undefined}>{t('我的任务')}</a>
-    <a href="https://www.shengsuanyun.com/zh/loomloom/?from=Zoey" target="_blank" rel="noopener noreferrer">{t('上传 Skill')}<ArrowUpRight size={13} aria-hidden="true" /></a>
+    <LocalizedAnchor href="/skills" aria-current={activePage === 'skills' ? 'page' : undefined}>{t('探索 Skill')}</LocalizedAnchor>
+    <LocalizedAnchor href="/favorites" aria-current={activePage === 'favorites' ? 'page' : undefined}>{t('我的收藏')}</LocalizedAnchor>
+    <LocalizedAnchor href="/tasks" aria-current={activePage === 'tasks' ? 'page' : undefined}>{t('我的任务')}</LocalizedAnchor>
+    <LocalizedAnchor href="https://www.shengsuanyun.com/zh/loomloom/?from=Zoey" target="_blank" rel="noopener noreferrer">{t('上传 Skill')}<ArrowUpRight size={13} aria-hidden="true" /></LocalizedAnchor>
     <LanguageSwitcher />
     </div>
   </nav>;
@@ -56,7 +57,7 @@ export function SkillWorkspaceHeader({ onBack, ...navigation }: NavigationProps 
   const { t } = useI18n();
   return <header className="skill-workspace-header"><div className="skill-workspace-header-inner">
     <div className="skill-workspace-location">
-      <a className="skill-workspace-brand" href="/"><img src="/loomdesk-mark.svg" alt="" />LoomSkill</a>
+      <LocalizedAnchor className="skill-workspace-brand" href="/"><img src="/loomdesk-mark.svg" alt="" />LoomSkill</LocalizedAnchor>
       {onBack && <button type="button" className="skill-workspace-back" disabled={navigation.busy} onClick={onBack}><ArrowLeft size={15} aria-hidden="true" />{t('返回 Skill 列表')}</button>}
     </div>
     <WorkspaceNavigation {...navigation} />
@@ -69,12 +70,12 @@ export function SkillWorkspaceFooter() {
   return <footer className="skill-workspace-footer">
     <div className="skill-workspace-footer-inner">
       <div className="skill-workspace-footer-brand">
-        <a className="skill-workspace-brand" href="/"><img src="/loomdesk-mark.svg" alt="" />LoomSkill</a>
+        <LocalizedAnchor className="skill-workspace-brand" href="/"><img src="/loomdesk-mark.svg" alt="" />LoomSkill</LocalizedAnchor>
         <p>{t('AI批量生成，从一张表开始')}</p>
       </div>
       <nav className="skill-workspace-resources" aria-label={t('使用文档')}>
-        <a href="https://lean.shengsuanyun.com/apidocs/loomloom/guide/loomloom-guide" target="_blank" rel="noopener noreferrer"><CircleHelp size={15} aria-hidden="true" />{t('使用文档')}<ArrowUpRight size={13} aria-hidden="true" /></a>
-        <a href="https://www.shengsuanyun.com/zh/loomloom/?from=Zoey" target="_blank" rel="noopener noreferrer">{t('上传 Skill')}<ArrowUpRight size={13} aria-hidden="true" /></a>
+        <LocalizedAnchor href="https://lean.shengsuanyun.com/apidocs/loomloom/guide/loomloom-guide" target="_blank" rel="noopener noreferrer"><CircleHelp size={15} aria-hidden="true" />{t('使用文档')}<ArrowUpRight size={13} aria-hidden="true" /></LocalizedAnchor>
+        <LocalizedAnchor href="https://www.shengsuanyun.com/zh/loomloom/?from=Zoey" target="_blank" rel="noopener noreferrer">{t('上传 Skill')}<ArrowUpRight size={13} aria-hidden="true" /></LocalizedAnchor>
       </nav>
     </div>
   </footer>;

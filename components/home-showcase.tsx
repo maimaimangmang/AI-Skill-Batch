@@ -1,17 +1,17 @@
 'use client';
+import { SkillPrice } from './skill-pricing';
 
-import Link from 'next/link';
+import Link from './localized-link';
 import FavoriteButton from './favorite-button';
 import { useEffect, useRef } from 'react';
 import { ArrowRight, ArrowUpRight, FileText, ImageIcon, Layers } from 'lucide-react';
 import { useI18n } from './language-provider';
 import { skillPath } from '@/lib/skill-links';
-import { money } from '@/lib/domain';
 import { translateSkillCardText } from '@/lib/i18n';
 import { skillStreamOffset } from '@/lib/home-scroll';
 import type { PublicSkill } from '@/lib/public-skills';
 
-export type HomeSkill = Pick<PublicSkill, 'id' | 'displayName' | 'description' | 'officialTemplateId' | 'taskFixedFeeT' | 'currency' | 'outputType'>;
+export type HomeSkill = Pick<PublicSkill, 'id' | 'displayName' | 'description' | 'officialTemplateId' | 'taskFixedFeeT' | 'currency' | 'outputType' | 'category' | 'pricing'>;
 
 // Pointer updates stay outside React rendering and are disabled for touch/reduced motion.
 export function useHomeMotion() {
@@ -120,7 +120,7 @@ export function HomeShowcase({ skills, discovery, total }: { skills: HomeSkill[]
   const columns = [discovery.filter((_, i) => i % 2 === 0), discovery.filter((_, i) => i % 2 === 1)].filter(column => column.length);
   return <section className="public-section home-showcase">
     <div className="public-section-heading">
-      <div><span className="public-eyebrow">START WITH A SKILL</span><h2>{t('从商品图到文案，选择你的批量工作流')}</h2><p>{t('选择 Skill → 填写任务 → 云端执行 → 得到结果')}</p></div>
+      <div><span className="public-eyebrow">START WITH A SKILL</span><h2>{t('找到适合当前任务的工作流')}</h2><p>{t('选择 Skill → 填写任务 → 云端执行 → 得到结果')}</p></div>
       <Link href="/skills">{total > 0 ? t('浏览全部 {0} 个 Skill', total) : t('浏览全部 Skill')}<ArrowRight size={17} /></Link>
     </div>
     <div className="home-skill-layout">
@@ -128,7 +128,7 @@ export function HomeShowcase({ skills, discovery, total }: { skills: HomeSkill[]
         <div className="home-curated-list">{skills.map(skill => <article className="home-featured-card" data-home-motion key={skill.id}>
           <span className="home-skill-icon"><SkillIcon skill={skill} /></span>
           <div className="home-featured-content"><h3><Link href={skillPath(skill.id)} prefetch={false}>{cardText(skill.displayName)}</Link></h3><p>{cardText(skill.description)}</p>
-            <div className="home-featured-footer"><span>{skill.officialTemplateId ? t('按模型用量计费') : skill.taskFixedFeeT === 0 ? t('无创作者调用费') : skill.taskFixedFeeT != null ? `${money(skill.taskFixedFeeT, skill.currency)} ${t('/ 次 · 模型费另计')}` : t('执行前查看预估费用')}</span><Link href={skillPath(skill.id)} prefetch={false} aria-label={t('查看详情：{0}', cardText(skill.displayName))}>{t('探索')}<ArrowUpRight size={14} /></Link></div>
+            <div className="home-featured-footer"><SkillPrice skill={skill} /><Link href={skillPath(skill.id)} prefetch={false} aria-label={t('查看详情：{0}', cardText(skill.displayName))}>{t('探索')}<ArrowUpRight size={14} /></Link></div>
           </div><div className="home-featured-save"><FavoriteButton skill={skill} /></div>
         </article>)}</div>
       </div>

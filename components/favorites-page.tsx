@@ -1,5 +1,5 @@
 'use client';
-import Link from 'next/link';
+import Link from './localized-link';
 import { useState } from 'react';
 import { ArrowRight, Search, Star, LoaderCircle } from 'lucide-react';
 import { PublicShell } from './public-site';

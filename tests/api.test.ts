@@ -17,6 +17,7 @@ const attempts: { key: string; body: any }[] = [];
 const uploads: any[] = [];
 const completed = new Map<string, { runId: string }>();
 let price = 2500000; let dropNext = false; let noCurrency = false; let quoteCount = 0;
+let subscriptionQuote: Record<string, unknown> = {};
 let officialValid = true; let officialRevision = 'official-price-1'; let officialVersion = 'v3';
 const officialAttempts: any[] = [];
 const listing = { id: 'test-listing', displayName: '测试工作流', currency: 'CNY', listingVersionId: 'v1', executionAvailabilityStatus: 'available', inputSchemaSnapshot: JSON.stringify({ fields: [{ key: 'subject', label: '主题', value_type: 'string', required: true }] }) };
@@ -41,6 +42,7 @@ globalThis.fetch = async (input, options) => {
       return Response.json(completed.get(stable));
     }
   }
+  if (url.includes('/skillCatalog/market/')) return Response.json({ source: 'market', resourceId: url.split('/').at(-1), category: 'content_creation', pricing: { payPerUseEnabled: true, creatorFee: { amount: '0.1', currency: 'CNY', unit: 'task' }, subscriptionOffersStatus: 'available', subscriptionOffers: [] } });
   if (url.endsWith('/marketListings/test-listing')) return Response.json(listing);
   if (url.includes('/marketListings?')) {
     if (key === 'Bearer market-boundaries-key') {
@@ -56,7 +58,7 @@ globalThis.fetch = async (input, options) => {
   }
   if (url.endsWith(':quote')) {
     quoteCount++; const body = JSON.parse(String(options?.body));
-    return Response.json({ taskCount: body.inputRows.length, taskFixedFeeT: 1000000, estimatedBuyerPayableT: price * body.inputRows.length, currency: noCurrency ? undefined : 'CNY', listingVersionId: 'v1', pricingRuleVersion: 'p1' });
+    return Response.json({ taskCount: body.inputRows.length, taskFixedFeeT: 1000000, estimatedBuyerPayableT: price * body.inputRows.length, currency: noCurrency ? undefined : 'CNY', listingVersionId: 'v1', pricingRuleVersion: 'p1', ...subscriptionQuote });
   }
   if (url.endsWith(':execute')) {
     const body = JSON.parse(String(options?.body)); attempts.push({ key, body });
@@ -349,4 +351,34 @@ test('API：收藏验证输入，批量保存超限时整体回滚', async () =>
   const persisted = (await call('favorites', undefined, cookie)).body.items;
   assert.equal(persisted.length, 200);
   assert.equal(persisted.find((item: any) => item.id === 'saved-0').description, '');
+});
+
+
+test('API：报价要求选择付费方式时不生成执行许可', async () => {
+  const cookie = await login('subscription-choice'); const before = attempts.length;
+  try {
+    subscriptionQuote = { requiresPaymentChoice: true, effectivePaymentMode: 'subscription_required' };
+    const result = await call('quote', { listingId: listing.id, rows: [{ subject: 'x' }] }, cookie);
+    assert.equal(result.response.status, 409); assert.equal(result.body.ticket, undefined);
+    assert.equal(attempts.length, before);
+  } finally { subscriptionQuote = {}; }
+});
+test('API：订阅权益改变后必须重新确认，下单锁定已确认的计费模式', async () => {
+  const cookie = await login('subscription-lock'); const before = attempts.length;
+  try {
+    subscriptionQuote = { effectivePaymentMode: 'subscription', effectiveCreatorFee: { amount: '0.0000000', currency: 'CNY' }, entitlementExpiresAt: '2027-01-01T00:00:00Z' };
+    const original = { ...subscriptionQuote };
+    const q = await call('quote', { listingId: listing.id, rows: [{ subject: 'x' }] }, cookie);
+    assert.equal(q.response.status, 200);
+    subscriptionQuote = { ...original, effectivePaymentMode: 'pay_per_use' };
+    assert.equal((await call('execute', { ticket: q.body.ticket, confirm: true }, cookie)).response.status, 409);
+    subscriptionQuote = { ...original, effectiveCreatorFee: { amount: '0.1', currency: 'CNY' } };
+    assert.equal((await call('execute', { ticket: q.body.ticket, confirm: true }, cookie)).response.status, 409);
+    assert.equal(attempts.length, before);
+    subscriptionQuote = original;
+    assert.equal((await call('execute', { ticket: q.body.ticket, confirm: true }, cookie)).response.status, 200);
+    assert.equal(attempts.at(-1)!.body.expectedPaymentMode, 'subscription');
+    assert.equal(attempts.at(-1)!.body.expectedListingVersionId, 'v1');
+    assert.deepEqual(attempts.at(-1)!.body.maxCreatorFee, { amount: '0.0000000', currency: 'CNY' });
+  } finally { subscriptionQuote = {}; }
 });

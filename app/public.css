@@ -103,3 +103,124 @@
 .batch-faq .public-detail-section{margin-top:24px;padding-top:20px}
 .batch-faq h3{font-size:17px;margin:0 0 10px}
 @media(max-width:760px){.batch-example-inputs{grid-template-columns:1fr 1fr;gap:16px}.batch-example-inputs figure:last-child{grid-column:1/-1}.batch-image-page #image-workflows{padding-top:30px}.batch-image-page .public-section-heading h1{font-size:25px}}
+
+/* Scenario guides: genuine examples, a clear first task, readable on phones. */
+.product-photo-hero{display:grid;grid-template-columns:1.05fr 1fr;gap:52px;align-items:center;padding-top:36px!important}
+.product-photo-copy h1{font-size:clamp(30px,3.4vw,46px);line-height:1.3;letter-spacing:-1.4px;margin:20px 0}
+.product-photo-copy h1 em{font-style:normal;color:var(--public-purple)}
+.product-photo-copy>p{color:var(--public-muted);max-width:560px}
+.product-photo-copy .product-photo-note{font-size:12px;margin:12px 0 0}
+.product-photo-result{position:relative;margin:0;border-radius:24px;overflow:hidden;background:#f1ece4}
+.product-photo-result img{display:block;width:100%;height:auto;aspect-ratio:1;object-fit:cover}
+.product-photo-result figcaption{position:absolute;left:16px;bottom:16px;color:white;background:#252c52df;padding:7px 12px;border-radius:8px;font-size:12px}
+.product-photo-page h2{font-size:28px;line-height:1.4;letter-spacing:-.5px;margin:0 0 14px}
+.product-photo-page .public-eyebrow{display:block;margin-bottom:14px}
+.product-photo-prompt,.spreadsheet-guide{padding:24px 28px;border:1px solid #e5e2f6;background:white;border-radius:18px;margin:24px 0}
+.product-photo-prompt h3,.spreadsheet-guide h3{font-size:18px;margin:0 0 12px}
+.product-photo-prompt blockquote{margin:0;font-size:16px;line-height:1.9}
+.product-photo-prompt>p,.spreadsheet-guide>p{color:var(--public-muted);font-size:13px}
+.product-photo-next{display:grid;grid-template-columns:1.1fr 1fr;gap:48px;align-items:center}
+.product-photo-next p{color:var(--public-muted)}
+.product-photo-check{background:#f1efff;border-radius:18px;padding:26px}
+.product-photo-check h3{font-size:18px;margin:0 0 16px}
+.product-photo-check ul{list-style:none;padding:0;margin:0;display:grid;gap:12px}
+.product-photo-check li{display:flex;align-items:flex-start;gap:10px}
+.product-photo-check svg{flex-shrink:0;margin-top:5px;color:var(--public-purple)}
+.product-photo-faq{padding:20px 0;border-bottom:1px solid #e5e2f6}
+.product-photo-faq summary{font-weight:650;cursor:pointer;line-height:1.6}
+.product-photo-faq p{color:var(--public-muted);margin:12px 0 0;max-width:850px}
+.product-photo-page .public-end .public-actions{justify-content:center}
+.spreadsheet-guide ol{padding-left:24px;display:grid;gap:12px;max-width:900px}
+.scenario-guide-link{background:#f1efff;border-radius:18px;padding:24px 28px;display:flex;align-items:center;justify-content:space-between;gap:24px}
+.scenario-guide-link h2{font-size:21px;margin:0 0 6px}.scenario-guide-link p{margin:0;color:var(--public-muted)}
+.scenario-guide-link .public-button{flex-shrink:0}
+.skill-guide .scenario-guide-link{margin-bottom:24px}
+#product-photo-case,#spreadsheet-guide{scroll-margin-top:24px}
+@media(max-width:760px){
+  .product-photo-hero{grid-template-columns:1fr;gap:26px;padding-top:24px!important}
+  .product-photo-copy h1{font-size:32px;letter-spacing:-.8px;margin:14px 0}
+  .product-photo-copy .public-actions{flex-wrap:wrap;gap:10px}
+  .product-photo-copy .public-actions .public-button{padding:12px 16px;font-size:14px}
+  .product-photo-result{border-radius:18px}.product-photo-result figcaption{font-size:11px;left:12px;bottom:12px}
+  .product-photo-page h2{font-size:24px}.product-photo-next{grid-template-columns:1fr;gap:22px}
+  .product-photo-prompt,.spreadsheet-guide,.product-photo-check{padding:20px}
+  .product-photo-prompt blockquote{font-size:15px}.spreadsheet-guide .public-button{white-space:normal;text-align:center}
+  .scenario-guide-link{flex-direction:column;align-items:flex-start;padding:20px;gap:16px}
+  .product-photo-page .public-end .public-actions{flex-direction:column;align-items:center}
+}
+
+/* Keep search usable before the recommendation list on narrow screens. */
+.catalog-mobile-search { display:none; }
+.featured-carousel-controls { display:none; }
+@media(max-width:760px) {
+  .public-catalog.studio-market .catalog-mobile-search {
+    display:flex; align-items:center; gap:10px; width:100%; min-height:52px;
+    margin:0 0 22px; padding:5px 5px 5px 15px; border:1px solid #dfe3ef;
+    border-radius:13px; background:#fff; color:#8995ae;
+  }
+  .public-catalog.studio-market .catalog-mobile-search input { flex:1; width:0; min-width:0; border:0; background:transparent; color:var(--ink); font-size:16px; outline:none; }
+  .public-catalog.studio-market .catalog-mobile-search button { min-width:58px; min-height:42px; padding:0 12px; border-radius:9px; background:#f0ebff; color:#5d3ed4; font-size:13px; font-weight:650; }
+  .public-catalog.studio-market .catalog-search-actions .search { display:none; }
+  .public-catalog.studio-market .market-toolbar { flex-wrap:nowrap; align-items:center; justify-content:space-between; }
+  .public-catalog.studio-market .catalog-search-actions { width:auto; }
+  .public-catalog.studio-market .refresh-button { min-width:44px; min-height:44px; justify-content:center; }
+  .public-catalog.studio-market .market-heading { margin-bottom:20px; }
+  .public-catalog.studio-market .featured { padding:0; background:transparent; margin-bottom:26px; }
+  .public-catalog.studio-market .featured-header { margin-bottom:12px; padding:0; border:0; }
+  .public-catalog.studio-market .featured-grid { display:grid; grid-template-columns:minmax(0,1fr); gap:0; touch-action:pan-y pinch-zoom; border:1px solid #e4def8; border-radius:18px; background:linear-gradient(125deg,#f0ebff 0%,#fff 65%,#eef4ff 100%); }
+  .public-catalog.studio-market .featured-grid .featured-card { grid-area:1/1; display:flex; flex-direction:column; min-height:240px; padding:20px !important; border:0; border-radius:18px; background:transparent; visibility:hidden; opacity:0; pointer-events:none; }
+  .public-catalog.studio-market .featured-grid .featured-card.is-active { visibility:visible; opacity:1; pointer-events:auto; }
+  .public-catalog.studio-market .featured-card-footer { margin-top:auto; flex-direction:row; align-items:center; }
+  .public-catalog.studio-market .featured-card-footer .featured-action { align-self:auto; min-height:42px; padding-inline:16px; }
+  .public-catalog.studio-market .featured-card h3 { font-size:18px; line-height:1.5; }
+  .public-catalog.studio-market .featured-card>p { display:block; overflow:visible; font-size:13px; }
+  .public-catalog.studio-market .featured-card>.workflow-author,.public-catalog.studio-market .featured-model-label { font-size:11px; }
+  .public-catalog.studio-market .featured-carousel-controls { display:flex; align-items:center; justify-content:center; gap:8px; min-height:44px; margin-top:4px; }
+  .featured-carousel-dots { display:flex; flex-wrap:wrap; }
+  .featured-carousel-dots button { display:grid; place-items:center; width:44px; height:44px; padding:0; border-radius:8px; }
+  .featured-carousel-dots button span { width:6px; height:6px; border-radius:999px; background:#cdc7e3; }
+  .featured-carousel-dots button[aria-current] span { width:20px; background:#7554de; }
+  .featured-carousel-controls button:focus-visible { outline:2px solid #8f79ee; outline-offset:1px; }
+  .public-catalog.studio-market .featured-price-note { margin:8px 0 0; }
+  .public-catalog.studio-market .workflow-card .card-top h3 { font-size:16px; }
+  .public-catalog.studio-market .workflow-card>p { font-size:13px; }
+  .public-catalog.studio-market .workflow-card .card-bottom { font-size:12px; }
+  .public-catalog.studio-market .workflow-card .card-use { min-height:42px; min-width:70px; justify-content:center; }
+}
+
+/* Task-first discovery: equal-weight entrances, compact on phones. */
+.skill-category-nav{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:24px 0}
+.skill-category-nav>a{display:flex;align-items:center;gap:10px;padding:13px 12px;border:1px solid var(--public-line,#e3e5f1);border-radius:14px;background:#fff;color:var(--public-ink,#29345c);min-width:0;text-decoration:none}
+.skill-category-nav>a>svg{flex-shrink:0;color:var(--public-purple,#7957ff)}
+.skill-category-nav>a>span{flex:1;min-width:0}.skill-category-nav strong{display:block;font-size:14px}.skill-category-nav small{display:block;font-size:12px;line-height:1.55;color:var(--public-muted,#7482a5);margin-top:3px}
+.skill-category-nav>a:hover,.skill-category-nav>a[aria-current="page"]{border-color:var(--public-purple,#7957ff);background:#f4f0ff}
+.skill-category-nav.is-compact{display:flex;flex-wrap:wrap;gap:8px;margin:18px 0}.skill-category-nav.is-compact>a{padding:9px 13px;border-radius:30px;font-size:13px}.skill-category-nav.is-compact strong{font-size:13px}
+.category-guide-link{font-size:13px;margin:0 0 20px}.category-guide-link a{display:inline-flex;gap:7px;align-items:center;color:var(--public-purple,#7957ff)}
+.use-case-page{max-width:1160px;padding:32px 28px 72px;margin:auto}.use-case-heading{max-width:760px;margin:36px 0}.use-case-heading h1{font-size:clamp(30px,4vw,46px);line-height:1.2;margin:12px 0}.use-case-heading>p{font-size:18px;color:var(--public-muted,#7482a5)}
+.use-case-steps{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}.use-case-steps article,.use-case-example,.use-case-boundary{border:1px solid var(--public-line,#e3e5f1);border-radius:18px;padding:24px;background:#fff}.use-case-steps h2{font-size:17px}.use-case-steps p,.use-case-boundary p{font-size:14px;line-height:1.85;color:var(--public-muted,#7482a5)}
+.use-case-example{margin-top:28px;scroll-margin-top:90px}.use-case-example h2{font-size:24px}.use-case-source{font-size:13px;line-height:1.7;color:var(--public-muted,#7482a5)}.use-case-example dd{white-space:pre-wrap;overflow-wrap:anywhere}.use-case-boundary>a{display:inline-flex;gap:8px;align-items:center;color:var(--public-purple,#7957ff)}
+.use-case-page #workflows{scroll-margin-top:90px}.skill-guide .use-case-boundary{margin-bottom:24px}
+@media(max-width:760px){.skill-category-nav{gap:8px;margin:18px 0}.skill-category-nav>a{padding:11px 10px;gap:8px}.skill-category-nav>a>svg:last-child{display:none}.skill-category-nav.is-compact>a{padding:9px 11px}.use-case-page{padding:20px 16px 48px}.use-case-heading{margin:24px 0}.use-case-steps{grid-template-columns:1fr;gap:12px}.use-case-steps article,.use-case-example,.use-case-boundary{padding:18px}.use-case-page .public-actions{flex-wrap:wrap}.use-case-page .public-button{white-space:normal;text-align:center}}
+
+@media(max-width:760px){.public-home .public-hero h1{font-size:clamp(28px,8vw,34px);line-height:1.3;letter-spacing:-.025em}}
+
+/* Official categories and billing: separate information, compact on phones. */
+.market-category-filter{display:flex;gap:12px;align-items:center;justify-content:space-between;margin:20px 0 26px;flex-wrap:wrap}
+.catalog-filter-status{display:flex;align-items:center;gap:8px;color:#7253c6;font-size:13px;margin:0 0 14px}.catalog-results[aria-busy=true]{opacity:.45;pointer-events:none}
+.market-category-chips{display:flex;flex-wrap:wrap;gap:6px}
+.market-category-chips a,.subscription-filter{display:inline-flex;align-items:center;gap:6px;padding:9px 13px;border:1px solid #e5e5f2;border-radius:999px;font-size:13px;color:#62678b;background:#fff;text-decoration:none;min-height:40px}
+.market-category-chips a[aria-current=page],.subscription-filter[aria-current=page]{background:#f0ecff;border-color:#bfb0ff;color:#6338df}
+.market-category-select{display:none}.catalog-result-count{font-size:13px;font-weight:500;margin-left:10px;color:#8990ad}
+.skill-tags{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0;align-items:center}
+.skill-tags .skill-category-tag{font-size:11px!important;line-height:1.5;padding:3px 7px;border-radius:6px;text-decoration:none;font-weight:500;max-width:100%;color:#4b6597;background:#edf3fc}
+.skill-price{display:flex;flex-direction:column;gap:4px;min-width:0;max-width:100%;line-height:1.4}
+.skill-price>div{display:flex;flex-wrap:wrap;gap:4px;align-items:baseline}.skill-price strong{font-size:16px!important;overflow-wrap:anywhere}.skill-price span{font-size:11px!important;color:#78819e}
+.skill-price .skill-price-alternative strong{font-size:12px!important;font-weight:600;color:#7754cb}.skill-price .skill-price-alternative span{color:#7754cb}
+.workflow-card .card-bottom>.skill-price{flex:1}.workflow-card .card-use{flex-shrink:0}.featured-price .skill-price strong{font-size:20px!important}
+.featured-price .skill-price-alternative strong{font-size:13px!important}.public-card-bottom>.skill-price,.home-featured-footer>.skill-price{flex:1}
+.skill-billing-panel{border:1px solid #e2dff1;border-radius:16px;background:#fff;padding:18px 20px;margin:16px 0 24px;color:#586583;max-width:100%;min-width:0}
+.skill-billing-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}.skill-billing-heading h2{font-size:16px;margin:0;color:#2e3d62}
+.skill-billing-panel p{font-size:13px;line-height:1.75;margin:10px 0 0}.skill-pay-per-use{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-top:12px;font-size:14px}.skill-pay-per-use span{font-weight:600;color:#313d64}
+.skill-subscription-offer{margin-top:14px;border:1px solid #e5dafa;border-radius:12px;background:#faf8ff;padding:13px 15px}.skill-subscription-offer summary{cursor:pointer;font-size:13px;font-weight:600;color:#6143a0;overflow-wrap:anywhere}.subscription-tiers{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}.subscription-tiers>div{display:flex;gap:16px;align-items:baseline;flex-wrap:wrap;padding:9px 12px;background:white;border-radius:8px;border:1px solid #eae4f5;font-size:12px}.subscription-tiers strong{color:#493571;font-size:18px}.subscription-tiers small{font-size:12px;font-weight:400;color:#776c94;margin-left:4px}.subscription-coverage>strong,.subscription-coverage>span{display:block}.subscription-coverage a,.subscription-help a{color:#7253c6}.subscription-help{color:#7d849b}.skill-billing-note{color:#77819d}.public-use-card .skill-billing-panel{padding:12px}
+@media(max-width:760px){.market-category-chips{display:none}.market-category-filter{flex-wrap:nowrap;gap:8px;margin:14px 0 20px}.market-category-select{display:flex;align-items:center;gap:6px;font-size:12px;min-width:0;flex:1;color:#6a7491}.market-category-select select{min-width:0;max-width:160px;flex:1;border:1px solid #e1e1ee;background:white;border-radius:10px;padding:10px 22px 10px 9px;color:#3b486c;font-size:13px}.subscription-filter{flex-shrink:0;font-size:12px;padding:9px 10px}.skill-billing-panel{padding:14px;margin:14px 0 20px}.skill-billing-heading{gap:6px}.skill-subscription-offer{padding:12px}.subscription-tiers>div{width:100%;justify-content:space-between}.skill-price strong{font-size:15px!important}.skill-tags{gap:5px;margin:8px 0}.featured-card .skill-tags{margin:7px 0}.featured-card .featured-model-label{margin-top:0}.featured-price .skill-price strong{font-size:19px!important}.featured-price .skill-price-alternative strong{font-size:12px!important}}
+@media(max-width:360px){.market-category-select{flex-direction:column;align-items:flex-start;gap:4px}.market-category-select select{width:100%;max-width:100%}}

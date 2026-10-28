@@ -1,3 +1,5 @@
+import type { Locale } from './i18n';
+import { localizedPath, unlocalizedPath, pathLocale } from './locale';
 export const hiddenSkillIds = new Set(['01a12464-6c6a-70ed-ab08-56fd0478261b']);
 export const skillSlugs: Record<string, string> = {
   '01a0ccea-2449-7796-ba40-bfcded89b97d': 'ecommerce-image-remix',
@@ -21,6 +23,10 @@ export function tasksPath(runId?: string) {
 
 // Keep connection return targets restricted to authenticated workspace pages.
 export function workspaceDestination(value: unknown): string {
+  if (typeof value === 'string' && value.startsWith('/en/')) {
+    const base=unlocalizedPath(value);
+    if (base === '/tasks' || base === '/settings' || (base.startsWith('/tasks/') && requestedRunId(base.slice(7)))) return localizedPath(base,'en');
+  }
   if (value === '/tasks' || value === '/settings') return value;
   if (typeof value === 'string' && value.startsWith('/tasks/')) {
     const runId = requestedRunId(value.slice('/tasks/'.length));
@@ -29,7 +35,7 @@ export function workspaceDestination(value: unknown): string {
   return '/tasks';
 }
 
-export function taskConnectionPath(destination?: string) {
-  const next = workspaceDestination(destination);
-  return next === '/tasks' ? '/?connect=1' : `/?connect=1&next=${encodeURIComponent(next)}`;
+export function taskConnectionPath(destination?: string, locale:Locale = destination ? pathLocale(destination) : 'zh-CN') {
+  const next = localizedPath(workspaceDestination(destination),locale);
+  return localizedPath(unlocalizedPath(next) === '/tasks' ? '/?connect=1' : `/?connect=1&next=${encodeURIComponent(next)}`,locale);
 }

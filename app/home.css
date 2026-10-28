@@ -35,6 +35,7 @@
 }
 @media(max-width:1000px){.public-home .home-skill-layout{gap:22px;grid-template-columns:1fr 1fr}.public-home .home-skill-stream{gap:10px}.public-home .home-stream-card{padding:13px}.public-home .home-featured-card{padding:17px 15px;gap:10px}.public-home .home-featured-content h3{font-size:14px}}
 @media(max-width:760px){
+ .public-home .home-curated{display:none}
  .public-home .home-skill-layout{grid-template-columns:1fr;gap:26px}
  .public-home .home-featured-card{min-height:126px}
  .public-home .home-skill-stream{height:420px}

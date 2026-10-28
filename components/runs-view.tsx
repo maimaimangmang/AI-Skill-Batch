@@ -11,7 +11,7 @@ import { statusLabel } from '@/lib/domain';
 
 type Props = { active: boolean; api: (path: string, options?: RequestInit) => Promise<any>; refreshKey: number; onNew: () => void; onResult: (id: string) => void };
 export default function RunsView({ active, api, refreshKey, onNew, onResult }: Props) {
-  const { t, locale } = useI18n();
+  const { t, locale, skillText } = useI18n();
   const [keyword, setKeyword] = useState(''), [status, setStatus] = useState(''), [range, setRange] = useState('all');
   const [start, setStart] = useState(''), [end, setEnd] = useState('');
   const [filterQuery, setFilterQuery] = useState(''), [revision, setRevision] = useState(0), [retry, setRetry] = useState(0);
@@ -99,7 +99,24 @@ export default function RunsView({ active, api, refreshKey, onNew, onResult }: P
       </form>
       {filterError && <p className="error runs-error" role="alert">{t(filterError)}</p>}
       {error && <div className="error runs-error" role="alert">{t(error)}<button className="text-button" onClick={() => setRetry(v => v + 1)}>{t("重试当前页")}</button></div>}
-      {loading ? <div className="loading" role="status"><LoaderCircle className="spin" />{t("正在获取任务…")}</div> : runs.length ? <div className="table-scroll"><table className="runs-table"><thead><tr><th>{t("工作流 / 任务")}</th><th>{t("提交时间")}</th><th>{t("状态")}</th><th>{t("任务进度")}</th><th className="run-cost">{t("费用")}</th><th /></tr></thead><tbody>{runs.map(run => { const cost = runCost(run); return <tr key={run.runId}><td><strong>{runName(run)}</strong><small className="mono">{run.runId}</small></td><td>{run.createdAtUnix ? new Date(run.createdAtUnix * 1000).toLocaleString(locale, { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }) : '—'}</td><td><span className={`status ${run.status}`}>{t(statusLabel(run.status))}</span></td><td>{run.completedTasks ?? 0} / {run.totalTasks ?? '—'} {t(" 成功")}</td><td className="run-cost"><strong>{t(cost.amount)}</strong>{cost.label && <small>{t(cost.label)}</small>}</td><td><button className="text-button" onClick={() => onResult(run.runId)}>{t("查看结果")}<ArrowRight size={15} /></button></td></tr>; })}</tbody></table></div> : !error && <div className="empty"><ListChecks size={32} /><h2>{current?.nextPageToken ? t("这批记录中暂无匹配任务") : filtered ? t("没有找到匹配的任务") : t("还没有运行任务")}</h2><p>{current?.nextPageToken ? t("点击下一页，继续查找更早的任务。") : filtered ? t("试试更换关键词、放宽时间范围或重置筛选。") : t("到市场选择工作流，填写任务表后即可运行。")}</p>{filtered ? <button className="button" onClick={reset}>{t("重置筛选")}</button> : <button className="button primary" onClick={onNew}>{t("浏览工作流")}<ArrowRight size={15} /></button>}</div>}
+      {loading ? <div className="loading" role="status"><LoaderCircle className="spin" />{t("正在获取任务…")}</div> : runs.length ? <><div className="table-scroll runs-desktop"><table className="runs-table"><thead><tr><th>{t("工作流 / 任务")}</th><th>{t("提交时间")}</th><th>{t("状态")}</th><th>{t("任务进度")}</th><th className="run-cost">{t("费用")}</th><th /></tr></thead><tbody>{runs.map(run => { const cost = runCost(run); return <tr key={run.runId}><td><strong>{skillText(runName(run))}</strong><small className="mono">{run.runId}</small></td><td>{run.createdAtUnix ? new Date(run.createdAtUnix * 1000).toLocaleString(locale, { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }) : '—'}</td><td><span className={`status ${run.status}`}>{t(statusLabel(run.status))}</span></td><td>{run.completedTasks ?? 0} / {run.totalTasks ?? '—'} {t(" 成功")}</td><td className="run-cost"><strong>{t(cost.amount)}</strong>{cost.label && <small>{t(cost.label)}</small>}</td><td><button className="text-button" onClick={() => onResult(run.runId)}>{t("查看结果")}<ArrowRight size={15} /></button></td></tr>; })}</tbody></table></div>
+        <ul className="run-history-cards" aria-label={t("运行记录")}>
+          {runs.map(run => {
+            const cost = runCost(run);
+            const submitted = run.createdAtUnix ? new Date(run.createdAtUnix * 1000) : null;
+            return <li key={run.runId}><article className="run-history-card">
+              <header className="run-history-heading"><h2>{skillText(runName(run))}</h2><span className={`status ${run.status}`}>{t(statusLabel(run.status))}</span></header>
+              <p className="run-history-time">{t("提交时间")}<time dateTime={submitted?.toISOString()}>{submitted ? submitted.toLocaleString(locale, { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }) : '—'}</time></p>
+              <dl className="run-history-metrics">
+                <div><dt>{t("任务进度")}</dt><dd>{run.completedTasks ?? 0} / {run.totalTasks ?? '—'}<span>{t(" 成功")}</span></dd></div>
+                <div><dt>{t(cost.label || "费用")}</dt><dd>{t(cost.amount)}</dd></div>
+              </dl>
+              <details className="run-history-id"><summary>{t("任务编号")}</summary><code>{run.runId}</code></details>
+              <button type="button" className="run-history-result" aria-label={t("查看结果：{0}", skillText(runName(run)))} onClick={() => onResult(run.runId)}>{t("查看结果")}<ArrowRight size={16} aria-hidden="true" /></button>
+            </article></li>;
+          })}
+        </ul>
+      </> : !error && <div className="empty"><ListChecks size={32} /><h2>{current?.nextPageToken ? t("这批记录中暂无匹配任务") : filtered ? t("没有找到匹配的任务") : t("还没有运行任务")}</h2><p>{current?.nextPageToken ? t("点击下一页，继续查找更早的任务。") : filtered ? t("试试更换关键词、放宽时间范围或重置筛选。") : t("到市场选择工作流，填写任务表后即可运行。")}</p>{filtered ? <button className="button" onClick={reset}>{t("重置筛选")}</button> : <button className="button primary" onClick={onNew}>{t("浏览工作流")}<ArrowRight size={15} /></button>}</div>}
       {!loading && current?.searchIncomplete && runs.length > 0 && <p className="runs-search-note">{t("本次已检查 ")}{current.scanned} {t(" 条记录；还有更早的任务，可点击下一页继续查找。")}</p>}
       <nav className="market-pagination runs-pagination" aria-label={t("我的任务分页")}>
         <span className="pagination-summary" aria-live="polite">{loading ? t("正在读取任务…") : totalCount != null ? t("第 {0} / {1} 页 · 共 {2} 项", page + 1, pageCount, totalCount) : t("第 {0} 页 · 本页 {1} 项{2}", page + 1, runs.length, current?.nextPageToken ? t(" · 总页数待确认") : "")} {t(" · 每页 ")}{RUNS_PAGE_SIZE} {t(" 项")}</span>

@@ -1,16 +1,23 @@
 import type { NextConfig } from "next";
 const config: NextConfig = {
   output: "standalone",
+  experimental: { globalNotFound: true },
   turbopack: { root: process.cwd() },
   devIndicators: false,
   serverExternalPackages: ["exceljs"],
+  async rewrites() {
+    return { beforeFiles: [
+      { source: '/', destination: '/zh-CN' },
+      { source: '/:path((?!en(?:/|$)|zh-CN(?:/|$)|api(?:/|$)|_next(?:/|$)|share-image(?:/|$)|.*\\.[^/]+$).+)', destination: '/zh-CN/:path' },
+    ], afterFiles: [], fallback: [] };
+  },
   async redirects() {
     return [{
       source: '/:path*',
       has: [{ type: 'host', value: 'www.loomskill.com' }],
       destination: 'https://loomskill.com/:path*',
       permanent: true,
-    }];
+    }, { source: '/zh-CN/:path*', destination: '/:path*', permanent: true }];
   },
   async headers() {
     return [{ source: "/:path*", headers: [

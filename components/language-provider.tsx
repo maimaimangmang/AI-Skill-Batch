@@ -1,31 +1,28 @@
 'use client';
 
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
-import { translate, translateSkillText, type Locale, languagePreference } from '@/lib/i18n';
+import { createContext, useCallback, useContext, useEffect, useMemo } from 'react';
+import { useRouter } from 'next/navigation';
+import { translate, translateSkillText, type Locale } from '@/lib/i18n';
+import { localizedPath } from '@/lib/locale';
 
-const preferenceKey = 'loomskill-language';
-type I18n = { locale: Locale; setLocale: (locale: Locale) => void; t: (source: string, ...values: unknown[]) => string; skillText: (source: string) => string };
+type I18n = { locale: Locale; setLocale: (locale: Locale) => void; t: (source: string, ...values: unknown[]) => string; skillText: (source: string) => string; href: (path:string) => string };
 const LanguageContext = createContext<I18n | null>(null);
 
-export function LanguageProvider({ children }: { children: React.ReactNode }) {
-  const [locale, updateLocale] = useState<Locale>('zh-CN');
-  useEffect(() => {
-    try { updateLocale(languagePreference(localStorage.getItem(preferenceKey))); } catch { /* Chinese remains the default when storage is unavailable. */ }
-    const sync = (event: StorageEvent) => {
-      if (event.key === preferenceKey || event.key === null) updateLocale(languagePreference(event.newValue));
-    };
-    window.addEventListener('storage', sync);
-    return () => window.removeEventListener('storage', sync);
-  }, []);
+export function LanguageProvider({ children, initialLocale = 'zh-CN' }: { children: React.ReactNode; initialLocale?:Locale }) {
+  const router = useRouter();
+  const locale = initialLocale;
   useEffect(() => { document.documentElement.lang = locale; }, [locale]);
-  const setLocale = useCallback((value: Locale) => {
-    const next = languagePreference(value);
-    updateLocale(next);
-    try { localStorage.setItem(preferenceKey, next); } catch { /* Switching still works for this page. */ }
-  }, []);
+  const setLocale = useCallback((next: Locale) => {
+    if (next === locale) return;
+    const event = new CustomEvent('loomskill-language-change', { cancelable: true, detail: next });
+    if (!window.dispatchEvent(event)) return;
+    // The URL is authoritative, including when a link is shared or opened in a new tab.
+    router.push(localizedPath(window.location.pathname + window.location.search + window.location.hash, next), { scroll:false });
+  }, [router, locale]);
   const t = useCallback((source: string, ...values: unknown[]) => translate(locale, source, ...values), [locale]);
   const skillText = useCallback((source: string) => translateSkillText(locale, source), [locale]);
-  const value = useMemo(() => ({ locale, setLocale, t, skillText }), [locale, setLocale, t, skillText]);
+  const href = useCallback((path:string) => localizedPath(path, locale), [locale]);
+  const value = useMemo(() => ({ locale, setLocale, t, skillText, href }), [locale, setLocale, t, skillText, href]);
   return <LanguageContext.Provider value={value}>{children}</LanguageContext.Provider>;
 }
 

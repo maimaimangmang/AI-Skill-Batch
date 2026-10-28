@@ -1,12 +1,12 @@
 'use client';
 
-import Link from 'next/link';
+import Link from './localized-link';
 import { PublicShell } from './public-site';
 import { useI18n } from './language-provider';
 
 export function MissingPage() {
   const { t } = useI18n();
-  return <PublicShell><main className="public-empty">
+  return <PublicShell><title>{t('页面未找到 · LoomSkill')}</title><main className="public-empty">
     <span className="public-eyebrow">404</span>
     <h1>{t('没有找到这个页面')}</h1>
     <p>{t('这个页面不存在、已移除，或链接有误。')}</p>

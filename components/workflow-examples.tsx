@@ -1,4 +1,5 @@
 'use client';
+import { LocalizedAnchor } from './localized-link';
 import { localizePublicExample } from '@/lib/i18n';
 import { useI18n } from './language-provider';
 import { useState } from 'react';
@@ -10,10 +11,10 @@ import type { InputRow, Listing, Schema } from '@/lib/types';
 
 function ExamplePicture({ image }: { image: ExampleImage }) {
   const { t, skillText, locale } = useI18n();
-  return <a className="example-picture" href={image.src} target="_blank" rel="noopener noreferrer" aria-label={t("{0}，查看原图", skillText(image.label))}>
+  return <LocalizedAnchor className="example-picture" href={image.src} target="_blank" rel="noopener noreferrer" aria-label={t("{0}，查看原图", skillText(image.label))}>
     <span className="example-picture-frame"><Image src={image.src} alt={skillText(image.label)} fill sizes="(max-width: 760px) 45vw, 320px" style={{ objectFit: 'contain' }} /></span>
     <span className="example-picture-caption">{skillText(image.label)}<span>{t("查看原图 ↗")}</span></span>
-  </a>;
+  </LocalizedAnchor>;
 }
 
 export default function WorkflowExamples({ listing, schema, demo, disabled, onUse }: {

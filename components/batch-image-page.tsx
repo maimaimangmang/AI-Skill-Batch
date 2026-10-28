@@ -1,6 +1,6 @@
 'use client';
 
-import Link from 'next/link';
+import Link from './localized-link';
 import Image from 'next/image';
 import { ArrowRight } from 'lucide-react';
 import { PublicShell } from './public-site';
@@ -30,12 +30,20 @@ export function BatchImagePage() {
       <div className="public-section-heading"><div><h1>{t('选择适合你的批量生图场景')}</h1><p>{t('同一张任务表，按行准备输入；不同图片需求，选择对应 Skill。')}</p></div></div>
       <div className="public-cards">{workflows.map(item => <article className="public-card" key={item.href}><h2><Link href={item.href}>{t(item.title)}</Link></h2><p>{t(item.description)}</p><div className="public-card-bottom"><Link href={item.href}>{t(item.link)}<ArrowRight size={16} /></Link></div></article>)}</div>
     </section>
-    <section className="public-section public-how"><h2>{t('如何用 Excel / CSV 批量生成图片')}</h2><div className="public-steps">{steps.map((step, i) => <article key={step.title}><span className="step-number">0{i + 1}</span><h3>{t(step.title)}</h3><p>{t(step.text)}</p></article>)}</div></section>
+    <section className="public-section public-how" id="spreadsheet-guide"><h2>{t('如何用 Excel / CSV 批量生成图片')}</h2><div className="public-steps">{steps.map((step, i) => <article key={step.title}><span className="step-number">0{i + 1}</span><h3>{t(step.title)}</h3><p>{t(step.text)}</p></article>)}</div>
+      <div className="spreadsheet-guide"><h3>{t('第一次导入，按这四步操作')}</h3><ol>{[
+        '打开选好的 Skill，在任务表上方点击“下载模板”，得到与当前工作流匹配的 Excel 表格。',
+        '保留表头，先填写 1–3 行。每行一项任务；提示词、产品说明和图片要求按该 Skill 的必填字段准备。',
+        '点击“导入表格”，选择工作表、匹配列名，再勾选要导入的行。CSV 请保存为 UTF-8 编码。',
+        '回到任务表逐行检查图片与参数。表格中的本地文件路径不能替代图片上传；按字段提示选择附件，再校验并查看预估费用。',
+      ].map(text => <li key={text}>{t(text)}</li>)}</ol><p>{t('不同 Skill 的字段不同，不要把一份模板直接套给所有工作流。填写和导入不会自动开始生成。')}</p><Link className="public-button" href="/skills/text-to-image">{t('打开文生图任务表，下载模板')}<ArrowRight size={16} /></Link></div>
+    </section>
     <section className="public-section batch-example-section"><h2>{t('商品图示例：参考图 + 产品原图 → 生图结果')}</h2><p>{t('这是作者使用电商图复刻 Skill 的真实试跑。生成效果会随输入和模型变化。')}</p><div className="batch-example-inputs">{[
       { src: '/examples/ecommerce-image-remix/reference.png', label: '参考图' },
       { src: '/examples/ecommerce-image-remix/product.jpeg', label: '产品原图' },
       { src: '/examples/ecommerce-image-remix/result.png', label: '试跑成品：暖光床头场景中的陶瓷杯' },
     ].map(image => <figure key={image.src}><Image src={image.src} alt={t(image.label)} width={420} height={420} /><figcaption>{t(image.label)}</figcaption></figure>)}</div><Link className="public-button" href="/skills/ecommerce-image-remix">{t('查看案例与输入要求')}<ArrowRight size={16} /></Link></section>
+    <section className="public-section"><div className="scenario-guide-link"><div><h2>{t('主要做电商商品图？')}</h2><p>{t('从真实产品案例开始，了解参考图怎么选、画面要求怎么写，以及批量前要检查什么。')}</p></div><Link className="public-button" href="/ai-product-photography">{t('查看商品图完整教程')}<ArrowRight size={16} /></Link></div></section>
     <section className="public-section batch-faq"><h2>{t('批量生图常见问题')}</h2>{questions.map(item => <div className="public-detail-section" key={item.title}><h3>{t(item.title)}</h3><p>{t(item.text)}</p></div>)}</section>
     <section className="public-end"><h2>{t('让下一批图片，从任务表开始')}</h2><p>{t('也需要文案或其他批处理？继续探索完整的 Skill 目录。')}</p><Link className="public-button primary" href="/skills">{t('浏览全部 Skill')}<ArrowRight size={18} /></Link></section>
   </main></PublicShell>;

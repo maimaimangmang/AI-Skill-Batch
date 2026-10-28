@@ -149,5 +149,5 @@ export function getQuote(id: string, session: string) {
   return { ...row, payload: unseal<StoredQuote>(row.payload) };
 }
 export function quoteMatches(a: Quote, b: Quote) {
-  return ['source', 'currency', 'estimatedBuyerPayableT', 'taskCount', 'taskFixedFeeT', 'listingVersionId', 'pricingRuleVersion'].every(k => a[k as keyof Quote] === b[k as keyof Quote]);
+  return ['source', 'currency', 'estimatedBuyerPayableT', 'taskCount', 'taskFixedFeeT', 'listingVersionId', 'pricingRuleVersion', 'effectivePaymentMode', 'entitlementExpiresAt', 'requiresPaymentChoice'].every(k => a[k as keyof Quote] === b[k as keyof Quote]) && a.effectiveCreatorFee?.amount === b.effectiveCreatorFee?.amount && a.effectiveCreatorFee?.currency === b.effectiveCreatorFee?.currency;
 }
