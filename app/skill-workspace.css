@@ -1,7 +1,7 @@
 /* The canonical Skill editor has a full-width shell and shared page gutters. */
-.studio-top-nav .main-shell {
+.studio-app.studio-top-nav .main-shell {
   margin-left: 0;
-  padding-top: 0;
+  padding-top: 108px;
 }
 
 .studio-top-nav .main-content,
@@ -59,11 +59,15 @@
   gap: 7px;
   min-height: 36px;
   padding: 6px 0;
-  color: #7180a1;
+  color: var(--text-muted);
   font-size: 12px;
 }
 
 .skill-workspace-back:hover:not(:disabled) { color: var(--blue); }
+.studio-top-nav .editor-navigation { position: static; width: auto; padding: 0; margin: 0 0 16px; }
+.editor-heading-actions { display: flex; align-items: flex-start; gap: 10px; flex-shrink: 0; }
+.editor-heading-actions > .favorite-button.with-label { width: auto; min-height: 38px; margin: 0; padding: 8px 12px; border: 1px solid var(--border-neutral); border-radius: 10px; background: #fff; font-size: 12px; }
+.editor-heading-actions .agent-install > .button { min-height: 38px; }
 .skill-workspace-nav { justify-content: flex-end; gap: 10px 24px; min-width: 0; }
 
 .skill-workspace-nav > a,
@@ -73,7 +77,7 @@
   justify-content: center;
   gap: 6px;
   min-height: 36px;
-  color: #677695;
+  color: var(--text-muted);
   font-size: 13px;
   white-space: nowrap;
 }
@@ -88,9 +92,9 @@
   gap: 7px;
   min-height: 36px;
   padding: 7px 11px;
-  border: 1px solid #e8e2ff;
+  border: 1px solid var(--border-neutral);
   border-radius: 9px;
-  background: #f4f1ff;
+  background: var(--surface-tint);
   color: var(--blue);
   font-size: 12px;
   line-height: 1.5;
@@ -98,24 +102,24 @@
 }
 
 .skill-workspace-nav .skill-workspace-connection:hover:not(:disabled) {
-  background: #eee8ff;
+  background: var(--surface-tint);
   color: var(--blue-dark);
 }
 
 .skill-workspace-nav .skill-workspace-connection.is-connected {
-  color: #617593;
-  border-color: #e9edf5;
-  background: #f8faff;
+  color: var(--text-muted);
+  border-color: var(--border-neutral);
+  background: var(--surface-tint);
 }
 
 .skill-workspace-connection-dot { width: 6px; height: 6px; border-radius: 50%; background: #39a681; flex-shrink: 0; }
 
-.skill-workspace-footer { border-top: 1px solid #e4e9f5; }
+.skill-workspace-footer { border-top: 1px solid var(--border-neutral); }
 .skill-workspace-footer-inner { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 24px 32px; padding-block: 26px; }
 .skill-workspace-footer-brand { min-width: 0; }
 .skill-workspace-footer-brand .skill-workspace-brand { gap: 7px; font-size: 18px; letter-spacing: -.5px; }
 .skill-workspace-footer-brand .skill-workspace-brand img { width: 26px; height: 26px; }
-.skill-workspace-footer-brand p { margin-top: 4px; color: #8793ad; font-size: 11px; }
+.skill-workspace-footer-brand p { margin-top: 4px; color: var(--text-muted); font-size: 11px; }
 .skill-workspace-resources { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 24px; }
 .skill-workspace-resources a { font-size: 12px; }
 .skill-workspace-footer .sidebar-community { display: block; margin: 0; }
@@ -127,8 +131,8 @@
 .skill-workspace-footer .author-community-copy p { margin: 3px 0 0; font-size: 11px; }
 .skill-workspace-footer .author-community-copy small { margin-top: 4px; font-size: 10px; }
 
-.studio-skill-page .skill-execution-balance { display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px 8px; margin-top: 10px; color: #8290ac; font-size: 12px; line-height: 1.7; }
-.studio-skill-page .skill-execution-balance strong { color: #42557d; font-size: 13px; font-weight: 650; font-variant-numeric: tabular-nums; }
+.studio-skill-page .skill-execution-balance { display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px 8px; margin-top: 10px; color: var(--text-muted); font-size: 12px; line-height: 1.7; }
+.studio-skill-page .skill-execution-balance strong { color: var(--text-muted); font-size: 13px; font-weight: 650; font-variant-numeric: tabular-nums; }
 .studio-skill-page .skill-execution-balance a { margin-inline: 3px; color: var(--blue); }
 .studio-skill-page .skill-execution-balance a:hover { color: var(--blue-dark); text-decoration: underline; }
 
@@ -143,6 +147,8 @@
 }
 
 @media (max-width: 760px) {
+  .studio-app.studio-top-nav .main-shell { padding-top: 98px; }
+  .editor-heading-actions { width: 100%; gap: 10px; }
   .studio-top-nav .main-content,
   .studio-top-nav .skill-workspace-header-inner,
   .studio-top-nav .skill-workspace-footer-inner { padding-inline: 18px; }

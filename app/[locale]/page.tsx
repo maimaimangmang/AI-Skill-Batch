@@ -14,6 +14,6 @@ export default async function Page() {
   const skills = featured.filter(skill => !!skill).map(card);
   const featuredIds = new Set(skills.map(skill => skill.id));
   const more = catalog.filter(skill => !featuredIds.has(skill.id));
-  const discovery = (more.length >= 4 ? more : skills).slice(0, 16).map(card);
+  const discovery = (more.length >= 4 ? more : skills).map(card);
   return <PublicHome skills={skills} discovery={discovery} total={catalog.length} />;
 }

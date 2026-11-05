@@ -20,9 +20,19 @@ let price = 2500000; let dropNext = false; let noCurrency = false; let quoteCoun
 let subscriptionQuote: Record<string, unknown> = {};
 let officialValid = true; let officialRevision = 'official-price-1'; let officialVersion = 'v3';
 const officialAttempts: any[] = [];
+const originalImage = new Uint8Array([137, 80, 78, 71, 13, 10, 26, 10, 0, 1, 2, 255]);
+let imageDownloads = 0;
+let imageAvailable = true;
 const listing = { id: 'test-listing', displayName: '测试工作流', currency: 'CNY', listingVersionId: 'v1', executionAvailabilityStatus: 'available', inputSchemaSnapshot: JSON.stringify({ fields: [{ key: 'subject', label: '主题', value_type: 'string', required: true }] }) };
 globalThis.fetch = async (input, options) => {
-  const url = String(input); assert.ok(url.startsWith('https://loomloom.test/loom/v1/'), '测试不可访问真实服务');
+  const url = String(input);
+  if (url.startsWith('https://shengsuanyun.oss-cn-shanghai.aliyuncs.com/')) {
+    imageDownloads++;
+    assert.equal(new Headers(options?.headers).has('Authorization'), false);
+    assert.equal(options?.redirect, 'error'); assert.equal(options?.cache, 'no-store');
+    return imageAvailable ? new Response(originalImage) : new Response('Expired', { status: 403 });
+  }
+  assert.ok(url.startsWith('https://loomloom.test/loom/v1/'), '测试不可访问真实服务');
   assert.equal(options?.redirect, 'error'); assert.equal(options?.cache, 'no-store');
   const headers = new Headers(options?.headers); const key = headers.get('Authorization') || '';
   if (key === 'Bearer invalid-key') return Response.json({ message: 'Unauthorized' }, { status: 401 });
@@ -85,6 +95,27 @@ async function login(key: string) {
   return result.response.headers.get('set-cookie')!.split(';')[0];
 }
 after(() => { globalThis.fetch = nativeFetch; db().close(); rmSync(dir, { recursive: true, force: true }); });
+
+test('API：原图下载保留文件字节，要求登录并拒绝任意外部地址', async () => {
+  const cookie = await login('image-download-key');
+  const source = 'https://shengsuanyun.oss-cn-shanghai.aliyuncs.com/batchjob%2F0000.png?Signature=test';
+  const downloadImage = (url: string, connected = true) => GET(new NextRequest('http://localhost:3000/api/artifacts/download?url=' + encodeURIComponent(url), { headers: connected ? { cookie } : {} }), { params: Promise.resolve({ path: ['artifacts', 'download'] }) });
+  const before = imageDownloads;
+  assert.equal((await downloadImage(source, false)).status, 401);
+  for (const invalid of ['not-a-url', 'http://shengsuanyun.oss-cn-shanghai.aliyuncs.com/a.png', 'https://127.0.0.1/a.png', 'https://evil.test/a.png', 'https://shengsuanyun.oss-cn-shanghai.aliyuncs.com.evil.test/a.png', 'https://user@shengsuanyun.oss-cn-shanghai.aliyuncs.com/a.png', 'https://shengsuanyun.oss-cn-shanghai.aliyuncs.com:444/a.png']) {
+    assert.equal((await downloadImage(invalid)).status, 400);
+  }
+  assert.equal(imageDownloads, before);
+  const response = await downloadImage(source);
+  assert.equal(response.status, 200);
+  assert.equal(response.headers.get('Content-Disposition'), 'attachment');
+  assert.equal(response.headers.get('Cache-Control'), 'no-store');
+  assert.deepEqual(new Uint8Array(await response.arrayBuffer()), originalImage);
+  try {
+    imageAvailable = false;
+    assert.equal((await downloadImage(source)).status, 502);
+  } finally { imageAvailable = true; }
+});
 
 test('API：匿名不能读取市场、任务或提交', async () => {
   for (const route of ['market', 'runs', 'pending']) assert.equal((await call(route)).response.status, 401);

@@ -1,7 +1,7 @@
 'use client';
 import { useI18n } from './language-provider';
 import { useEffect, useRef, useState } from 'react';
-import { Check, File, ImagePlus, Link2, LoaderCircle, Upload, X } from 'lucide-react';
+import { Check, File, ImagePlus, Link2, LoaderCircle, RefreshCw, Upload, X } from 'lucide-react';
 import type { Field } from '@/lib/types';
 import { assetValues, isAssetId, mergeAssetLinks } from '@/lib/asset-input';
 
@@ -12,13 +12,13 @@ export type AssetUploadStatus = {
   percent: number | null;
 };
 type Props = {
-  localDraft?: boolean; field: Field; value: unknown; rowNumber: number; disabled: boolean;
+  compact?: boolean; localDraft?: boolean; field: Field; value: unknown; rowNumber: number; disabled: boolean;
   previews: Record<string, AssetPreview>;
   upload?: AssetUploadStatus; onCancelUpload?: () => void;
   onChange: (value: unknown) => void; onUpload: (file?: File) => void;
   onPaste: (event: React.ClipboardEvent) => void;
 };
-export default function AssetInput({ localDraft = false, field, value, rowNumber, disabled, previews, upload, onCancelUpload, onChange, onUpload, onPaste }: Props) {
+export default function AssetInput({ compact = false, localDraft = false, field, value, rowNumber, disabled, previews, upload, onCancelUpload, onChange, onUpload, onPaste }: Props) {
   const { t, skillText } = useI18n();
   const input = useRef<HTMLInputElement>(null);
   const [linkOpen, setLinkOpen] = useState(false);
@@ -41,21 +41,21 @@ export default function AssetInput({ localDraft = false, field, value, rowNumber
   const noun = image ? t("图片") : t("附件");
   const update = (next: string[]) => onChange(multiple ? (next.length ? next : '') : (next[0] || ''));
   const full = multiple && !!field.max_values && values.length >= field.max_values;
-  return <div className="asset-input">
+  return <div className={`asset-input${compact ? ' asset-input-compact' : ''}`}>
     {values.length > 0 && <div className="asset-previews">{values.map((ref, index) => {
       const preview = previews[ref];
       const name = preview?.name || (isAssetId(ref) ? t("已上传{0}{1}", noun, multiple ? ` ${index + 1}` : '') : ref);
       return <div className="asset-preview" key={`${ref}-${index}`}>
-        {preview?.url ? <img src={preview.url} alt={name} /> : <span className="asset-file-icon">{isAssetId(ref) ? <File size={20} /> : <Link2 size={20} />}</span>}
-        <span className="asset-filename" title={name}>{name}</span>
+        {preview?.url || (image && /^https:\/\//i.test(ref)) ? <img src={preview?.url || ref} alt={name} /> : <span className="asset-file-icon">{isAssetId(ref) ? <File size={20} /> : <Link2 size={20} />}</span>}
+        <div className="asset-preview-copy"><span className="asset-filename" title={name}>{name}</span>{compact && !multiple && <button type="button" className="asset-replace" disabled={disabled} onClick={() => input.current?.click()}><RefreshCw size={12} />{t('更换{0}', noun)}</button>}</div>
         <button type="button" className="asset-remove" aria-label={t("第 {0} 行移除{1} {2}", rowNumber, noun, index + 1)} disabled={disabled} onClick={() => update(values.filter((_, i) => i !== index))}><X size={12} /></button>
       </div>;
     })}</div>}
-    <button type="button" className={`asset-upload${values.length ? ' has-value' : ''}`} disabled={disabled || full} onClick={() => input.current?.click()}>
-      {active ? <LoaderCircle className="spin" size={18} /> : image ? <ImagePlus size={18} /> : <Upload size={18} />}<span>{active ? status.replace(t("图片 / 附件"), noun) : values.length ? (multiple ? (localDraft ? t("继续选择{0}", noun) : t("继续上传{0}", noun)) : t("替换{0}", noun)) : (localDraft ? t("选择{0}", noun) : t("上传{0}", noun))}</span>
-      {!values.length && !active && <small>{t("单个文件不超过 10 MB")}</small>}
-    </button>
-    {upload && <div className={`asset-transfer ${upload.phase}`} aria-busy={active}>
+    {!(compact && values.length && !multiple) && <button type="button" className={`asset-upload${values.length ? ' has-value' : ''}`} disabled={disabled || full} onClick={() => input.current?.click()} aria-label={t("第 {0} 行上传{1}", rowNumber, skillText(field.label))} title={t('单个文件不超过 10 MB')}>
+      {active ? <LoaderCircle className="spin" size={18} /> : image ? <ImagePlus size={18} /> : <Upload size={18} />}{!compact && <span>{active ? status.replace(t("图片 / 附件"), noun) : values.length ? (multiple ? (localDraft ? t("继续选择{0}", noun) : t("继续上传{0}", noun)) : t("替换{0}", noun)) : (localDraft ? t("选择{0}", noun) : t("上传{0}", noun))}</span>}
+      {!compact && !values.length && !active && <small>{t("单个文件不超过 10 MB")}</small>}
+    </button>}
+    {upload && !(compact && upload.phase === 'succeeded') && <div className={`asset-transfer ${upload.phase}`} aria-busy={active}>
       <div className="asset-transfer-heading"><span title={upload.name}>{upload.name}</span>{active && <button type="button" onClick={onCancelUpload} aria-label={t("取消第 {0} 行{1}上传", rowNumber, skillText(field.label))}>{t("取消")}</button>}</div>
       {upload.phase !== 'failed' && <progress max={100} value={upload.phase === 'succeeded' ? 100 : upload.phase === 'uploading' && upload.percent !== null ? upload.percent : undefined} aria-label={t("第 {0} 行{1}上传进度", rowNumber, skillText(field.label))} />}
       <div className="asset-transfer-status"><span role="status">{upload.phase === 'succeeded' && <Check size={12} />}{status.replace(t("图片 / 附件"), noun)}</span><span>{upload.phase === 'uploading' && upload.percent !== null ? `${upload.percent}%` : active ? t("{0} 秒", elapsed) : ''}</span></div>
@@ -63,7 +63,7 @@ export default function AssetInput({ localDraft = false, field, value, rowNumber
       {active && elapsed >= 15 && <small>{t("本次上传较慢，请稍候；也可以取消后重试。")}</small>}
     </div>}
     <input ref={input} type="file" className="sr-only" disabled={disabled || full} accept={field.accepted_mime_types?.join(',') || (image ? 'image/*' : undefined)} aria-label={t("第 {0} 行上传{1}", rowNumber, skillText(field.label))} onChange={e => { onUpload(e.target.files?.[0]); e.target.value = ''; }} />
-    <button type="button" className="asset-link-toggle" disabled={disabled} aria-expanded={linkOpen} onClick={() => setLinkOpen(open => !open)}><Link2 size={12} />{linkOpen ? t("收起链接输入") : t("使用{0}链接", noun)}</button>
+    <button type="button" className="asset-link-toggle" title={t('使用{0}链接', noun)} aria-label={linkOpen ? t("收起链接输入") : t("使用{0}链接", noun)} disabled={disabled} aria-expanded={linkOpen} onClick={() => setLinkOpen(open => !open)}><Link2 size={12} />{!compact && (linkOpen ? t("收起链接输入") : t("使用{0}链接", noun))}</button>
     {linkOpen && <div className="asset-link-editor">
       <textarea rows={2} aria-label={t("第 {0} 行 {1}链接", rowNumber, skillText(field.label))} disabled={disabled} value={linkDraft} placeholder={multiple ? t("粘贴 HTTPS 链接，每行一个") : t("粘贴图片或文件的 HTTPS 直链")} onPaste={onPaste} onChange={e => { setLinkDraft(e.target.value); setLinkError(''); }} />
       <button type="button" className="asset-link-apply" disabled={disabled || !linkDraft.trim()} onClick={() => {

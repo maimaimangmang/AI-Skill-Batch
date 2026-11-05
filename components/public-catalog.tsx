@@ -103,8 +103,7 @@ export function PublicCatalog({ skills, featured, total, page, pages, query, cat
   const useCase = getSkillCategory(category);
   return <PublicShell catalog><main className="public-catalog studio-market">
     <header className="market-heading">
-      <h1>{t('AI Skill 工作流目录')}</h1>
-      <p>{t('选择 Skill → 填写批量任务 → 确认费用 → 下载结果')}</p>
+      <h1 id="market-title">{t('热门工作流')}</h1>
     </header>
     <form className="catalog-mobile-search search" action={href('/skills')} role="search">
       {category && <input type="hidden" name="category" value={category} />}{subscriptionsOnly && <input type="hidden" name="billing" value="subscription" />}
@@ -112,9 +111,8 @@ export function PublicCatalog({ skills, featured, total, page, pages, query, cat
       <input name="q" defaultValue={query} key={query} maxLength={100} placeholder={t('搜索名称或使用场景…')} aria-label={t('搜索 Skill')} />
       <button type="submit">{t('搜索')}</button>
     </form>
-    {featured.length > 0 && <section className="featured" aria-labelledby="featured-title" ref={carouselRef}
+    {featured.length > 0 && <section className="featured" aria-labelledby="market-title" ref={carouselRef}
       onPointerEnter={event => { if (event.pointerType === 'mouse') setHovered(true); }} onPointerLeave={() => { setHovered(false); cancelSwipe(); }}>
-      <div className="featured-header"><h2 id="featured-title">{t('金牌推荐')}</h2></div>
       <div className="featured-grid" id="featured-slides"
         onPointerDown={startSwipe} onPointerUp={finishSwipe} onPointerCancel={cancelSwipe}
         onFocusCapture={() => setPaused(true)} onBlurCapture={event => { if (!event.currentTarget.contains(event.relatedTarget)) setPaused(false); }}
@@ -123,7 +121,7 @@ export function PublicCatalog({ skills, featured, total, page, pages, query, cat
         const Icon = entry.cover === 'commerce' ? Images : ImageIcon;
         return <article className={`featured-card${index === activeSlide ? ' is-active' : ''}`} key={id} aria-hidden={mobile && index !== activeSlide ? true : undefined} inert={mobile && index !== activeSlide}>
           <div className="featured-category-row">{skill && <FavoriteButton skill={skill} />}<span className="featured-category"><span className="featured-category-icon"><Icon size={18} /></span>{t(entry.category)}</span>{entry.hot && <span className="featured-hot-badge"><Flame size={17} fill="currentColor" aria-label={t('热门')} /></span>}</div>
-          <h3>{skill ? <Link href={skillPath(id)}>{skillText(entry.title)}</Link> : skillText(entry.title)}</h3>
+          <h3>{skill ? <Link className="workflow-card-link" href={skillPath(id)}>{skillText(entry.title)}</Link> : skillText(entry.title)}</h3>
           <WorkflowAuthor name={skill?.creator?.nickname || entry.authorName} />{skill && <SkillTags skill={skill} /> }
           {skill?.model && <span className="featured-model-label"><Sparkles size={11} />{skillText(skill.model)}</span>}
           <p>{t(entry.reason)}</p>
@@ -152,13 +150,12 @@ export function PublicCatalog({ skills, featured, total, page, pages, query, cat
     {refreshError && <p role="alert" className="error">{t('刷新失败，请重试。')}</p>}
     {query && <div className="public-catalog-count"><span>{t('“{0}”的搜索结果', query)} · {total}</span><Link href={'/skills' + ((category || subscriptionsOnly) ? '?' + new URLSearchParams({ ...(category ? { category } : {}), ...(subscriptionsOnly ? { billing: 'subscription' } : {}) }) : '')}>{t('清除搜索')}</Link></div>}
     {skills.length ? <div className="workflow-grid">{skills.map(skill => <article className="workflow-card" key={skill.id}>
-      <div className="card-top"><span className="workflow-icon"><FileText size={20} /></span><div className="card-title"><h3><Link href={skillPath(skill.id)}>{skillText(skill.displayName)}</Link></h3><WorkflowAuthor name={skill.creator?.nickname} /></div><FavoriteButton skill={skill} /></div>
+      <div className="card-top"><span className="workflow-icon"><FileText size={20} /></span><div className="card-title"><h3><Link className="workflow-card-link" href={skillPath(skill.id)}>{skillText(skill.displayName)}</Link></h3><WorkflowAuthor name={skill.creator?.nickname} /></div><FavoriteButton skill={skill} /></div>
       <SkillTags skill={skill} /><p>{skillText(skill.description)}</p>
       <div className="card-model-tags"><span className={`model-tag${skill.model ? ' disclosed' : ''}`}><Sparkles size={11} />{skillText(skill.model) || t('暂无模型信息')}</span></div>
       <div className="card-bottom"><SkillPrice skill={skill} /><Link className="card-use" href={skillPath(skill.id)} aria-label={t('使用 {0}', skillText(skill.displayName))}>{t('使用')}<ArrowRight size={15} /></Link></div>
     </article>)}</div> : <div className="public-empty"><h2>{t('暂未找到匹配的 Skill')}</h2><p>{t('试试更短的关键词，例如“图片”“文案”或“翻译”。')}</p><Link href="/skills">{t('浏览全部 Skill')}</Link></div>}
     <nav className="market-pagination" aria-label={t('工作流市场分页')}>
-      <span className="pagination-summary">{t('第 {0} 页{1} · 本页 {2} 项', page, t(' / 共 {0} 页', pages), skills.length)}{t(' · 每页 ')}24{t(' 项')}</span>
       <div className="pagination-buttons">
         {page > 1 ? <Link className="button small" href={pageHref(page - 1)} rel="prev">{t('上一页')}</Link> : <button className="button small" disabled>{t('上一页')}</button>}
         {marketPageNumbers(pages, page - 1).map((n, index) => n === null ? <span className="pagination-ellipsis" key={`gap-${index}`} aria-hidden="true">…</span> : n + 1 === page ? <span key={n} className="button small page-number primary" aria-label={t('第 {0} 页', n + 1)} aria-current="page">{n + 1}</span> : <Link key={n} className="button small page-number" href={pageHref(n + 1)} aria-label={t('第 {0} 页', n + 1)}>{n + 1}</Link>)}

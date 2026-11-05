@@ -4,6 +4,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo } from 'reac
 import { useRouter } from 'next/navigation';
 import { translate, translateSkillText, type Locale } from '@/lib/i18n';
 import { localizedPath } from '@/lib/locale';
+import { preserveReturnNavigation } from '@/lib/navigation';
 
 type I18n = { locale: Locale; setLocale: (locale: Locale) => void; t: (source: string, ...values: unknown[]) => string; skillText: (source: string) => string; href: (path:string) => string };
 const LanguageContext = createContext<I18n | null>(null);
@@ -17,7 +18,9 @@ export function LanguageProvider({ children, initialLocale = 'zh-CN' }: { childr
     const event = new CustomEvent('loomskill-language-change', { cancelable: true, detail: next });
     if (!window.dispatchEvent(event)) return;
     // The URL is authoritative, including when a link is shared or opened in a new tab.
-    router.push(localizedPath(window.location.pathname + window.location.search + window.location.hash, next), { scroll:false });
+    const destination = localizedPath(window.location.pathname + window.location.search + window.location.hash, next);
+    preserveReturnNavigation(destination);
+    router.replace(destination, { scroll:false });
   }, [router, locale]);
   const t = useCallback((source: string, ...values: unknown[]) => translate(locale, source, ...values), [locale]);
   const skillText = useCallback((source: string) => translateSkillText(locale, source), [locale]);

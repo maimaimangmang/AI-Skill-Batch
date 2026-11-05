@@ -1,28 +1,44 @@
 'use client';
 import { LocalizedAnchor } from './localized-link';
-import { sourceMessage, localizePublicExample } from '@/lib/i18n';
+import { sourceMessage } from '@/lib/i18n';
 import { useI18n } from './language-provider';
 import WorkflowAuthor from './workflow-author';
 import AssetInput, { type AssetPreview, type AssetUploadStatus } from './asset-input';
 import { assetValues } from '@/lib/asset-input';
 import { useEffect, useRef, useState } from 'react';
-import { ArrowLeft, ArrowRight, Check, ChevronDown, Copy, Download, FileSpreadsheet, Info, LoaderCircle, Plus, Trash2, Upload } from 'lucide-react';
+import { ArrowRight, Braces, ChevronDown, ChevronLeft, Copy, Download, Expand, Hash, ImageIcon, Info, ListFilter, LoaderCircle, Palette, Pencil, Plus, Ratio, ToggleLeft, Trash2, Type, Upload } from 'lucide-react';
+import BackLink from './back-link';
 import Papa from 'papaparse';
-import type { Balance, InputRow, Listing, Schema } from '@/lib/types';
+import type { Balance, Field, InputRow, Listing, Schema } from '@/lib/types';
 import { cellText, emptyRow, money, isBlankRow } from '@/lib/domain';
 import { base64, download, exportSheet, post, type ApiRequestOptions } from '@/lib/client';
 import WorkflowExamples from './workflow-examples';
 import AgentInstall from './agent-install';
 import FavoriteButton from './favorite-button';
-import SkillGuide from './skill-guide';
 import { SkillBilling, SkillTags } from './skill-pricing';
 import { workflowPath } from '@/lib/official';
 import ImportDialog, { type ImportSheet } from './import-dialog';
-type Props = { showBackNavigation?: boolean; showBalance?: boolean; balance?: Balance | null; listing: Listing; schema: Schema; rows: InputRow[]; setRows: (rows: InputRow[]) => void; demo: boolean; guest?: boolean; busy: boolean; errors: string[]; api: (path: string, options?: ApiRequestOptions) => Promise<any>; onBack: () => void; onQuote: () => void };
-export default function Editor({ showBackNavigation = true, showBalance = false, balance, listing, schema, rows, setRows, demo, guest = false, busy, errors, api, onBack, onQuote }: Props) {
-  const { t, skillText, locale } = useI18n();
+import Modal from './modal';
+import TaskFieldInput from './task-field-input';
+import AppSelect from './app-select';
+import { fieldKind, fieldRole, taskPaste } from '@/lib/task-editor';
+import '@/app/precision-editor.css';
+
+function SelectAll({ selected, total, disabled, label, onChange }: { selected: number; total: number; disabled: boolean; label: string; onChange: (checked: boolean) => void }) {
+  const ref = useRef<HTMLInputElement>(null);
+  useEffect(() => { if (ref.current) ref.current.indeterminate = selected > 0 && selected < total; }, [selected, total]);
+  return <input ref={ref} type="checkbox" aria-label={label} checked={total > 0 && selected === total} disabled={disabled} onChange={event => onChange(event.target.checked)} />;
+}
+type Props = { showBackNavigation?: boolean; showBalance?: boolean; balance?: Balance | null; listing: Listing; schema: Schema; rows: InputRow[]; setRows: (rows: InputRow[]) => void; demo: boolean; guest?: boolean; busy: boolean; errors: string[]; api: (path: string, options?: ApiRequestOptions) => Promise<any>; onQuote: () => void };
+export default function Editor({ showBackNavigation = true, listing, schema, rows, setRows, demo, guest = false, busy, errors, api, onQuote }: Props) {
+  const { t, skillText } = useI18n();
   const [localError, setLocalError] = useState(''); const [uploading, setUploading] = useState(false);
   const [mobileOpenRow, setMobileOpenRow] = useState<number | null>(null);
+  const [selected, setSelected] = useState<Set<number>>(new Set());
+  const [expandedRow, setExpandedRow] = useState<number | null>(null);
+  const [bulkOpen, setBulkOpen] = useState(false);
+  const [bulkKey, setBulkKey] = useState('');
+  const [bulkValue, setBulkValue] = useState<unknown>('');
   const [sheets, setSheets] = useState<ImportSheet[] | null>(null); const input = useRef<HTMLInputElement>(null);
   const [previews, setPreviews] = useState<Record<string, AssetPreview>>({});
   const previewUrls = useRef<string[]>([]);
@@ -46,6 +62,8 @@ export default function Editor({ showBackNavigation = true, showBalance = false,
   const fields = schema.fields; const locked = busy || uploading;
   const activeMobileRow = rows.find(row => rowId(row) === mobileOpenRow) || rows[0];
   const taskCount = rows.filter(row => !isBlankRow(row, fields)).length;
+  const selectedRows = rows.filter(row => selected.has(rowId(row)));
+  const bulkField = fields.find(field => field.key === bulkKey) || fields[0];
   const change = (index: number, key: string, value: unknown) => setRows(rows.map((row, i) => i === index ? changedRow(row, { [key]: value }) : row));
   async function importFile(file?: File) {
     if (!file) return;
@@ -69,14 +87,14 @@ export default function Editor({ showBackNavigation = true, showBalance = false,
       setSheets(data);
     } catch (e) { setLocalError((e as Error).message); } finally { setUploading(false); if (input.current) input.current.value = ''; }
   }
-  async function attach(file: File | undefined, index: number, key: string, multiple: boolean) {
+  async function attach(file: File | undefined, index: number | null, key: string, multiple: boolean) {
     if (!file || uploadController.current) return; setUploading(true); setLocalError('');
     const controller = new AbortController(); uploadController.current = controller;
-    setAssetUpload({ rowId: rowId(rows[index]), key, name: file.name, startedAt: Date.now(), phase: 'preparing', percent: null });
+    setAssetUpload({ rowId: index === null ? -1 : rowId(rows[index]), key, name: file.name, startedAt: Date.now(), phase: 'preparing', percent: null });
     try {
       if (file.size > 10 * 1024 * 1024) throw new Error(sourceMessage("每个附件最大 10 MB。"));
       const field = fields.find(f => f.key === key)!;
-      const existing = multiple ? assetValues(rows[index][key]).filter(Boolean) : [];
+      const existing = multiple ? assetValues(index === null ? bulkValue : rows[index][key]).filter(Boolean) : [];
       if (field.max_values && existing.length >= field.max_values) throw new Error(sourceMessage("最多上传 {0} 个附件。", field.max_values));
       controller.signal.throwIfAborted();
       if (!mounted.current) return;
@@ -92,46 +110,55 @@ export default function Editor({ showBackNavigation = true, showBalance = false,
       const url = file.type.startsWith('image/') ? URL.createObjectURL(file) : undefined;
       if (url) previewUrls.current.push(url);
       setPreviews(current => ({ ...current, [value.inputAssetId]: { name: file.name, url } }));
-      change(index, key, multiple ? [...existing, value.inputAssetId] : value.inputAssetId);
+      const nextValue = multiple ? [...existing, value.inputAssetId] : value.inputAssetId;
+      if (index === null) setBulkValue(nextValue); else change(index, key, nextValue);
       setAssetUpload(current => current && { ...current, phase: 'succeeded', percent: 100 });
     } catch (e) {
       if (mounted.current) { setLocalError(controller.signal.aborted ? sourceMessage("已取消上传，可重新选择文件。") : (e as Error).message); setAssetUpload(current => current && { ...current, phase: 'failed', percent: null }); }
     } finally { uploadController.current = null; if (mounted.current) setUploading(false); }
   }
   function paste(e: React.ClipboardEvent, startRow: number, startColumn: number) {
-    const text = e.clipboardData.getData('text'); if (!text.includes('\t')) return;
-    e.preventDefault();
-    const parsed = Papa.parse<string[]>(text, { delimiter: '\t', skipEmptyLines: 'greedy' });
-    if (parsed.errors.length || parsed.data.some(r => startColumn + r.length > fields.length)) { setLocalError(sourceMessage("粘贴格式有误或超出现有字段列数，请调整后重试。")); return; }
-    const next = rows.map(r => changedRow(r, {}));
-    while (next.length < startRow + parsed.data.length) next.push(emptyRow(fields));
-    parsed.data.forEach((r, i) => r.forEach((v, j) => { next[startRow + i][fields[startColumn + j].key] = v; }));
-    setRows(next); setLocalError('');
+    try {
+      const matrix = taskPaste(e.clipboardData.getData('text'), startColumn, fields.length);
+      if (!matrix) return;
+      e.preventDefault();
+      if (startRow + matrix.length > 2000) throw new Error(sourceMessage('文件最多 2000 行、100 列。'));
+      const next = rows.map(row => changedRow(row, {}));
+      while (next.length < startRow + matrix.length) next.push(emptyRow(fields));
+      matrix.forEach((values, i) => values.forEach((value, j) => { next[startRow + i][fields[startColumn + j].key] = value; }));
+      setRows(next); setLocalError('');
+    } catch (error) { e.preventDefault(); setLocalError((error as Error).message); }
   }
-  return <>
-    {showBackNavigation && <div className="editor-navigation"><button className="back-button" disabled={locked} onClick={onBack}><ArrowLeft size={16} />{t("返回 Skill 列表")}</button></div>}
-    <div className="page-heading"><div><div className="eyebrow">BATCH WORKSPACE</div><h1>{skillText(listing.displayName)}</h1><WorkflowAuthor name={listing.creator?.nickname} />{!demo && <SkillTags skill={listing} />}<p>{skillText(listing.description)}</p>{!demo && <FavoriteButton skill={listing} label />}</div><AgentInstall key={listing.id} listing={listing} demo={demo} /></div>
+  function replaceRows(next: InputRow[]) { setRows(next); setSelected(new Set()); setExpandedRow(null); setLocalError(''); }
+  function addTask() { const row = emptyRow(fields); setMobileOpenRow(rowId(row)); setRows([...rows, row]); }
+  function selectAll(checked: boolean) { setSelected(checked ? new Set(rows.map(rowId)) : new Set()); }
+  function fieldInput(field: Field, index: number) {
+    const row = rows[index];
+    return fieldKind(field) === 'asset' ? <AssetInput compact localDraft={guest} field={field} value={row[field.key]} rowNumber={index + 1} disabled={locked} previews={previews} upload={assetUpload?.rowId === rowId(row) && assetUpload.key === field.key ? assetUpload : undefined} onCancelUpload={() => uploadController.current?.abort()} onChange={value => { setAssetUpload(null); change(index, field.key, value); }} onUpload={file => attach(file, index, field.key, field.value_type.endsWith('[]'))} onPaste={event => paste(event, index, fields.indexOf(field))} /> : <TaskFieldInput field={field} value={row[field.key]} label={t('第 {0} 行 {1}', index + 1, skillText(field.label))} disabled={locked} expanded={expandedRow === rowId(row)} onChange={value => change(index, field.key, value)} onPaste={event => paste(event, index, fields.indexOf(field))} />;
+  }
+  const icons = { asset: ImageIcon, choice: ListFilter, style: Palette, ratio: Ratio, dimensions: Expand, boolean: ToggleLeft, number: Hash, structured: Braces, text: Type };
+  const weights = { asset: 260, choice: 220, number: 150, structured: 300, text: 300 };
+  const totalWeight = fields.reduce((sum, field) => sum + weights[fieldKind(field)], 0);
+  return <div className="precision-editor">
+    <div className="page-heading editor-heading"><div className="precision-heading-copy"><div className="precision-title">{showBackNavigation && <BackLink className="precision-back" fallback="/skills" disabled={locked} aria-label={t('返回上一页')} title={t('返回上一页')}><ChevronLeft size={26} aria-hidden="true" /></BackLink>}<h1>{skillText(listing.displayName)}</h1></div><div className="precision-author"><WorkflowAuthor name={listing.creator?.nickname} />{!demo && <SkillTags skill={listing} />}</div></div><div className="editor-heading-actions">{!demo && <FavoriteButton skill={listing} label />}<AgentInstall key={listing.id} listing={listing} demo={demo} /></div></div>
     <LocalizedAnchor className="mobile-task-jump" href="#task-table">{t('填写任务表')}<ArrowRight size={16} aria-hidden="true" /></LocalizedAnchor>
+    <div className="precision-info">
     {!demo && <SkillBilling skill={listing} />}
-    <div className="steps"><span className="done"><Check size={15} />{t("选择工作流")}</span><i /><span className="active"><b>2</b>{t("填写任务表")}</span><i /><span><b>3</b>{t("确认并执行")}</span><i /><span><b>4</b>{t("收集结果")}</span></div>
     <WorkflowExamples key={listing.id} listing={listing} schema={schema} demo={demo} disabled={locked} onUse={row => {
       if (rows.some(r => !isBlankRow(r, fields)) && !window.confirm(t("用这组示例输入替换当前表格？"))) return;
-      setRows([Object.fromEntries(fields.map(field => [field.key, row[field.key] ?? field.default_value ?? '']))]);
-      setLocalError('');
+      replaceRows([Object.fromEntries(fields.map(field => [field.key, row[field.key] ?? field.default_value ?? '']))]);
     }} />
-        {demo && <details className="instructions"><summary><Info size={17} />{t("填写说明与工作流信息")}<ChevronDown size={16} /></summary><div><p>{skillText(schema.input_summary || '') || t("每一行会作为一个独立任务提交。必填字段已用 * 标出。")}</p>{schema.instructions?.map((s, i) => <p key={i}>{skillText(s)}</p>)}<p>{listing.officialTemplateId ? t("无技能调用费，模型费用按实际用量结算，提交前会显示预估金额。") : t("创作者调用费：{0} / 任务，模型费用以提交前的预估为准。", t(money(listing.taskFixedFeeT, listing.currency)))}</p>{fields.map(f => f.description && <p key={f.key}><strong>{skillText(f.label)}：</strong>{skillText(f.description)}</p>)}</div></details>}
-    <section className="editor-card" id="task-table">
-      <div className="table-toolbar"><div><FileSpreadsheet size={20} /><strong>{t("任务表")}</strong><span className="count">{t("已填 ")}{taskCount} {t(" 行")}</span></div><div className="toolbar-actions"><button className="button small" disabled={locked} onClick={() => input.current?.click()}><Upload size={15} />{t("导入表格")}</button><button className="button small" disabled={locked} onClick={async () => { try { if (demo || guest) await exportSheet(fields.map(f => f.label), [fields.map(f => cellText(f.default_value))], 'loomdesk-template.xlsx'); else await download(`${workflowPath(listing)}/workbook`, 'loomdesk-template.xlsx'); } catch (e) { setLocalError((e as Error).message); } }}><Download size={15} />{t("下载模板")}</button><input type="file" ref={input} className="sr-only" accept=".xlsx,.csv,.tsv" aria-label={t("导入 Excel 或 CSV")} onChange={e => importFile(e.target.files?.[0])} /></div></div>
+        {demo && <section className="instructions"><h2><Info size={17} />{t("填写说明与工作流信息")}</h2><div><p>{skillText(schema.input_summary || '') || t("每一行会作为一个独立任务提交。必填字段已用 * 标出。")}</p>{schema.instructions?.map((s, i) => <p key={i}>{skillText(s)}</p>)}<p>{listing.officialTemplateId ? t("无技能调用费，模型费用按实际用量结算，提交前会显示预估金额。") : t("创作者调用费：{0} / 任务，模型费用以提交前的预估为准。", t(money(listing.taskFixedFeeT, listing.currency)))}</p>{fields.map(f => f.description && <p key={f.key}><strong>{skillText(f.label)}：</strong>{skillText(f.description)}</p>)}</div></section>}
+    </div>
+    <section className="editor-card precision-sheet" data-wrap-fields={fields.length > 5 || undefined} id="task-table" aria-label={t('任务表')}>
+      <div className="table-toolbar"><div className="precision-selection"><SelectAll selected={selectedRows.length} total={rows.length} disabled={locked} label={t('选择全部任务')} onChange={selectAll} /><strong role="status">{selectedRows.length ? t('已选择 {0} 项任务', selectedRows.length) : t('{0} 个已填任务', taskCount)}</strong>{selectedRows.length > 0 && <button className="text-button precision-clear" onClick={() => setSelected(new Set())}>{t('取消选择')}</button>}</div><div className="toolbar-actions"><button className="button small" disabled={locked} onClick={() => input.current?.click()}><Upload size={17} />{t("导入表格")}</button><button className="button small" disabled={locked} onClick={async () => { try { if (demo || guest) await exportSheet(fields.map(f => f.label), [fields.map(f => cellText(f.default_value))], 'loomdesk-template.xlsx'); else await download(`${workflowPath(listing)}/workbook`, 'loomdesk-template.xlsx'); } catch (e) { setLocalError((e as Error).message); } }}><Download size={17} />{t("下载模板")}</button><button className="button small" disabled={locked || !selectedRows.length} onClick={() => { setBulkKey(fields[0].key); setBulkValue(''); setAssetUpload(null); setBulkOpen(true); }}><Pencil size={16} />{t('批量修改')}</button><button className="button small precision-add" disabled={locked || rows.length >= 2000} onClick={addTask}><Plus size={18} />{t('添加任务')}</button><button className="button small primary precision-run" disabled={locked} onClick={onQuote}>{busy && <LoaderCircle className="spin" size={17} />}{t('校验并预估费用')}<ArrowRight size={17} /></button><input type="file" ref={input} className="sr-only" accept=".xlsx,.csv,.tsv" aria-label={t("导入 Excel 或 CSV")} onChange={e => importFile(e.target.files?.[0])} /></div></div>
       <p className="mobile-table-hint">{t('每张卡片是一项任务，按字段逐项填写。')}</p>
-      <div className="table-scroll editor-scroll"><table className="task-table"><thead><tr><th className="row-number">#</th>{fields.map(f => <th key={f.key}><span>{skillText(f.label)}{f.required && <em> *</em>}</span><small>{f.value_type.includes('asset_ref') ? t("附件 / 链接") : f.enum_values ? t("下拉选择") : f.value_type === 'boolean' ? t("是 / 否") : t("输入内容")}</small></th>)}<th className="row-actions">{t("操作")}</th></tr></thead><tbody>{rows.map((row, i) => <tr key={rowId(row)} className={activeMobileRow === row ? 'mobile-row-open' : undefined}><td className="row-number"><span className="desktop-row-number">{String(i + 1).padStart(2, '0')}</span><button type="button" className="mobile-row-toggle" aria-expanded={activeMobileRow === row} onClick={() => setMobileOpenRow(rowId(row))}><span>{t('任务')} {String(i + 1).padStart(2, '0')}</span><ChevronDown size={16} aria-hidden="true" /></button></td>{fields.map((f, j) => <td key={f.key} data-field-label={`${skillText(f.label)}${f.required ? ' *' : ''}`}>
-        {f.value_type.includes('asset_ref') ? <AssetInput localDraft={guest} field={f} value={row[f.key]} rowNumber={i + 1} disabled={locked} previews={previews} upload={assetUpload?.rowId === rowId(row) && assetUpload.key === f.key ? assetUpload : undefined} onCancelUpload={() => uploadController.current?.abort()} onChange={value => { setAssetUpload(null); change(i, f.key, value); }} onUpload={file => attach(file, i, f.key, f.value_type.endsWith('[]'))} onPaste={e => paste(e, i, j)} /> : f.enum_values?.length || f.value_type === 'boolean' ? <select aria-label={t("第 {0} 行 {1}", i + 1, skillText(f.label))} disabled={locked} value={cellText(row[f.key])} onChange={e => change(i, f.key, e.target.value)}><option value="">{f.default_value != null ? t("默认：{0}", skillText(cellText(f.default_value))) : f.required ? t("请选择") : t("可选")}</option>{(f.enum_values || [true, false]).map((v, n) => <option key={n} value={cellText(v)}>{f.value_type === 'boolean' ? (v ? t("是") : t("否")) : skillText(cellText(v))}</option>)}</select> : <textarea rows={2} aria-label={t("第 {0} 行 {1}", i + 1, skillText(f.label))} disabled={locked} value={cellText(row[f.key])} placeholder={skillText(f.presentation?.hint || f.presentation?.placeholder || '') || (f.default_value != null ? t("默认：{0}", skillText(cellText(f.default_value))) : f.required ? t("填写{0}", skillText(f.label)) : t("可选"))} onPaste={e => paste(e, i, j)} onChange={e => change(i, f.key, e.target.value)} />}
-      </td>)}<td className="row-actions"><button className="icon-button" aria-label={t("复制第 {0} 行", i + 1)} disabled={locked} onClick={() => { const copy = { ...row }; setMobileOpenRow(rowId(copy)); setRows([...rows.slice(0, i + 1), copy, ...rows.slice(i + 1)]); }}><Copy size={15} /></button><button className="icon-button" aria-label={t("删除第 {0} 行", i + 1)} disabled={locked || rows.length <= 1} onClick={() => setRows(rows.filter((_, n) => n !== i))}><Trash2 size={15} /></button></td></tr>)}</tbody></table></div>
-      <div className="table-bottom"><button className="text-button" disabled={locked} onClick={() => { const row = emptyRow(fields); setMobileOpenRow(rowId(row)); setRows([...rows, row]); }}><Plus size={16} />{t("添加任务")}</button>{schema.sample_rows?.length ? <button className="text-button muted" disabled={locked} onClick={() => { if (rows.some(r => !isBlankRow(r, fields)) && !window.confirm(t("用工作流示例替换当前表格？"))) return; setRows(schema.sample_rows!.map(r => ({ ...emptyRow(fields), ...localizePublicExample(locale, r, fields) }))); }}>{t("填入示例")}</button> : null}<span>{t("支持从 Excel 复制多格粘贴 · 空白行自动忽略")}</span></div>
-    </section>
+      <div className="table-scroll editor-scroll"><table className="task-table precision-table"><colgroup><col style={{ width: 68 }} />{fields.map(field => { const share = weights[fieldKind(field)] / totalWeight; return <col key={field.key} style={{ width: `calc(${share * 100}% - ${share * 180}px)` }} />; })}<col style={{ width: 112 }} /></colgroup><thead><tr><th className="row-number"><div className="precision-rowhead"><SelectAll selected={selectedRows.length} total={rows.length} disabled={locked} label={t('全选任务行')} onChange={selectAll} /></div></th>{fields.map(field => { const Icon = icons[fieldRole(field)]; return <th key={field.key}><span className="precision-column" title={fieldRole(field) === 'ratio' ? t('宽高比决定画面形状，例如 1:1、16:9。') : fieldRole(field) === 'dimensions' ? t('输出尺寸决定像素数量，例如 2048×2048。') : undefined}><Icon size={18} aria-hidden="true" />{skillText(field.label)}{field.required && <em>*</em>}</span></th>; })}<th className="row-actions">{t('操作')}</th></tr></thead><tbody>{rows.map((row, i) => <tr key={rowId(row)} id={`task-row-${rowId(row)}`} className={`${activeMobileRow === row ? 'mobile-row-open ' : ''}${selected.has(rowId(row)) ? 'precision-selected ' : ''}${expandedRow === rowId(row) ? 'precision-expanded' : ''}`}><td className="row-number"><div className="precision-rowhead"><input type="checkbox" aria-label={t('选择任务 {0}', i + 1)} disabled={locked} checked={selected.has(rowId(row))} onChange={event => setSelected(current => { const next = new Set(current); if (event.target.checked) next.add(rowId(row)); else next.delete(rowId(row)); return next; })} /><span className="desktop-row-number">{String(i + 1).padStart(2, '0')}</span><button type="button" className="mobile-row-toggle" aria-expanded={activeMobileRow === row} onClick={() => setMobileOpenRow(rowId(row))}><span>{t('任务')} {String(i + 1).padStart(2, '0')}</span><ChevronDown size={16} /></button></div></td>{fields.map((field, column) => <td key={field.key} className={`precision-cell-${fieldKind(field)}`} data-field-label={`${skillText(field.label)}${field.required ? ' *' : ''}`} onPaste={event => { if (!event.defaultPrevented) paste(event, i, column); }}>{fieldInput(field, i)}{expandedRow === rowId(row) && field.description && <small className="precision-field-help">{skillText(field.description)}</small>}</td>)}<td className="row-actions"><button className="icon-button precision-expand" aria-label={t('展开任务 {0}', i + 1)} aria-expanded={expandedRow === rowId(row)} aria-controls={`task-row-${rowId(row)}`} disabled={locked} onClick={() => setExpandedRow(current => current === rowId(row) ? null : rowId(row))}><ChevronDown size={17} /></button><button className="icon-button" aria-label={t('复制第 {0} 行', i + 1)} title={t('复制第 {0} 行', i + 1)} disabled={locked || rows.length >= 2000} onClick={() => { const copy = { ...row }; setMobileOpenRow(rowId(copy)); setRows([...rows.slice(0, i + 1), copy, ...rows.slice(i + 1)]); }}><Copy size={17} /></button><button className="icon-button" aria-label={t('删除第 {0} 行', i + 1)} title={t('删除第 {0} 行', i + 1)} disabled={locked || rows.length <= 1} onClick={() => setRows(rows.filter((_, index) => index !== i))}><Trash2 size={17} /></button></td></tr>)}</tbody></table></div>
+      <div className="table-bottom"><button type="button" className="button small precision-add" disabled={locked || rows.length >= 2000} onClick={addTask}><Plus size={18} aria-hidden="true" />{t('添加任务')}</button></div>
     {uploading && !uploadController.current && <p className="notice"><LoaderCircle className="spin" size={16} />{t("正在处理文件…")}</p>}
     {(localError || errors.length > 0) && <div className="error-list" role="alert">{localError && <p>{t(localError)}</p>}{errors.map((e, i) => <p key={i}>{t(e.replace(/「([^」]+)」/g, (_, label) => `「${skillText(label)}」`))}</p>)}</div>}
-    <div className="execute-bar"><div><strong>{taskCount} {t(" 个已填任务，确认 Token 消耗费用后运行")}</strong><p>{t("先查看预计费用，确认后才会使用你的胜算云余额。")}</p>{showBalance && <div className="skill-execution-balance"><span>{t("可用余额")}</span><strong>{balance ? t(money(balance.availableBalanceT, balance.currency)) : t("读取中…")}</strong><span>{t("费用由")}<LocalizedAnchor href="https://www.shengsuanyun.com/?from=Zoey" target="_blank" rel="noopener noreferrer">{t("胜算云")}</LocalizedAnchor>{t("直接结算")}</span></div>}</div><button className="button primary" disabled={locked} onClick={onQuote}>{busy ? <LoaderCircle className="spin" size={17} /> : null}{t("校验并预估费用")}<ArrowRight size={17} /></button></div>
-    {!demo && <SkillGuide listing={listing} schema={schema} />}
-    {sheets && <ImportDialog sheets={sheets} fields={fields} onClose={() => setSheets(null)} onImport={imported => { setRows(imported); setSheets(null); setLocalError(''); }} />}
-  </>;
+    </section>
+    {bulkOpen && bulkField && <Modal title={t('批量修改')} locked={locked} onClose={() => setBulkOpen(false)}><div className="precision-bulk"><p>{t('仅修改已选的 {0} 项任务，其他字段保持原值。', selectedRows.length)}</p><div className="precision-bulk-field"><span>{t('选择字段')}</span><AppSelect label={t('选择字段')} disabled={locked} value={bulkField.key} onChange={value => { setBulkKey(value); setBulkValue(''); setAssetUpload(null); }} options={fields.map(field => ({ value: field.key, label: skillText(field.label) }))} /></div><div className="precision-bulk-value">{fieldKind(bulkField) === 'asset' ? <AssetInput key={bulkField.key} localDraft={guest} field={bulkField} value={bulkValue} rowNumber={1} disabled={locked} previews={previews} upload={assetUpload?.rowId === -1 && assetUpload.key === bulkField.key ? assetUpload : undefined} onCancelUpload={() => uploadController.current?.abort()} onChange={setBulkValue} onUpload={file => attach(file, null, bulkField.key, bulkField.value_type.endsWith('[]'))} onPaste={() => {}} /> : <TaskFieldInput key={bulkField.key} field={bulkField} value={bulkValue} label={t('批量填写{0}', skillText(bulkField.label))} expanded disabled={locked} onChange={setBulkValue} />}</div><button className="button primary" disabled={locked || !selectedRows.length} onClick={() => { setRows(rows.map(row => selected.has(rowId(row)) ? changedRow(row, { [bulkField.key]: bulkValue }) : row)); setBulkOpen(false); }}>{t('应用到 {0} 项任务', selectedRows.length)}<ArrowRight size={16} /></button></div></Modal>}
+    {sheets && <ImportDialog sheets={sheets} fields={fields} onClose={() => setSheets(null)} onImport={imported => { replaceRows(imported); setSheets(null); }} />}
+  </div>;
 }

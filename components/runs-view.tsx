@@ -8,6 +8,8 @@ import { RUNS_PAGE_SIZE, RUN_STATUS_OPTIONS, localDateBounds, localDateString as
 import { runCost } from '@/lib/run-cost';
 import { runName } from '@/lib/run-name';
 import { statusLabel } from '@/lib/domain';
+import { useHistorySnapshot } from './use-history-snapshot';
+import AppSelect from './app-select';
 
 type Props = { active: boolean; api: (path: string, options?: RequestInit) => Promise<any>; refreshKey: number; onNew: () => void; onResult: (id: string) => void };
 export default function RunsView({ active, api, refreshKey, onNew, onResult }: Props) {
@@ -17,6 +19,10 @@ export default function RunsView({ active, api, refreshKey, onNew, onResult }: P
   const [filterQuery, setFilterQuery] = useState(''), [revision, setRevision] = useState(0), [retry, setRetry] = useState(0);
   const [page, setPage] = useState(0), [pages, setPages] = useState<RunsPage[]>([]);
   const [loading, setLoading] = useState(true), [error, setError] = useState(''), [filterError, setFilterError] = useState('');
+  const restored = useHistorySnapshot('loomskillRuns', { keyword, status, range, start, end, filterQuery, page }, saved => {
+    setKeyword(saved.keyword); setStatus(saved.status); setRange(saved.range);
+    setStart(saved.start); setEnd(saved.end); setFilterQuery(saved.filterQuery); setPage(saved.page);
+  });
   const scrollAfterLoad = useRef(false);
   const [currentDay, setCurrentDay] = useState(() => dateString(new Date()));
   useEffect(() => {
@@ -41,18 +47,24 @@ export default function RunsView({ active, api, refreshKey, onNew, onResult }: P
   const totalCount = directPaging ? (pages[page]?.totalCount ?? pages.find(p => p?.totalCount != null)?.totalCount) : undefined;
   const pageCount = totalCount != null ? Math.max(1, Math.ceil(totalCount / RUNS_PAGE_SIZE)) : Math.max(1, pages.length);
   const canJumpLast = totalCount != null || (pages.length > 0 && !!pages.at(-1) && !pages.at(-1)?.nextPageToken);
-  const currentPager = useRef(pager);
+  const currentPager = useRef<typeof pager | null>(null);
   useEffect(() => {
-    if (!active) return;
+    if (!active || !restored) return;
     if (currentPager.current !== pager) {
+      const changed = currentPager.current !== null;
       currentPager.current = pager; setPages([]);
-      if (page !== 0) { setPage(0); return; }
+      if (changed && page !== 0) { setPage(0); return; }
     }
     let alive = true; const controller = new AbortController(); setLoading(true); setError('');
-    pager.load(page, controller.signal).then(() => { if (alive) setPages([...pager.pages]); })
+    async function load() {
+      // Search pages need their preceding cursors when restored after a return.
+      if (!directPaging) for (let index = 0; index < page; index++) await pager.load(index, controller.signal);
+      return pager.load(page, controller.signal);
+    }
+    load().then(() => { if (alive) setPages([...pager.pages]); })
       .catch(e => { if (alive) setError(e.message); }).finally(() => { if (alive) setLoading(false); });
     return () => { alive = false; controller.abort(); };
-  }, [active, pager, page, retry]);
+  }, [active, restored, pager, page, retry]);
   useEffect(() => {
     if (active && !loading && !error && scrollAfterLoad.current) {
       scrollAfterLoad.current = false; document.getElementById('runs-panel')?.scrollIntoView({ block: 'start' });
@@ -86,13 +98,13 @@ export default function RunsView({ active, api, refreshKey, onNew, onResult }: P
   const current = pages[page], runs = current?.items || [];
   const filtered = !!filterQuery;
   return <>
-    <div className="page-heading"><div><div className="eyebrow">MY RUNS</div><h1>{t("我的任务")}</h1></div></div>
+    <div className="page-heading"><div><h1>{t("我的任务")}</h1></div></div>
     <section className="editor-card runs-panel" id="runs-panel">
       <div className="table-toolbar"><div><ListChecks size={20} /><strong>{t("运行记录")}</strong></div><button type="button" className="button small" disabled={loading} onClick={() => apply()}><RefreshCw size={16} />{t("刷新任务")}</button></div>
       <form className="runs-filters" onSubmit={e => { e.preventDefault(); apply(); }}>
         <label className="runs-search"><Search size={16} /><input aria-label={t("搜索任务名称或编号")} maxLength={200} value={keyword} onChange={e => setKeyword(e.target.value)} placeholder={t("搜索工作流名称或任务编号…")} /></label>
-        <select aria-label={t("任务状态")} value={status} onChange={e => { setStatus(e.target.value); apply(e.target.value); }}>{RUN_STATUS_OPTIONS.map(([value, label]) => <option key={value} value={value}>{t(label)}</option>)}</select>
-        <select aria-label={t("提交时间范围")} value={range} onChange={e => { setRange(e.target.value); apply(status, e.target.value); }}><option value="all">{t("全部时间")}</option><option value="1">{t("今天（{0}）", currentDay)}</option><option value="7">{t("近 7 天")}</option><option value="30">{t("近 30 天")}</option><option value="custom">{t("自定义日期")}</option></select>
+        <AppSelect label={t("任务状态")} value={status} onChange={value => { setStatus(value); apply(value); }} options={RUN_STATUS_OPTIONS.map(([value, label]) => ({ value, label: t(label) }))} />
+        <AppSelect label={t("提交时间范围")} value={range} onChange={value => { setRange(value); apply(status, value); }} options={[{ value: 'all', label: t("全部时间") }, { value: '1', label: t("今天（{0}）", currentDay) }, { value: '7', label: t("近 7 天") }, { value: '30', label: t("近 30 天") }, { value: 'custom', label: t("自定义日期") }]} />
         <button className="button small primary" type="submit">{t("搜索")}</button>
         {(keyword || status || range !== 'all') && <button className="text-button runs-reset" type="button" onClick={reset}>{t("重置")}</button>}
         {range === 'custom' && <div className="runs-date-range"><label>{t("开始日期")}<input type="date" aria-label={t("开始日期")} value={start} max={end || undefined} onChange={e => { setStart(e.target.value); apply(status, range, e.target.value, end); }} /></label><span>{t("至")}</span><label>{t("结束日期")}<input type="date" aria-label={t("结束日期")} value={end} min={start || undefined} onChange={e => { setEnd(e.target.value); apply(status, range, start, e.target.value); }} /></label><small>{t("按本地时间，包含结束日期当天")}</small></div>}

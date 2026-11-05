@@ -107,10 +107,14 @@ export default function AccountMenu({ connected, ready = true, busy = false, onC
   return <div className="account-menu" ref={root} onBlur={event => {
     if (event.relatedTarget && !event.currentTarget.contains(event.relatedTarget as Node) && !ending) setOpen(false);
   }}>
-    {isConnected ? <button ref={trigger} type="button" className={`account-trigger${open ? ' is-open' : ''}`} disabled={busy || ending} aria-haspopup="dialog" aria-expanded={open} aria-controls={id} onClick={() => setOpen(value => !value)}>
-      <UserRound size={16} aria-hidden="true" /><span className="account-trigger-label">{t('账户')}</span><ChevronDown className="account-trigger-chevron" size={14} aria-hidden="true" />
-    </button> : <button type="button" className="account-trigger" disabled={!isReady || busy || ending} onClick={connect}>
-      {!isReady ? <LoaderCircle size={15} className="spin" /> : <KeyRound size={15} />}<span className="account-trigger-label">{t('连接 API Key')}</span>
+    {isConnected ? <button ref={trigger} type="button" className={`account-trigger border-magic${open ? ' is-open' : ''}`} disabled={busy || ending} aria-haspopup="dialog" aria-expanded={open} aria-controls={id} onClick={() => setOpen(value => !value)}>
+      <span className="account-trigger-content">
+        <UserRound size={16} aria-hidden="true" /><span className="account-trigger-label">{t('账户')}</span><ChevronDown className="account-trigger-chevron" size={14} aria-hidden="true" />
+      </span>
+    </button> : <button type="button" className="account-trigger border-magic" disabled={!isReady || busy || ending} onClick={connect}>
+      <span className="account-trigger-content">
+        {!isReady ? <LoaderCircle size={15} className="spin" aria-hidden="true" /> : <KeyRound size={15} aria-hidden="true" />}<span className="account-trigger-label">{t('连接 API Key')}</span>
+      </span>
     </button>}
     {open && isConnected && <div ref={panel} id={id} className="account-panel" role="dialog" aria-label={t('账户')} tabIndex={-1}>
       <div className="account-panel-heading"><strong>{t('账户')}</strong><span><i />{t('API Key 已连接')}</span></div>

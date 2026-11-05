@@ -1,0 +1,41 @@
+/* HeroUI Select behavior with LoomSkill's translucent glass field styling. */
+.app-select { display:flex; flex-direction:column; width:100%; min-width:0; }
+.app-select .app-select-trigger { display:flex; align-items:center; gap:9px; width:100%; min-width:0; min-height:42px; padding:9px 11px; border:1px solid var(--border-neutral); border-radius:10px; background:var(--surface-control); color:var(--text-primary); box-shadow:0 1px 3px color-mix(in srgb,var(--shadow-color) 1.96%,transparent); text-align:left; font:400 14px/1.55 var(--font-sans); cursor:pointer; outline:none; }
+.app-select .app-select-trigger[data-hovered='true'] { border-color:var(--border-neutral); background:var(--surface-tint); }
+.app-select .app-select-trigger[data-focus-visible='true'],.app-select .app-select-trigger:focus-visible,.app-select .app-select-trigger[aria-expanded='true'] { border-color:var(--brand-border); box-shadow:0 0 0 3px color-mix(in srgb,var(--shadow-color) 10.2%,transparent); outline:none; }
+.app-select[data-disabled='true'] .app-select-trigger,.app-select .app-select-trigger[disabled] { cursor:not-allowed; opacity:.5; }
+.app-select-icon { display:inline-flex; flex-shrink:0; color:var(--text-muted); }
+.app-select .app-select-value { display:block; flex:1; min-width:0; overflow:hidden; color:inherit; text-overflow:ellipsis; white-space:nowrap; }
+.app-select .app-select-value.is-placeholder { color:var(--text-muted); }
+.app-select-value [data-slot='list-box-item-indicator'] { display:none; }
+.app-select .app-select-indicator { display:inline-flex; align-items:center; justify-content:center; flex-shrink:0; width:16px; height:16px; color:var(--text-muted); transition:transform .15s; }
+.app-select .app-select-indicator[data-open='true'] { transform:rotate(180deg); }
+.app-select .app-select-clear { display:inline-flex; align-items:center; justify-content:center; flex-shrink:0; width:20px; height:20px; border-radius:5px; color:var(--text-muted); }
+.app-select .app-select-clear:hover { background:var(--surface-tint); color:var(--brand-purple); }
+.app-select-popover { width:var(--trigger-width); min-width:var(--trigger-width); max-width:calc(100vw - 24px); max-height:360px; overflow:auto; padding:5px; border:1px solid var(--border-neutral); border-radius:14px; background:var(--surface-popover); color:var(--text-primary); box-shadow:var(--glass-shadow); font:400 14px/1.5 var(--font-sans); outline:none; scrollbar-width:thin; scrollbar-color:#d9d2e8 transparent; border-color:var(--glass-border); -webkit-backdrop-filter:blur(20px) saturate(160%); backdrop-filter:blur(20px) saturate(160%); }
+.app-select-popover[data-entering] { animation:app-select-enter .12s ease-out; }
+.app-select-list { width:100%; padding:0; outline:none; }
+.app-select-item { display:flex; align-items:center; gap:14px; min-height:36px; margin:2px 0; padding:8px 10px; border-radius:9px; color:var(--text-primary); cursor:pointer; outline:none; }
+.app-select-item[data-selected='true'] { background:var(--brand-soft); color:var(--brand-purple); }
+.app-select-item[data-focused='true'],.app-select-item[data-hovered='true'] { background:var(--brand-soft); color:var(--text-muted); }
+.app-select-item[data-disabled='true'] { opacity:.4; cursor:not-allowed; }
+.app-select-item-label { flex:1; min-width:0; overflow-wrap:anywhere; white-space:normal; }
+.app-select-item-indicator { display:flex; align-items:center; justify-content:center; flex-shrink:0; color:var(--brand-purple); visibility:hidden; }
+.app-select-item-indicator[data-visible='true'] { visibility:visible; }
+.precision-editor .app-select-trigger { min-height:42px; border-radius:8px; }
+.field-label>.app-select { margin-top:8px; }
+.runs-filters>.app-select { width:auto; min-width:140px; max-width:220px; }
+.runs-filters .app-select-trigger { min-height:38px; font-size:12px; }
+.example-controls>.app-select { min-width:120px; max-width:250px; }
+.example-controls .app-select-trigger { min-height:30px; padding:5px 9px; font-size:11px; border-radius:7px; }
+@media(max-width:760px) {
+  .app-select .app-select-trigger { min-height:44px; }
+  .precision-editor .app-select-trigger,.precision-bulk .app-select-trigger,.runs-filters .app-select-trigger { font-size:16px; }
+  .runs-filters>.app-select { flex:1; min-width:0; max-width:none; }
+  .market-category-select>.app-select { flex:1; min-width:0; max-width:160px; }
+  .market-category-select .app-select-trigger { padding:9px; border-radius:12px; font-size:13px; }
+  .studio-workspace .workflow-examples:not(.examples-expanded) .example-controls>.app-select { display:none; }
+}
+@media(max-width:360px) { .market-category-select>.app-select { max-width:none; } }
+@keyframes app-select-enter { from { opacity:0; transform:translateY(-3px); } to { opacity:1; transform:translateY(0); } }
+@media(prefers-reduced-motion:reduce) { .app-select-popover[data-entering] { animation:none; } .app-select .app-select-indicator { transition:none; } }

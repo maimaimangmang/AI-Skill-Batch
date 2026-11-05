@@ -25,6 +25,6 @@ export default function SkillUseCase({ category, skills, representative, schema 
       <Link className="public-button primary" href={skillPath(representative.id)}>{t('打开工作流，填写自己的任务')}<ArrowRight size={17} /></Link><p className="use-case-source">{t('可以先填写任务；连接胜算云 API Key 并确认预估费用后才执行。')}</p>
     </section>}
     <section className="public-section" id="workflows"><div className="public-section-heading"><h2>{t('选择适合的工作流')}</h2><Link href={`/skills?category=${category.id}`}>{t('查看这一类的全部 Skill')}<ArrowRight size={17} /></Link></div><SkillCards skills={skills} /></section>
-    <section className="use-case-boundary"><h2>{t('选择前请确认')}</h2><p>{t(category.boundary)}</p>{category.id === 'images' && <p><Link href="/ai-product-photography">{t('查看商品图完整教程')}</Link> · <Link href="/batch-image-generation">{t('了解批量生图')}</Link></p>}<Link href="/skills">{t('继续浏览其他用途')}<ArrowRight size={15} /></Link></section>
+    <section className="use-case-boundary"><h2>{t('选择前请确认')}</h2><p>{t(category.boundary)}</p>{category.id === 'images' && <p><Link href="/batch-image-generation">{t('了解批量生图')}</Link></p>}<Link href="/skills">{t('继续浏览其他用途')}<ArrowRight size={15} /></Link></section>
   </main></PublicShell>;
 }

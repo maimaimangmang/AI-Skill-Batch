@@ -89,6 +89,15 @@ async function handle(request: NextRequest, context: { params: Promise<{ path: s
         return new Response(data, { headers: { 'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'Content-Disposition': 'attachment; filename="loomdesk-input.xlsx"', 'Cache-Control': 'no-store' } });
       }
       if (route === 'balance') return json(await upstream('users/me/balance', key));
+      if (route === 'artifacts/download') {
+        let url: URL;
+        try { url = new URL(request.nextUrl.searchParams.get('url') || ''); } catch { throw new ApiError('无效的原图地址。'); }
+        // Only relay the artifact store, never an arbitrary client-supplied host.
+        if (url.protocol !== 'https:' || url.hostname !== 'shengsuanyun.oss-cn-shanghai.aliyuncs.com' || url.port || url.username || url.password) throw new ApiError('不支持的原图地址。');
+        const response = await fetch(url.href, { cache: 'no-store', redirect: 'error', signal: AbortSignal.any([request.signal, AbortSignal.timeout(45000)]) });
+        if (!response.ok) throw new ApiError('原图下载失败，请刷新任务结果后重试。', 502);
+        return new Response(response.body, { headers: { 'Content-Type': 'application/octet-stream', 'Content-Disposition': 'attachment', 'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff' } });
+      }
       if (route === 'market') {
         const params = new URLSearchParams(query(request, ['keyword', 'pageToken'], { pageSize: String(MARKET_PAGE_SIZE) }).slice(1));
         const page = request.nextUrl.searchParams.get('page');
