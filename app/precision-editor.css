@@ -1,5 +1,6 @@
 /* Translucent glass worksheet, periwinkle selection, and aligned typed controls. */
 .precision-editor { --pe-ink:var(--text-primary); --pe-muted:var(--text-muted); --pe-line:var(--border-neutral); --pe-accent:var(--brand-purple); color:var(--pe-ink); }
+.precision-editor .precision-sheet .precision-bottom-run { display:none; }
 .main-content:has(>.precision-editor) { padding-top:16px; }
 .precision-heading-copy { min-width:0; }
 .precision-title { display:flex; align-items:flex-start; gap:8px; }
@@ -118,11 +119,17 @@
 }
 
 @media(max-width:760px) {
+  .precision-editor .editor-heading { flex-direction:column; gap:12px; }
+  .precision-editor .precision-heading-copy { width:100%; }
+  .precision-editor .precision-title h1 { min-width:0; overflow-wrap:anywhere; }
   .precision-editor .editor-heading h1 { font-size:24px; }
-  .precision-editor .editor-heading-actions { flex-wrap:wrap; gap:8px; }
+  .precision-editor .editor-heading-actions { display:flex; width:100%; flex-wrap:wrap; gap:8px; }
+  .precision-editor .editor-heading-actions > .agent-install { min-width:0; margin-left:auto; }
   .precision-editor .precision-sheet .table-toolbar { padding:14px; gap:14px; }
   .precision-editor .precision-sheet .toolbar-actions { width:100%; display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; }
-  .precision-editor .precision-sheet .button.small { min-height:43px; font-size:12px; }
+  .precision-editor .precision-sheet .button.small { min-height:44px; font-size:13px; white-space:normal; }
+  .precision-editor .precision-sheet .table-bottom { display:grid; grid-template-columns:minmax(0,1fr); gap:10px; }
+  .precision-editor .precision-sheet .table-bottom .precision-bottom-run { display:flex; width:100%; background:var(--brand-purple); color:white; }
   .precision-editor .mobile-table-hint { display:block; padding:0 14px; color:var(--text-muted); font-size:11px; }
   .precision-editor .precision-sheet .editor-scroll { overflow:visible; }
   .precision-editor .precision-sheet .precision-table { display:block; min-width:0!important; width:100%; table-layout:auto; }
@@ -141,6 +148,8 @@
   .precision-editor .precision-table .row-actions .icon-button { width:44px; height:44px; }
   .precision-editor .precision-sheet .precision-control { min-height:46px; font-size:16px; }
   .precision-editor .asset-input-compact .asset-remove { opacity:1; }
+  .precision-editor .asset-input-compact .asset-link-toggle,.precision-editor .asset-input-compact .asset-replace { min-height:44px; min-width:44px; }
+  .precision-editor .asset-input-compact .asset-link-toggle svg { width:16px; height:16px; }
   .precision-bulk { padding:18px; }
   .precision-bulk .precision-control { font-size:16px; }
 }

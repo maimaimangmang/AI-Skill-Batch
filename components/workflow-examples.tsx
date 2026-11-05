@@ -39,7 +39,7 @@ export default function WorkflowExamples({ listing, schema, demo = false, disabl
   return <section className={`workflow-panel workflow-examples${expanded ? ' examples-expanded' : ''}`} aria-labelledby={titleId}>
     <div className="workflow-panel-heading examples-header"><div className="workflow-panel-title"><BookOpen size={18} aria-hidden="true" /><h2 id={titleId}>{title}</h2>{!trialOutput && <span className="count">{demo ? t("演示内容") : t("公开示例")}</span>}</div>
       <div className="example-controls">
-        {samples.length > 1 && !trialOutput && <AppSelect label={t("选择示例")} value={String(selectedIndex)} onChange={value => { setSelected(Number(value)); setExpanded(true); }} options={samples.map((sample, index) => ({ value: String(index), label: skillText(sample.label) }))} />}
+        {samples.length > 1 && <AppSelect label={t("选择示例")} value={String(selectedIndex)} onChange={value => { setSelected(Number(value)); setExpanded(true); }} options={samples.map((sample, index) => ({ value: String(index), label: skillText(sample.label) }))} />}
         {row && onUse && <button type="button" className="example-use" title={trialOutput ? t("填入语言与复刻要求；请自行上传参考图和产品图") : t("只填入表格，确认费用后才执行")} disabled={disabled} onClick={() => onUse(row)}><ArrowDownToLine size={14} aria-hidden="true" />{trialOutput ? t("填入文字") : t("填入示例")}</button>}
         <button type="button" className="example-expand" aria-expanded={expanded} aria-controls={previewId} onClick={() => setExpanded(value => !value)}>{expanded ? t("收起") : t("展开示例")}<ChevronDown size={14} aria-hidden="true" /></button>
       </div>

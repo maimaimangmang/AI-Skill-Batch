@@ -71,7 +71,7 @@ try {
   const detail = await read('/skills/text-to-image');
   assert.equal(detail.status, 200);
   const html = await detail.text();
-  for (const text of ['图片提示词', '任务表', '需要准备什么', '生成说明', '继续探索', '校验并预估费用']) assert.ok(html.includes(text), `Missing SSR content: ${text}`);
+  for (const text of ['图片提示词', '任务表', '填写说明与工作流信息', '需要准备什么', '生成说明', '校验并预估费用']) assert.ok(html.includes(text), `Missing SSR content: ${text}`);
   assert.match(html, /rel="canonical" href="https:\/\/loomskill.com\/skills\/text-to-image"/);
   const alias = await read('/skills/text-image-v1');
   assert.equal(alias.status, 308);

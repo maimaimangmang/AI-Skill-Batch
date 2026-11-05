@@ -14,6 +14,7 @@ import '@/app/account-menu.css';
 import '@/app/app-select.css';
 import '@/app/palette.css';
 import '@/app/workflow-panels.css';
+import '@/app/mobile.css';
 import { RetryDraftProvider } from '@/components/retry-draft-provider';
 import { FavoritesProvider } from '@/components/favorites-provider';
 import { FavoritesNotice } from '@/components/favorite-button';

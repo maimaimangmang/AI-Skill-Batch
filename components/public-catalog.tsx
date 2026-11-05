@@ -64,7 +64,7 @@ export function PublicCatalog({ skills, featured, total, page, pages, query, cat
     if (!mobile || !autoplay || hovered || !visible || featured.length < 2) return;
     const timer = window.setInterval(() => {
       if (!document.hidden) setSlide(current => (current + 1) % featured.length);
-    }, 2000);
+    }, 6000);
     return () => window.clearInterval(timer);
   }, [mobile, autoplay, hovered, visible, featured.length, slide]);
   function startSwipe(event: PointerEvent<HTMLDivElement>) {
