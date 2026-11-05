@@ -52,7 +52,7 @@ export default function FeaturedWorkflows({ demo, busy, api, onChoose }: Props) 
       const CategoryIcon = { commerce: Images, image: ImageIcon, text: Type, video: Clapperboard }[entry.cover];
       return <article className={`featured-card${entry.hot ? ' featured-hot' : ''}`} key={entry.url}>
         <div className="featured-category-row">{!demo && listing && <FavoriteButton skill={listing} />}<span className="featured-category"><span className="featured-category-icon"><CategoryIcon size={17} strokeWidth={1.8} aria-hidden="true" /></span>{t(entry.category)}</span>{entry.hot && <span className="featured-hot-badge" role="img" aria-label={t("热门推荐")} title={t("热门推荐")}><Flame size={16} fill="currentColor" aria-hidden="true" /></span>}</div>
-        <h3><LocalizedAnchor href={skillPath(entry.officialTemplateId || entry.listingId!)} target="_blank" rel="noopener noreferrer">{skillText(entry.title)}</LocalizedAnchor></h3>
+        <h3><LocalizedAnchor className="workflow-card-link" href={skillPath(entry.officialTemplateId || entry.listingId!)} target="_blank" rel="noopener noreferrer">{skillText(entry.title)}</LocalizedAnchor></h3>
         <WorkflowAuthor name={listing?.creator?.nickname?.trim() || entry.authorName} />{!demo && listing && <SkillTags skill={listing} />}
         {modelLabel && <span className="featured-model-label" title={t("模型（作者说明）：{0}", skillText(modelLabel))}><Sparkles size={10} aria-hidden="true" />{skillText(modelLabel)}</span>}
         <p>{t(entry.reason)}</p>

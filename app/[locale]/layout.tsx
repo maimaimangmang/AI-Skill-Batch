@@ -11,9 +11,14 @@ import '@/app/language.css';
 import '@/app/favorites.css';
 import '@/app/skill-workspace.css';
 import '@/app/account-menu.css';
+import '@/app/app-select.css';
+import '@/app/palette.css';
+import '@/app/workflow-panels.css';
+import '@/app/mobile.css';
 import { RetryDraftProvider } from '@/components/retry-draft-provider';
 import { FavoritesProvider } from '@/components/favorites-provider';
 import { FavoritesNotice } from '@/components/favorite-button';
+import BackToTop from '@/components/back-to-top';
 const baseMetadata: Metadata = {
   metadataBase: new URL("https://loomskill.com"),
   title: "LoomSkill · AI 批处理工作台",
@@ -27,5 +32,5 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
 export default async function RootLayout({ children, params }: { children: React.ReactNode; params: Promise<{ locale:string }> }) {
   const { locale } = await params;
   if (!isLocale(locale)) notFound();
-  return <html lang={locale}><body><LanguageProvider initialLocale={locale}><FavoritesProvider><RetryDraftProvider>{children}</RetryDraftProvider><FavoritesNotice /></FavoritesProvider></LanguageProvider></body></html>;
+  return <html lang={locale}><body><LanguageProvider initialLocale={locale}><FavoritesProvider><RetryDraftProvider>{children}</RetryDraftProvider><FavoritesNotice /><BackToTop /></FavoritesProvider></LanguageProvider></body></html>;
 }

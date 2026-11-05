@@ -3,6 +3,7 @@ import { marketCategories } from '@/lib/skill-commerce';
 import Link from './localized-link';
 import { useI18n } from './language-provider';
 import { useRouter } from 'next/navigation';
+import AppSelect from './app-select';
 
 export default function MarketCategoryFilter({ active, query, subscriptionsOnly, onChange }: { active?: string; query: string; subscriptionsOnly: boolean; onChange: (target: string, category: string, subscription: boolean) => void }) {
   const { t, href } = useI18n(); const router = useRouter();
@@ -17,7 +18,7 @@ export default function MarketCategoryFilter({ active, query, subscriptionsOnly,
         onNavigate={event => { event.preventDefault(); onChange(target(category.code), category.code, subscriptionsOnly); }}
         aria-current={(active || '') === category.code ? 'page' : undefined}>{t(category.label)}</Link>)}
     </nav>
-    <label className="market-category-select">{t('Skill 分类')}<select value={active || ''} onChange={event => onChange(target(event.target.value), event.target.value, subscriptionsOnly)}>{[{ code: '', label: '全部分类' }, ...marketCategories].map(category => <option key={category.code} value={category.code}>{t(category.label)}</option>)}</select></label>
+    <div className="market-category-select"><span>{t('Skill 分类')}</span><AppSelect label={t('Skill 分类')} value={active || ''} onChange={value => onChange(target(value), value, subscriptionsOnly)} options={[{ code: '', label: '全部分类' }, ...marketCategories].map(category => ({ value: category.code, label: t(category.label) }))} /></div>
     <Link className="subscription-filter" href={target(active || '', !subscriptionsOnly)} scroll={false} prefetch={false}
       onMouseEnter={() => router.prefetch(href(target(active || '', !subscriptionsOnly)))} onFocus={() => router.prefetch(href(target(active || '', !subscriptionsOnly)))}
       onNavigate={event => { event.preventDefault(); onChange(target(active || '', !subscriptionsOnly), active || '', !subscriptionsOnly); }}

@@ -1,7 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" fill="none">
   <defs>
     <linearGradient id="loom" x1="12" y1="8" x2="53" y2="54" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#345BFA"/><stop offset="1" stop-color="#6442E8"/>
+      <stop stop-color="#8A70E8"/><stop offset="1" stop-color="#7158D9"/>
     </linearGradient>
   </defs>
   <g stroke="url(#loom)" stroke-width="6.5" stroke-linecap="round" stroke-linejoin="round">

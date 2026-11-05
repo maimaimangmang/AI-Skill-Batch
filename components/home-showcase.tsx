@@ -3,24 +3,25 @@ import { SkillPrice } from './skill-pricing';
 
 import Link from './localized-link';
 import FavoriteButton from './favorite-button';
-import { useEffect, useRef } from 'react';
-import { ArrowRight, ArrowUpRight, FileText, ImageIcon, Layers } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { ArrowRight, ArrowUpRight, FileText, ImageIcon, Layers, RefreshCw } from 'lucide-react';
 import { useI18n } from './language-provider';
 import { skillPath } from '@/lib/skill-links';
 import { translateSkillCardText } from '@/lib/i18n';
-import { skillStreamOffset } from '@/lib/home-scroll';
 import type { PublicSkill } from '@/lib/public-skills';
+import { useHistorySnapshot } from './use-history-snapshot';
 
 export type HomeSkill = Pick<PublicSkill, 'id' | 'displayName' | 'description' | 'officialTemplateId' | 'taskFixedFeeT' | 'currency' | 'outputType' | 'category' | 'pricing'>;
 
 // Pointer updates stay outside React rendering and are disabled for touch/reduced motion.
 export function useHomeMotion() {
-  const ref = useRef<HTMLElement>(null);
+  const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
     const root = ref.current;
     if (!root) return;
-    const preference = window.matchMedia('(hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference)');
+    const preference = window.matchMedia('(min-width: 761px) and (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference)');
     let active: HTMLElement | null = null;
+    let bounds: DOMRect | null = null;
     let frame = 0;
     function reset() {
       cancelAnimationFrame(frame);
@@ -29,22 +30,22 @@ export function useHomeMotion() {
         active.removeAttribute('data-pointer-active');
       }
       active = null;
+      bounds = null;
     }
     function move(event: PointerEvent) {
       if (!preference.matches || event.pointerType === 'touch') return;
-      const target = (event.target as Element).closest<HTMLElement>('[data-home-motion]');
-      if (target !== active) { reset(); active = target; }
-      if (!active) return;
+      const target = (event.target as Element).closest<HTMLElement>('[data-home-motion], .public-card, .workflow-card, .featured-card, .favorite-card');
+      if (target !== active) { reset(); active = target; bounds = target?.getBoundingClientRect() || null; }
+      if (!active || !bounds) return;
       const surface = active;
-      const bounds = surface.getBoundingClientRect();
       const x = Math.max(0, Math.min(1, (event.clientX - bounds.left) / bounds.width));
       const y = Math.max(0, Math.min(1, (event.clientY - bounds.top) / bounds.height));
       cancelAnimationFrame(frame);
       frame = requestAnimationFrame(() => {
         surface.style.setProperty('--pointer-x', `${x * 100}%`);
         surface.style.setProperty('--pointer-y', `${y * 100}%`);
-        surface.style.setProperty('--tilt-x', `${(0.5 - y) * 5}deg`);
-        surface.style.setProperty('--tilt-y', `${(x - 0.5) * 5}deg`);
+        surface.style.setProperty('--tilt-x', `${(0.5 - y) * 16}deg`);
+        surface.style.setProperty('--tilt-y', `${(x - 0.5) * 16}deg`);
         surface.setAttribute('data-pointer-active', 'true');
       });
     }
@@ -52,57 +53,14 @@ export function useHomeMotion() {
     root.addEventListener('pointerleave', reset);
     preference.addEventListener('change', reset);
     window.addEventListener('blur', reset);
+    window.addEventListener('scroll', reset, { passive: true });
     return () => {
       reset();
       root.removeEventListener('pointermove', move);
       root.removeEventListener('pointerleave', reset);
       preference.removeEventListener('change', reset);
       window.removeEventListener('blur', reset);
-    };
-  }, []);
-  return ref;
-}
-
-// Follow normal page scrolling; never capture the wheel or animate while idle.
-function useSkillScroll() {
-  const ref = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    const stream = ref.current;
-    if (!stream) return;
-    const preference = window.matchMedia('(hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference)');
-    const tracks = [...stream.querySelectorAll<HTMLElement>('.home-stream-track')];
-    let frame = 0;
-    const paint = () => {
-      frame = 0;
-      if (!preference.matches) {
-        tracks.forEach(track => track.style.removeProperty('transform'));
-        return;
-      }
-      const bounds = stream.getBoundingClientRect();
-      // Position is derived from the page, so reversing the wheel reverses exactly.
-      const travel = (window.innerHeight - bounds.top) * 1.15;
-      tracks.forEach((track, index) => {
-        const cycle = track.firstElementChild?.getBoundingClientRect().height || 0;
-        const offset = skillStreamOffset(travel + (index ? 240 : 0), cycle, index ? -1 : 1);
-        track.style.transform = `translate3d(0, ${offset}px, 0)`;
-      });
-    };
-    const schedule = () => {
-      if (!frame) frame = requestAnimationFrame(paint);
-    };
-    const observer = new ResizeObserver(schedule);
-    observer.observe(stream);
-    tracks.forEach(track => { if (track.firstElementChild) observer.observe(track.firstElementChild); });
-    window.addEventListener('scroll', schedule, { passive: true });
-    window.addEventListener('resize', schedule);
-    preference.addEventListener('change', schedule);
-    paint();
-    return () => {
-      cancelAnimationFrame(frame);
-      observer.disconnect();
-      window.removeEventListener('scroll', schedule);
-      window.removeEventListener('resize', schedule);
-      preference.removeEventListener('change', schedule);
+      window.removeEventListener('scroll', reset);
     };
   }, []);
   return ref;
@@ -116,33 +74,28 @@ function SkillIcon({ skill }: { skill: HomeSkill }) {
 export function HomeShowcase({ skills, discovery, total }: { skills: HomeSkill[]; discovery: HomeSkill[]; total: number }) {
   const { locale, t } = useI18n();
   const cardText = (source: string) => translateSkillCardText(locale, source);
-  const streamRef = useSkillScroll();
-  const columns = [discovery.filter((_, i) => i % 2 === 0), discovery.filter((_, i) => i % 2 === 1)].filter(column => column.length);
-  return <section className="public-section home-showcase">
+  const [batch, setBatch] = useState(0);
+  useHistorySnapshot('loomskillShowcase', batch, setBatch);
+  const pool = [...new Map([...skills, ...discovery].map(skill => [skill.id, skill])).values()];
+  const batches = Math.max(1, Math.ceil(pool.length / 12));
+  const currentBatch = batch % batches;
+  const visible = pool.slice(currentBatch * 12, currentBatch * 12 + 12);
+  return <section className="public-section home-showcase" id="skill-showcase">
     <div className="public-section-heading">
-      <div><span className="public-eyebrow">START WITH A SKILL</span><h2>{t('找到适合当前任务的工作流')}</h2><p>{t('选择 Skill → 填写任务 → 云端执行 → 得到结果')}</p></div>
-      <Link href="/skills">{total > 0 ? t('浏览全部 {0} 个 Skill', total) : t('浏览全部 Skill')}<ArrowRight size={17} /></Link>
+      <h2>{t('精选工作流')}</h2>
+      <div className="home-showcase-actions">
+        <button type="button" onClick={() => setBatch(value => value + 1)} disabled={batches === 1} aria-controls="featured-workflows"><RefreshCw key={batch} size={15} aria-hidden="true" />{t('换一批')}</button>
+        <Link href="/skills" aria-label={total > 0 ? t('查看全部 {0} 个 Skill', total) : t('查看全部')}>{t('查看全部')}<ArrowRight size={16} aria-hidden="true" /></Link>
+      </div>
     </div>
-    <div className="home-skill-layout">
-      <div className="home-curated">
-        <div className="home-curated-list">{skills.map(skill => <article className="home-featured-card" data-home-motion key={skill.id}>
+    <span className="sr-only" role="status">{batch > 0 ? t('已切换第 {0} 批工作流', currentBatch + 1) : ''}</span>
+    <div className="home-workflow-batch home-curated-list" id="featured-workflows" key={currentBatch}>
+        {visible.map(skill => <article className="home-featured-card" data-home-motion key={skill.id}>
           <span className="home-skill-icon"><SkillIcon skill={skill} /></span>
-          <div className="home-featured-content"><h3><Link href={skillPath(skill.id)} prefetch={false}>{cardText(skill.displayName)}</Link></h3><p>{cardText(skill.description)}</p>
+          <div className="home-featured-content"><h3><Link className="workflow-card-link" href={skillPath(skill.id)} prefetch={false}>{cardText(skill.displayName)}</Link></h3><p>{cardText(skill.description)}</p>
             <div className="home-featured-footer"><SkillPrice skill={skill} /><Link href={skillPath(skill.id)} prefetch={false} aria-label={t('查看详情：{0}', cardText(skill.displayName))}>{t('探索')}<ArrowUpRight size={14} /></Link></div>
           </div><div className="home-featured-save"><FavoriteButton skill={skill} /></div>
-        </article>)}</div>
-      </div>
-      <div className="home-discovery">
-        <div className="home-skill-stream" ref={streamRef} role="region" aria-label={t('探索更多 Skill')} tabIndex={0}>
-          {columns.map((column, index) => <div className="home-stream-column" key={index}><div className="home-stream-track">
-            {[0, 1].map(copy => <div className="home-stream-group" key={copy} aria-hidden={copy === 1 ? true : undefined}>
-              {column.map(skill => <div className="home-stream-card" key={skill.id}><FavoriteButton skill={skill} tabIndex={copy ? -1 : undefined} /><Link href={skillPath(skill.id)} prefetch={false} tabIndex={copy ? -1 : undefined}>
-                <h3>{cardText(skill.displayName)}</h3><p>{cardText(skill.description) || t('查看输入要求，开始你的下一批创作。')}</p>
-              </Link></div>)}
-            </div>)}
-          </div></div>)}
-        </div>
-      </div>
+        </article>)}
     </div>
   </section>;
 }

@@ -10,7 +10,8 @@ import { marketSettlementPending, runCost, shouldPollRun } from '@/lib/run-cost'
 import { runName } from '@/lib/run-name';
 import ResultTaskCard from './result-task-card';
 import { resultStepLabels } from '@/lib/artifacts';
-export default function Results({ runId, demo, api, onBack, onRetry }: { runId: string; demo: boolean; api: (path: string, options?: RequestInit) => Promise<any>; onBack: () => void; onRetry: (listingId: string, rows: ResultRow[], officialTemplateId?: string) => void }) {
+import BackLink from './back-link';
+export default function Results({ runId, demo, api, onRetry }: { runId: string; demo: boolean; api: (path: string, options?: RequestInit) => Promise<any>; onRetry: (listingId: string, rows: ResultRow[], officialTemplateId?: string) => void }) {
   const { t } = useI18n();
   const [detail, setDetail] = useState<RunDetail | null>(null); const [rows, setRows] = useState<ResultRow[]>([]);
   const [error, setError] = useState(''); const [loading, setLoading] = useState(true); const [tick, setTick] = useState(0); const [pageToken, setPageToken] = useState(''); const [downloading, setDownloading] = useState(false);
@@ -61,8 +62,8 @@ export default function Results({ runId, demo, api, onBack, onRetry }: { runId: 
     } catch (e) { setError((e as Error).message); } finally { setDownloading(false); }
   }
   return <>
-    <button className="back-button" onClick={onBack}><ArrowLeft size={16} />{t("返回我的任务")}</button>
-    <div className="page-heading"><div><div className="eyebrow">RUN RESULTS</div><h1>{runName(run, market)}</h1><p className="mono">{runId}</p></div><div className="toolbar-actions"><button className="button" onClick={() => setTick(t => t + 1)}><RefreshCw size={16} />{t("刷新")}</button><button className="button primary" disabled={!rows.length || downloading} onClick={getDownload}>{downloading ? <LoaderCircle className="spin" size={16} /> : <Download size={16} />}{t("下载结果表格")}</button></div></div>
+    <BackLink className="back-button" fallback="/tasks"><ArrowLeft size={16} />{t("返回上一页")}</BackLink>
+    <div className="page-heading"><div><h1>{runName(run, market)}</h1></div><div className="toolbar-actions"><button className="button" onClick={() => setTick(t => t + 1)}><RefreshCw size={16} />{t("刷新")}</button><button className="button primary" disabled={!rows.length || downloading} onClick={getDownload}>{downloading ? <LoaderCircle className="spin" size={16} /> : <Download size={16} />}{t("下载结果表格")}</button></div></div>
     {error && <p className="error" role="alert">{t(error)}</p>}
     {loading ? <div className="loading"><LoaderCircle className="spin" />{t("正在获取任务结果…")}</div> : run && <>
       <div className="run-summary"><div><span className={`status ${run.status}`}>{t(statusLabel(run.status))}</span><h2>{done} <small>/ {run.totalTasks ?? '—'} {t(" 项任务已结束")}</small></h2><div className="progress" role="progressbar" aria-valuenow={percent} aria-valuemin={0} aria-valuemax={100} aria-label={t("任务进度")}><i style={{ width: `${percent}%` }} /></div><p>{summaryHint}</p></div><div className="run-numbers"><div><strong>{run.completedTasks ?? 0}</strong><span>{t("成功")}</span></div><div><strong>{(run.failedTasks || 0) + (run.cancelledTasks || 0)}</strong><span>{t("失败 / 取消")}</span></div><div><strong>{t(cost?.amount || '')}</strong><span>{t(cost?.label || '费用')}</span></div></div></div>

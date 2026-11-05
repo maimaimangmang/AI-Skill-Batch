@@ -16,12 +16,6 @@ const steps = [
   { title: '在线填表或导入 Excel / CSV', text: '每行对应一项任务，按当前 Skill 的字段填写提示词、产品信息或图片。先用少量任务确认效果，再扩展到整批。' },
   { title: '确认费用并批量执行', text: '连接胜算云 API Key，校验任务并查看预估费用，确认后执行。在“我的任务”查看进度、结果与下载文件。' },
 ];
-const questions = [
-  { title: '批量生图可以导入 Excel 或 CSV 吗？', text: '可以。打开 Skill 的任务表后导入 Excel / CSV，并按该 Skill 的字段要求整理每行数据；也可以直接在线填写。' },
-  { title: '批量生图怎样收费？', text: '费用由所选 Skill 的创作者调用费和模型用量费构成。执行前可查看预估费用，最终金额以实际结算为准。浏览与填写任务表不会直接执行任务。' },
-  { title: '每行任务会生成几张图片？', text: '取决于所选 Skill 和参数。通用文生图、商品图复刻与电商套图的输出不同，请先查看各自的生成说明。' },
-  { title: 'LoomSkill 只能批量生成图片吗？', text: 'LoomSkill 是 Skill 批处理平台，也可以运行文案创作等工作流。你可以在 Skill 目录中选择其他任务类型。' },
-];
 
 export function BatchImagePage() {
   const { t } = useI18n();
@@ -43,8 +37,6 @@ export function BatchImagePage() {
       { src: '/examples/ecommerce-image-remix/product.jpeg', label: '产品原图' },
       { src: '/examples/ecommerce-image-remix/result.png', label: '试跑成品：暖光床头场景中的陶瓷杯' },
     ].map(image => <figure key={image.src}><Image src={image.src} alt={t(image.label)} width={420} height={420} /><figcaption>{t(image.label)}</figcaption></figure>)}</div><Link className="public-button" href="/skills/ecommerce-image-remix">{t('查看案例与输入要求')}<ArrowRight size={16} /></Link></section>
-    <section className="public-section"><div className="scenario-guide-link"><div><h2>{t('主要做电商商品图？')}</h2><p>{t('从真实产品案例开始，了解参考图怎么选、画面要求怎么写，以及批量前要检查什么。')}</p></div><Link className="public-button" href="/ai-product-photography">{t('查看商品图完整教程')}<ArrowRight size={16} /></Link></div></section>
-    <section className="public-section batch-faq"><h2>{t('批量生图常见问题')}</h2>{questions.map(item => <div className="public-detail-section" key={item.title}><h3>{t(item.title)}</h3><p>{t(item.text)}</p></div>)}</section>
     <section className="public-end"><h2>{t('让下一批图片，从任务表开始')}</h2><p>{t('也需要文案或其他批处理？继续探索完整的 Skill 目录。')}</p><Link className="public-button primary" href="/skills">{t('浏览全部 Skill')}<ArrowRight size={18} /></Link></section>
   </main></PublicShell>;
 }

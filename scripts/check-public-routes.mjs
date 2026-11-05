@@ -56,10 +56,22 @@ try {
   const connectionHome = await read('/?connect=1');
   assert.equal(connectionHome.status, 200);
   assert.ok(!(await connectionHome.text()).includes('class="login-page"'));
+  for (const prefix of ['', '/en']) {
+    const home = await read(prefix || '/');
+    const homeBody = (await home.text()).replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, '');
+    assert.equal((homeBody.match(/id="home-faq-title"/g) || []).length, 1, `Home must keep one FAQ: ${prefix || '/'}`);
+    for (const route of ['/skills', '/skills/text-to-image', '/favorites', '/cases', '/batch-image-generation', '/use-cases/images', '/missing-page-check']) {
+      const path = prefix + route;
+      const response = await read(path);
+      assert.equal(response.status, route === '/missing-page-check' ? 404 : 200, path);
+      const body = (await response.text()).replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, '');
+      assert.doesNotMatch(body, /home-faq|batch-faq|\u5e38\u89c1\u95ee\u9898|Common questions|Batch image generation FAQ/, `Only home may show FAQ: ${path}`);
+    }
+  }
   const detail = await read('/skills/text-to-image');
   assert.equal(detail.status, 200);
   const html = await detail.text();
-  for (const text of ['图片提示词', '任务表', '需要准备什么', '生成说明', '常见问题', '继续探索', '校验并预估费用']) assert.ok(html.includes(text), `Missing SSR content: ${text}`);
+  for (const text of ['图片提示词', '任务表', '填写说明与工作流信息', '需要准备什么', '生成说明', '校验并预估费用']) assert.ok(html.includes(text), `Missing SSR content: ${text}`);
   assert.match(html, /rel="canonical" href="https:\/\/loomskill.com\/skills\/text-to-image"/);
   const alias = await read('/skills/text-image-v1');
   assert.equal(alias.status, 308);
@@ -92,7 +104,7 @@ try {
   for (const [path, title] of [
     ['/en', 'Discover and Run AI Skills'], ['/en/skills', 'AI Skill Workflow Directory'],
     ['/en/skills/text-to-image', 'Text to Image'], ['/en/batch-image-generation', 'AI Batch Image Generator'],
-    ['/en/favorites', 'Favorites'], ['/en/ai-product-photography', 'AI Product Photography'],
+    ['/en/favorites', 'Favorites'],
   ]) {
     const response = await read(path);
     assert.equal(response.status, 200, path);
@@ -151,13 +163,9 @@ try {
   for (const prefix of ['', '/en']) {
     const path = `${prefix}/ai-product-photography`;
     const response = await read(path);
-    assert.equal(response.status, 200, path);
-    const body = await response.text();
-    assert.ok(body.includes(`rel="canonical" href="https://loomskill.com${path}"`), path);
-    assert.ok(body.includes(`href="${prefix}/skills/ecommerce-image-remix"`), 'Scenario must lead to the correct localized workflow');
-    assert.ok(body.includes(`href="${prefix}/batch-image-generation#spreadsheet-guide"`), 'Guide must link to batch instructions');
-    assert.ok(xml.includes(`https://loomskill.com${path}</loc>`), 'Scenario missing from sitemap');
-    assert.ok(!(body.includes('name="robots" content="noindex"')), 'Public scenario must be indexable');
+    assert.equal(response.status, 404, path);
+    assert.match(await response.text(), /noindex/, path);
+    assert.ok(!xml.includes(`https://loomskill.com${path}</loc>`), 'Removed tutorial must not appear in sitemap');
   }
   for (const category of ['images', 'video', 'writing', 'presentations']) {
     for (const prefix of ['', '/en']) {

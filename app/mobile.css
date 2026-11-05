@@ -1,0 +1,29 @@
+/* Small screens keep controls inside the viewport and comfortable to touch. */
+@media (max-width: 760px) {
+  .public-site main,.studio-app .main-content { min-width: 0; }
+  body:has(.precision-editor) .back-to-top { display: none; }
+  .public-header .public-brand { min-width: 0; }
+  .public-header .workspace-nav-links { max-width: calc(100vw - 36px); }
+  .studio-market .featured-model-label,.studio-market .model-tag { font-size: 11px; }
+  .market-pagination .pagination-buttons { width: 100%; flex-wrap: wrap; justify-content: center; gap: 6px; }
+  .market-pagination .pagination-buttons :is(button,a) { min-height: 44px; min-width: 40px; }
+  .runs-panel .runs-filters { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); }
+  .runs-panel .runs-search { grid-column: 1 / -1; min-width: 0; }
+  .runs-panel .runs-search input { min-height: 44px; font-size: 16px; }
+  .runs-panel .runs-filters > .app-select { width: 100%; min-width: 0; max-width: none; }
+  .runs-panel .runs-filters > button { min-height: 44px; }
+  .runs-panel .runs-date-range { grid-column: 1 / -1; display: grid; grid-template-columns: minmax(0,1fr) auto minmax(0,1fr); gap: 8px; }
+  .runs-panel .runs-date-range label { display: grid; min-width: 0; gap: 6px; }
+  .runs-panel .runs-date-range input { width: 100%; min-width: 0; }
+  .runs-panel .runs-date-range small { grid-column: 1 / -1; }
+  .runs-panel .run-history-metrics > div { min-width: 0; overflow-wrap: anywhere; }
+  .modal { max-width: calc(100vw - 24px); max-height: calc(100dvh - 24px); }
+  .modal .modal-head { gap: 12px; }
+  .modal .modal-head h2 { min-width: 0; overflow-wrap: anywhere; }
+  .modal .modal-foot { flex-wrap: wrap; padding-bottom: max(16px,env(safe-area-inset-bottom)); }
+  .modal .modal-foot .button { flex: 1 1 120px; min-width: 0; min-height: 44px; white-space: normal; }
+  .modal .field-label input,.modal .agent-prompt,.asset-link-editor textarea { font-size: 16px; }
+  .artifact-image-viewer { padding: 10px; }
+  .artifact-image-viewer img { max-height: calc(65dvh - 20px); }
+  .result-input-fields > div { grid-template-columns: minmax(0,1fr); gap: 3px; }
+}
